@@ -16,7 +16,8 @@
 #define AJ_MIDDLE_CLICK 2
 #define AJ_DOUBLE_CLICK 3
 
-#define AJ_MOUSE_DELAY  200
+#define AJ_MOUSE_DELAY   20
+#define AJ_DOUBLE_DELAY  3
 
 class AjWin
 {
@@ -31,7 +32,6 @@ private:
     long getChildCount(IAccessible *pAcc);
     IAccessible* getActiveWinPAcc();
     IAccessible* getAcc(QString path, IAccessible *pAcc);
-    IAccessible* getAccB(QString path, IAccessible *pAcc);
 
     void listChildren(IAccessible *pAcc, QString path);
 

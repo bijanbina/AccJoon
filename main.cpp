@@ -1,12 +1,15 @@
 #include <iostream>
 #include "aj_win.h"
+#include <objbase.h>
 
 using namespace std;
 
 int main(/*int argc, char *argv[]*/)
 {
-    QString path = "3021011008";//"4132122119
+    QString path = "3021011005";//"4132122119
     QString cmd = "D";
+
+    CoInitialize(NULL);
 
     AjWin *aj_win = new AjWin(path, cmd);
     if( aj_win->setWinSpec()!=0 )

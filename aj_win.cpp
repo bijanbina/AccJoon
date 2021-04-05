@@ -59,19 +59,6 @@ IAccessible* AjWin::getAcc(QString path, IAccessible *pAcc)
             qDebug() <<"path is not correct, index greater than child";
             return NULL;
         }
-
-        if( vtChild.vt==VT_I4 )
-        {
-            qDebug() << "ival: " << vtChild.vt;
-//            get_accChild(vtChild,  );
-        }
-        else if( vtChild.vt==VT_EMPTY )
-        {
-            long obj_x = 0, obj_y = 0, obj_w = 0, obj_h = 0;
-            pAcc->accLocation(&obj_x, &obj_y, &obj_w, &obj_h, vtChild);
-            qDebug() << "Error: " << obj_x  << obj_y << obj_w << obj_h;
-         //   accNavigate(NAVDIR_FIRSTCHILD, vtChild, &varEnd);
-        }
         else if( vtChild.vt==VT_DISPATCH )
         {
 
@@ -92,53 +79,6 @@ IAccessible* AjWin::getAcc(QString path, IAccessible *pAcc)
         return pAcc;
     }
 }
-
-// return Acc specific chilren
-IAccessible* AjWin::getAccB(QString path, IAccessible *pAcc)
-{
-    VARIANT vtChild;
-    if( path.size()>0 )
-    {
-        long childCount = getChildCount(pAcc);
-        long returnCount;
-        VARIANT* pArray = new VARIANT[childCount];
-        AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
-
-        // return if path is not correct
-        for( int i=0 ; i<childCount ; i++)
-        {
-            vtChild = pArray[i];
-
-            qDebug() << QString("--path:") + path + " childCount:" + QString::number(childCount) + " " +
-                     /*getAccName(pAcc, CHILDID_SELF) +*/ " indx:" + QString::number(i) + " " + QString::number(vtChild.vt);
-
-        }
-
-        QString lolo = path.at(0);
-        int indx = lolo.toInt();
-        vtChild = pArray[indx];
-        qDebug() << "00" <<lolo << indx << QString::number(vtChild.vt);
-
-        if( vtChild.vt!=VT_DISPATCH )
-        {
-            qDebug() << "if" << lolo << indx << QString::number(vtChild.vt);
-//            qDebug() << "child is not an Acc, variable type:" << QString::number(vtChild.vt) << indx;
-            return NULL;
-        }
-
-        IDispatch* pDisp = vtChild.pdispVal;
-        IAccessible* pChild = NULL;
-
-        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-
-        return getAccB(path.mid(1), pChild);
-    }
-    else
-    {
-        return pAcc;
-    }
-}
-
 
 void AjWin::listChildren(IAccessible *pAcc, QString path)
 {
@@ -225,7 +165,7 @@ int AjWin::setObjSpec()
 
 //    listChildren(active_win_pAcc, QString(""));
 
-    IAccessible *object_acc = getAccB(path, active_win_pAcc);
+    IAccessible *object_acc = getAcc(path, active_win_pAcc);
     if( object_acc==NULL )
     {
         qDebug() << "Error: cannot get object in window (" << window_title << ")";
@@ -256,7 +196,7 @@ void AjWin::doClick()
 
     SetCursorPos(obj_center_x, obj_center_y);
 
-    Sleep(2000);
+    Sleep(AJ_MOUSE_DELAY);
 
     if( click_type==AJ_LEFT_CLICK )
     {
@@ -277,7 +217,7 @@ void AjWin::doClick()
     {
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-        Sleep(AJ_MOUSE_DELAY);
+        Sleep(AJ_DOUBLE_DELAY);
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     }
@@ -287,7 +227,7 @@ void AjWin::doClick()
         return;
     }
 
-    Sleep(2000);
+    Sleep(AJ_MOUSE_DELAY);
 
     SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
 }
