@@ -1,0 +1,16 @@
+
+.qmake.stash
+
+*.user
+
+AcJoon.pro.user.a3c5fd4
+
+Build/
+
+debug/
+
+Makefile
+
+*.Debug
+
+*.Release
