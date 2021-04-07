@@ -14,3 +14,5 @@ Makefile
 *.Debug
 
 *.Release
+
+release/

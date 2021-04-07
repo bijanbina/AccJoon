@@ -5,7 +5,7 @@ AjWin::AjWin(QString path, QString click_short_name)
     active_window = NULL;
     active_win_pAcc = NULL;
     window_title = "";
-    this->path = path;
+    this->path = path.split('.', Qt::SkipEmptyParts);
     click_type = aj_clickType(click_short_name);
 }
 
@@ -36,10 +36,10 @@ IAccessible* AjWin::getActiveWinPAcc()
 }
 
 // return Acc specific chilren
-IAccessible* AjWin::getAcc(QString path, IAccessible *pAcc)
+IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
 {
     VARIANT vtChild;
-    if( path.size()>0 )
+    if( varpath.size()>0 )
     {
         long childCount = getChildCount(pAcc);
         long returnCount;
@@ -47,10 +47,11 @@ IAccessible* AjWin::getAcc(QString path, IAccessible *pAcc)
 
         AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
 
-        int indx = QString(path.at(0)).toInt();
+        // FIXME: handle error if number
+        int indx = varpath[0].toInt() - 1;
         vtChild = pArray[indx];
 
-        qDebug() << QString("--path:") + path + " childCount:" + QString::number(childCount) + " " +
+        qDebug() << QString("--path:") + varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
                  getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
 
         // return if path is not correct
@@ -66,7 +67,7 @@ IAccessible* AjWin::getAcc(QString path, IAccessible *pAcc)
             IAccessible* pChild = NULL;
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
 
-            return getAcc(path.mid(1), pChild);
+            return getAcc(varpath.mid(1), pChild);
         }
         else
         {
@@ -90,7 +91,7 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
     HRESULT hr = pAcc->get_accChildCount(&childCount);
     VARIANT* pArray = new VARIANT[childCount];
     hr = AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
-    path += QString("/");
+    path += QString(".");
 
     for (int x = 0; x < returnCount; x++)
     {

@@ -31,14 +31,14 @@ private:
     QString getAccName(IAccessible *pAcc, long childId);
     long getChildCount(IAccessible *pAcc);
     IAccessible* getActiveWinPAcc();
-    IAccessible* getAcc(QString path, IAccessible *pAcc);
+    IAccessible* getAcc(QStringList varpath, IAccessible *pAcc);
 
     void listChildren(IAccessible *pAcc, QString path);
 
     HWND active_window;
     IAccessible *active_win_pAcc;
     QString window_title;
-    QString path;
+    QStringList path;
     int click_type;
     int obj_center_y;
     int obj_center_x;

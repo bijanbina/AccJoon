@@ -6,7 +6,7 @@ using namespace std;
 
 int main(/*int argc, char *argv[]*/)
 {
-    QString path = "3021011005";//"4132122119
+    QString path = "4.1.3.2.1.2.2.1.1.1";
     QString cmd = "D";
 
     CoInitialize(NULL);
