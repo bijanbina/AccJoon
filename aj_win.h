@@ -22,7 +22,7 @@
 class AjWin
 {
 public:
-    AjWin(QString path, QString click_short_name);
+    AjWin(QString acc_path, QString cmd, QString accName);
     int setWinSpec();
     int setObjSpec();
     void doClick();
@@ -32,12 +32,14 @@ private:
     long getChildCount(IAccessible *pAcc);
     IAccessible* getActiveWinPAcc();
     IAccessible* getAcc(QStringList varpath, IAccessible *pAcc);
+    IAccessible* getAccName(QString name, IAccessible *pAcc);
 
     void listChildren(IAccessible *pAcc, QString path);
 
     HWND active_window;
     IAccessible *active_win_pAcc;
     QString window_title;
+    QString acc_name;
     QStringList path;
     int click_type;
     int obj_center_y;

@@ -1,12 +1,13 @@
 #include "aj_win.h"
 
-AjWin::AjWin(QString path, QString click_short_name)
+AjWin::AjWin(QString acc_path, QString cmd, QString accName)
 {
     active_window = NULL;
     active_win_pAcc = NULL;
     window_title = "";
-    this->path = path.split('.', Qt::SkipEmptyParts);
-    click_type = aj_clickType(click_short_name);
+    path = acc_path.split('.');
+    click_type = aj_clickType(cmd);
+    acc_name = accName;
 }
 
 QString AjWin::getAccName(IAccessible *pAcc, long childId)
@@ -62,7 +63,6 @@ IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
         }
         else if( vtChild.vt==VT_DISPATCH )
         {
-
             IDispatch* pDisp = vtChild.pdispVal;
             IAccessible* pChild = NULL;
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
@@ -77,7 +77,55 @@ IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
     }
     else
     {
-        return pAcc;
+        if ( acc_name.length() )
+        {
+            return getAccName(acc_name, pAcc);
+        }
+        else
+        {
+            return pAcc;
+        }
+    }
+}
+
+IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
+{
+    VARIANT vtChild;
+
+    long childCount = getChildCount(pAcc);
+    long returnCount;
+    VARIANT* pArray = new VARIANT[childCount];
+
+    AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
+
+    // FIXME: handle error if number
+
+    for( int i=0 ; i<childCount ; i++ )
+    {
+        vtChild = pArray[i];
+
+        if( vtChild.vt==VT_DISPATCH )
+        {
+            IDispatch* pDisp = vtChild.pdispVal;
+            IAccessible* pChild = NULL;
+            pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+            QString child_name = getAccName(pChild, CHILDID_SELF);
+
+            qDebug() << QString("--path:") + name + " childCount:" + QString::number(childCount) + " " +
+                     child_name + " indx:" + QString::number(i) + " " + QString::number(returnCount);
+
+            if ( child_name.contains(name) )
+            {
+                qDebug() << "found the child";
+
+                return pChild;
+            }
+        }
+        else
+        {
+            qDebug() <<"child is not an Acc, variable type:" << vtChild.vt;
+            return NULL;
+        }
     }
 }
 

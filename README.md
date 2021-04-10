@@ -1,11 +1,16 @@
 # AccJoon
-AccJoon is a little tool to exert MSAA library to present a command line interface to interact with any software. If you know the `acc path` of a controller then AccJoon can find the controller for you and run an action on it. Currently, supported actions are listed below. Hope to extend AccJoon capabilities in the near future
+AccJoon is a little tool that exerts MSAA library to present a command line interface to interact with any software. If you know the `acc path` of a controller then AccJoon can find the controller for you and run an action on it. Currently, supported actions are listed below. Hope to extend AccJoon capabilities in the near future
 
 ### Actions
-- Click
-- Double Click
-- Middle Click
-- Right Click
+- Left Click (L)
+- Double Click (D)
+- Middle Click (M)
+- Right Click (R)
+
+### Usage
+`accjoon <acc_path> <action> <child_name>`
+* The last child id can be excluded from the path and pass as a string argument. AccJoon will match the input with the corresponding child
 
 ### Acknowledgment
 Brought to you by only and only DR AKHAVAN! BTW I'm in love with him :)
+`
