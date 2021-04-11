@@ -1,13 +1,16 @@
 #include "aj_win.h"
 
-AjWin::AjWin(QString acc_path, QString cmd, QString accName)
+AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y)
 {
     active_window = NULL;
     active_win_pAcc = NULL;
     window_title = "";
     path = acc_path.split('.');
-    click_type = aj_clickType(cmd);
+    cmd_type = aj_clickType(cmd);
     acc_name = accName;
+
+    offset_x = o_x;
+    offset_y = o_y;
 }
 
 QString AjWin::getAccName(IAccessible *pAcc, long childId)
@@ -52,8 +55,8 @@ IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
         int indx = varpath[0].toInt() - 1;
         vtChild = pArray[indx];
 
-        qDebug() << QString("--path:") + varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
-                 getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
+//        qDebug() << QString("--path:") + varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
+//                 getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
 
         // return if path is not correct
         if(indx > childCount)
@@ -111,13 +114,16 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             QString child_name = getAccName(pChild, CHILDID_SELF);
 
-            qDebug() << QString("--path:") + name + " childCount:" + QString::number(childCount) + " " +
-                     child_name + " indx:" + QString::number(i) + " " + QString::number(returnCount);
+//            qDebug() << QString("--path:") + name + " childCount:" + QString::number(childCount) + " " +
+//                     child_name + " indx:" + QString::number(i) + " " + QString::number(returnCount);
 
             if ( child_name.contains(name) )
             {
-                qDebug() << "found the child";
-
+                //qDebug() << "found the child";
+                if ( cmd_type==AJ_CMD_CHILDID )
+                {
+                    qDebug() << i;
+                }
                 return pChild;
             }
         }
@@ -199,8 +205,8 @@ int AjWin::setWinSpec()
         return -1;
     }
 
-    qDebug() << "Info: Processing window:" << window_title << ", object path:" << path
-             << ", with click:" << aj_click_name(click_type);
+//    qDebug() << "Info: Processing window:" << window_title << ", object path:" << path
+//             << ", with click:" << aj_click_name(cmd_type);
     return 0;
 }
 
@@ -243,32 +249,36 @@ void AjWin::doClick()
 
     GetCursorPos(&cursor_last);
 
-    SetCursorPos(obj_center_x, obj_center_y);
+    SetCursorPos(obj_center_x + offset_x, obj_center_y + offset_y);
 
     Sleep(AJ_MOUSE_DELAY);
 
-    if( click_type==AJ_LEFT_CLICK )
+    if( cmd_type==AJ_CMD_LMB )
     {
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     }
-    else if( click_type==AJ_RIGHT_CLICK )
+    else if( cmd_type==AJ_CMD_RMB )
     {
         mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
     }
-    else if( click_type==AJ_MIDDLE_CLICK )
+    else if( cmd_type==AJ_CMD_MMB )
     {
         mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
     }
-    else if( click_type==AJ_DOUBLE_CLICK )
+    else if( cmd_type==AJ_CMD_DCLICK )
     {
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
         Sleep(AJ_DOUBLE_DELAY);
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    }
+    else if( cmd_type==AJ_CMD_CHILDID )
+    {
+        //Do nothing, Child ID is already printed
     }
     else
     {
@@ -285,19 +295,23 @@ int aj_clickType(QString click_short_name)
 {
     if( click_short_name.compare("L", Qt::CaseInsensitive)==0 )
     {
-        return AJ_LEFT_CLICK;
+        return AJ_CMD_LMB;
     }
     else if( click_short_name.compare("R", Qt::CaseInsensitive)==0 )
     {
-        return AJ_RIGHT_CLICK;
-    }
-    else if( click_short_name.compare("D", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_DOUBLE_CLICK;
+        return AJ_CMD_RMB;
     }
     else if( click_short_name.compare("M", Qt::CaseInsensitive)==0 )
     {
-        return AJ_MIDDLE_CLICK;
+        return AJ_CMD_MMB;
+    }
+    else if( click_short_name.compare("D", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_DCLICK;
+    }
+    else if( click_short_name.compare("C", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_CHILDID;
     }
     else
     {
@@ -306,27 +320,31 @@ int aj_clickType(QString click_short_name)
     }
 }
 
-QString aj_click_name(int click_type)
+QString aj_click_name(int cmd_type)
 {
-    if( click_type==AJ_LEFT_CLICK )
+    if( cmd_type==AJ_CMD_LMB )
     {
         return "left click";
     }
-    else if( click_type==AJ_RIGHT_CLICK )
+    else if( cmd_type==AJ_CMD_RMB )
     {
         return "right click";
     }
-    else if( click_type==AJ_MIDDLE_CLICK )
+    else if( cmd_type==AJ_CMD_MMB )
     {
         return "middle click";
     }
-    else if( click_type==AJ_DOUBLE_CLICK )
+    else if( cmd_type==AJ_CMD_DCLICK )
     {
         return "double click";
     }
+    else if( cmd_type==AJ_CMD_CHILDID )
+    {
+        return "child id";
+    }
     else
     {
-        qDebug() << "Error: click type not found, type:" << click_type;
+        qDebug() << "Error: click type not found, type:" << cmd_type;
         return "";
     }
 }

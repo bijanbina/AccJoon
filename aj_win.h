@@ -11,18 +11,19 @@
 #include <tlhelp32.h> // to get application pid
 #include <tchar.h> // to get application file path
 
-#define AJ_LEFT_CLICK   0
-#define AJ_RIGHT_CLICK  1
-#define AJ_MIDDLE_CLICK 2
-#define AJ_DOUBLE_CLICK 3
+#define AJ_CMD_LMB     0 //Left Mouse Button
+#define AJ_CMD_RMB     1
+#define AJ_CMD_MMB     2
+#define AJ_CMD_DCLICK  3 // Double Click
+#define AJ_CMD_CHILDID 4 // Show Child ID
 
-#define AJ_MOUSE_DELAY   20
+#define AJ_MOUSE_DELAY   10
 #define AJ_DOUBLE_DELAY  3
 
 class AjWin
 {
 public:
-    AjWin(QString acc_path, QString cmd, QString accName);
+    AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y);
     int setWinSpec();
     int setObjSpec();
     void doClick();
@@ -41,13 +42,16 @@ private:
     QString window_title;
     QString acc_name;
     QStringList path;
-    int click_type;
+    int cmd_type;
     int obj_center_y;
     int obj_center_x;
+
+    int offset_x;
+    int offset_y;
     POINT cursor_last;
 };
 
 int aj_clickType(QString click_short_name);
-QString aj_click_name(int click_type);
+QString aj_click_name(int cmd_type);
 
 #endif // AJWIN_H
