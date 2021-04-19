@@ -1,5 +1,7 @@
 #include "aj_win.h"
 
+int acc_debug = 0;
+
 AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y)
 {
     active_window = NULL;
@@ -55,8 +57,11 @@ IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
         int indx = varpath[0].toInt() - 1;
         vtChild = pArray[indx];
 
-//        qDebug() << QString("--path:") + varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
-//                 getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
+        if( acc_debug )
+        {
+            qDebug() << QString("--path:") + varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
+                     getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
+        }
 
         // return if path is not correct
         if(indx > childCount)
@@ -101,7 +106,7 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
 
     AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
 
-    // FIXME: handle error if number
+    //FIXME: handle error if number
 
     for( int i=0 ; i<childCount ; i++ )
     {
@@ -114,8 +119,11 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             QString child_name = getAccName(pChild, CHILDID_SELF);
 
-//            qDebug() << QString("--path:") + name + " childCount:" + QString::number(childCount) + " " +
-//                     child_name + " indx:" + QString::number(i) + " " + QString::number(returnCount);
+            if( acc_debug )
+            {
+                qDebug() << QString("--path:") + name + " childCount:" + QString::number(childCount) + " " +
+                         child_name + " indx:" + QString::number(i) + " " + QString::number(returnCount);
+            }
 
             if ( child_name.contains(name) )
             {
@@ -133,6 +141,9 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
             return NULL;
         }
     }
+
+    qDebug() <<"No child found with name" << name;
+    return NULL;
 }
 
 void AjWin::listChildren(IAccessible *pAcc, QString path)

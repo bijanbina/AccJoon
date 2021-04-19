@@ -1,6 +1,7 @@
 TEMPLATE = app
 
 QT += core
+QT += network
 
 OBJECTS_DIR = ./Build
 MOC_DIR = ./Build
@@ -20,8 +21,10 @@ win32:LIBS += -lKernel32 \
               -lPsapi
 
 SOURCES += \
+        aj_client.cpp \
         aj_win.cpp \
         main.cpp
 
 HEADERS += \
+    aj_client.h \
     aj_win.h
