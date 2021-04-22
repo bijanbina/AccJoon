@@ -23,7 +23,7 @@
 class AjWin
 {
 public:
-    AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y);
+    AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y, int o_id);
     int setWinSpec();
     int setObjSpec();
     void doClick();
@@ -48,6 +48,7 @@ private:
 
     int offset_x;
     int offset_y;
+    int offset_id;
     POINT cursor_last;
 };
 

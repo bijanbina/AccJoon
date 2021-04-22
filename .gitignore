@@ -16,3 +16,5 @@ Makefile
 *.Release
 
 release/
+
+*.autosave

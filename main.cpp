@@ -10,6 +10,36 @@
 
 using namespace std;
 
+
+int aj_clickType(QString click_short_name)
+{
+    if( click_short_name.compare("L", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_LMB;
+    }
+    else if( click_short_name.compare("R", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_RMB;
+    }
+    else if( click_short_name.compare("M", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_MMB;
+    }
+    else if( click_short_name.compare("D", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_DCLICK;
+    }
+    else if( click_short_name.compare("C", Qt::CaseInsensitive)==0 )
+    {
+        return AJ_CMD_CHILDID;
+    }
+    else
+    {
+        qDebug() << "Error: click" << click_short_name << "is not acceptable";
+        return -1;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
@@ -17,16 +47,18 @@ int main(int argc, char *argv[])
 
     int offset_x = 0;
     int offset_y = 0;
+    int offset_id = 0;
 
     if ( argc==1 )
     {
         path = "4.1.3.2.1.2.2.1.1";
-        cmd = "AD";
-        acc_name = "Headers";
+        cmd = "D";
         acc_name = "aj_win.h";
+        acc_name = "Headers";
 
         offset_x = -120;
         offset_y = 0;
+        offset_id = 1;
     }
 
     if ( argc>2 )
@@ -46,6 +78,10 @@ int main(int argc, char *argv[])
     {
         acc_name = argv[5];
     }
+    if ( argc>6 )
+    {
+        offset_id = QString(argv[6]).toInt();;
+    }
 
     CoInitialize(NULL);
 
@@ -64,7 +100,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        AjWin *aj_win = new AjWin(path, cmd, acc_name, offset_x, offset_y);
+        AjWin *aj_win = new AjWin(path, cmd, acc_name, offset_x, offset_y, offset_id);
         if( aj_win->setWinSpec()!=0 )
         {
             Sleep(DEBUG_SLEEP);

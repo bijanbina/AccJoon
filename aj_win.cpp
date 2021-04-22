@@ -2,7 +2,7 @@
 
 int acc_debug = 0;
 
-AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y)
+AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y, int o_id)
 {
     active_window = NULL;
     active_win_pAcc = NULL;
@@ -13,6 +13,7 @@ AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y)
 
     offset_x = o_x;
     offset_y = o_y;
+    offset_id = o_id;
 }
 
 QString AjWin::getAccName(IAccessible *pAcc, long childId)
@@ -132,7 +133,27 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
                 {
                     qDebug() << i;
                 }
-                return pChild;
+
+                if ( offset_id )
+                {
+                    vtChild = pArray[i+offset_id];
+                    if( vtChild.vt==VT_DISPATCH )
+                    {
+                        pDisp = vtChild.pdispVal;
+                        pChild = NULL;
+                        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+                        return pChild;
+                    }
+                    else
+                    {
+                        qDebug() <<"child offset is not an Acc, variable type:" << vtChild.vt;
+                        return NULL;
+                    }
+                }
+                else // if offset_id==0
+                {
+                    return pChild;
+                }
             }
         }
         else
@@ -300,35 +321,6 @@ void AjWin::doClick()
     Sleep(AJ_MOUSE_DELAY);
 
     SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
-}
-
-int aj_clickType(QString click_short_name)
-{
-    if( click_short_name.compare("L", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_LMB;
-    }
-    else if( click_short_name.compare("R", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_RMB;
-    }
-    else if( click_short_name.compare("M", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_MMB;
-    }
-    else if( click_short_name.compare("D", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_DCLICK;
-    }
-    else if( click_short_name.compare("C", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_CHILDID;
-    }
-    else
-    {
-        qDebug() << "Error: click" << click_short_name << "is not acceptable";
-        return -1;
-    }
 }
 
 QString aj_click_name(int cmd_type)
