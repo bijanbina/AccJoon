@@ -32,8 +32,7 @@ private:
     QString window_title;
     QString acc_name;
     QStringList path;
-    int obj_center_y;
-    int obj_center_x;
+    POINT obj_center;
 
     int offset_x;
     int offset_y;

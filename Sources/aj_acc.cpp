@@ -42,6 +42,59 @@ QString aj_getAccName(IAccessible *acc, long childId)
     }
 }
 
+POINT getAccLocationI4(IAccessible *acc, int childID)
+{
+    VARIANT varChild;
+    POINT ret;
+
+    varChild.vt = VT_I4;
+    varChild.lVal = childID;
+
+    long obj_x = 0, obj_y = 0, obj_w = 0, obj_h = 0;
+
+    acc->accLocation(&obj_x, &obj_y, &obj_w, &obj_h, varChild);
+    if( obj_x==0 || obj_y==0 || obj_h<0 || obj_w<0 )
+    {
+        return ret;
+    }
+
+    ret.x = obj_x + obj_w/2;
+    ret.y = obj_y + obj_h/2;
+
+    return ret;
+}
+
+POINT getAccLocation(IAccessible *acc, int childID)
+{
+    POINT ret;
+    long returnCount;
+    long childCount = aj_getChildCount(acc);
+    VARIANT* pArray = new VARIANT[childCount];
+    AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
+
+    VARIANT vtChild  = pArray[childID];
+
+    // return if path is not correct
+    if(childID > childCount)
+    {
+        return ret;
+    }
+    else if( vtChild.vt==VT_DISPATCH )
+    {
+        IDispatch* pDisp = vtChild.pdispVal;
+        IAccessible* pChild = NULL;
+        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+        return getAccLocationI4(pChild, CHILDID_SELF);
+    }
+    else if( vtChild.vt==VT_I4 ) //An element object
+    {
+        return getAccLocationI4(acc, childID);
+    }
+
+    return ret;
+}
+
+
 long aj_getChildCount(IAccessible *pAcc)
 {
     long cc;

@@ -80,29 +80,9 @@ IAccessible *AjWin::getActiveAcc()
     return acc;
 }
 
-int AjWin::setObjLocation(IAccessible *acc, int childID)
-{
-    VARIANT varChild;
-    varChild.vt = VT_I4;
-    varChild.lVal = childID;
-
-    long obj_x = 0, obj_y = 0, obj_w = 0, obj_h = 0;
-
-    acc->accLocation(&obj_x, &obj_y, &obj_w, &obj_h, varChild);
-    if( obj_x==0 || obj_y==0 || obj_h<0 || obj_w<0 )
-    {
-        return -1;
-    }
-
-    obj_center_x = obj_x + obj_w/2;
-    obj_center_y = obj_y + obj_h/2;
-
-    return 0;
-}
-
 int AjWin::doAction(QString cmd)
 {
-    IAccessible *p_acc, *win_pAcc, *acc;
+    IAccessible *win_pAcc, *acc;
 
     int cmd_type = aj_clickType(cmd);
     if( cmd_type==-1 )
@@ -137,7 +117,7 @@ int AjWin::doAction(QString cmd)
 
     if( acc_name.length() )
     {
-        child_id = aj_getChildId(acc_name, acc);
+        child_id = aj_getChildId(acc_name, acc) + offset_id;
         if( child_id==-1 )
         {
             qDebug() << "Failed to get child id";
@@ -151,7 +131,8 @@ int AjWin::doAction(QString cmd)
         }
     }
 
-    if( setObjLocation(acc,child_id)!=0 )
+    obj_center = getAccLocation(acc,child_id);
+    if( obj_center.x==0 && obj_center.y==0 )
     {
         qDebug() << "Error: cannot get location in window (" << window_title << ")";
         return -1;
@@ -164,14 +145,9 @@ int AjWin::doAction(QString cmd)
 
 void AjWin::doClick(int cmd)
 {
-    if( obj_center_x==0 || obj_center_x==0 )
-    {
-        qDebug() << "object location problem! fuck this shit, code shouldn't reach here";
-    }
-
     GetCursorPos(&cursor_last);
 
-    SetCursorPos(obj_center_x + offset_x, obj_center_y + offset_y);
+    SetCursorPos(obj_center.x + offset_x, obj_center.y + offset_y);
 
     Sleep(AJ_MOUSE_DELAY);
 

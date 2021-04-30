@@ -15,6 +15,9 @@
 
 QString aj_getAccNameI4(IAccessible *acc, long childId);
 QString aj_getAccName(IAccessible *acc, long childId);
+POINT getAccLocationI4(IAccessible *acc, int childID);
+POINT getAccLocation(IAccessible *acc, int childID);
+
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);
 
