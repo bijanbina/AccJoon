@@ -12,6 +12,7 @@
 #include <tchar.h> // to get application file path
 
 #include "backend.h"
+#include  "aj_acc.h"
 
 #define AJ_CMD_LMB     0 //Left Mouse Button
 #define AJ_CMD_RMB     1
@@ -31,12 +32,6 @@ public:
     void doClick();
 
 private:
-    QString getAccName(IAccessible *pAcc, long childId);
-    long getChildCount(IAccessible *pAcc);
-    IAccessible* getActiveWinPAcc();
-    IAccessible* getAcc(QStringList varpath, IAccessible *pAcc);
-    IAccessible* getAccName(QString name, IAccessible *pAcc);
-
     void listChildren(IAccessible *pAcc, QString path);
 
     HWND active_window;
