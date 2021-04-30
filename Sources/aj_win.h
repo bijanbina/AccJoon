@@ -11,6 +11,8 @@
 #include <tlhelp32.h> // to get application pid
 #include <tchar.h> // to get application file path
 
+#include "backend.h"
+
 #define AJ_CMD_LMB     0 //Left Mouse Button
 #define AJ_CMD_RMB     1
 #define AJ_CMD_MMB     2

@@ -1,7 +1,5 @@
 #include "aj_win.h"
 
-int acc_debug = 0;
-
 AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y, int o_id)
 {
     active_window = NULL;
@@ -58,16 +56,17 @@ IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
         int indx = varpath[0].toInt() - 1;
         vtChild = pArray[indx];
 
-        if( acc_debug )
-        {
-            qDebug() << QString("--path:") + varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
-                     getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
-        }
+        QString msg = "--path:";
+        msg += varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
+                getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
+        logMessage(msg);
+
 
         // return if path is not correct
         if(indx > childCount)
         {
-            qDebug() <<"path is not correct, index greater than child";
+            QString msg = "path is not correct, index greater than child";
+            qDebug() << msg;
             return NULL;
         }
         else if( vtChild.vt==VT_DISPATCH )
@@ -78,9 +77,31 @@ IAccessible* AjWin::getAcc(QStringList varpath, IAccessible *pAcc)
 
             return getAcc(varpath.mid(1), pChild);
         }
+        else if( vtChild.vt==VT_I4 ) //An element object
+        {
+            qDebug() << "Hello Baby";
+
+            QString msg = "child is an element " + QString::number(vtChild.iVal);
+            msg += " name = " + getAccName(pAcc, vtChild.iVal);
+            logMessage(msg);
+
+            return NULL;
+        }
         else
         {
-            qDebug() <<"child is not an Acc, variable type:" << vtChild.vt;
+            QString msg = "child is not an Acc, variable type: ";
+            msg += QString::number(vtChild.vt);
+            logMessage(msg);
+
+            IDispatch* pDisp = vtChild.pdispVal;
+            IAccessible* pChild = NULL;
+            pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+            QString child_name = getAccName(pChild, CHILDID_SELF);
+
+            msg = "--path:";
+            msg += child_name + " childCount:" + QString::number(childCount) + " " +
+                    getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
+            logMessage(msg);
             return NULL;
         }
     }
@@ -120,11 +141,10 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             QString child_name = getAccName(pChild, CHILDID_SELF);
 
-            if( acc_debug )
-            {
-                qDebug() << QString("--path:") + name + " childCount:" + QString::number(childCount) + " " +
-                         child_name + " indx:" + QString::number(i) + " " + QString::number(returnCount);
-            }
+            QString msg = "--path:";
+            msg += name + " childCount:" + QString::number(childCount) + " " +
+                    getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(i) + " " + QString::number(returnCount);
+            logMessage(msg);
 
             if ( child_name.contains(name) )
             {
@@ -158,12 +178,15 @@ IAccessible* AjWin::getAccName(QString name, IAccessible *pAcc)
         }
         else
         {
-            qDebug() <<"child is not an Acc, variable type:" << vtChild.vt;
-            return NULL;
+            QString msg = "child ";
+            msg += QString::number(i) + "is not an Acc, variable type:" + QString::number(vtChild.vt);
+            logMessage(msg);
         }
     }
 
-    qDebug() <<"No child found with name" << name;
+    QString msg = "No child found with name ";
+    msg += name;
+    logMessage(msg);
     return NULL;
 }
 

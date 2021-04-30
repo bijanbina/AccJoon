@@ -18,3 +18,5 @@ Makefile
 release/
 
 *.autosave
+
+*.log

@@ -21,10 +21,12 @@ win32:LIBS += -lKernel32 \
               -lPsapi
 
 SOURCES += \
-        aj_client.cpp \
-        aj_win.cpp \
-        main.cpp
+        Sources/aj_client.cpp \
+        Sources/aj_win.cpp \
+        Sources/backend.cpp \
+        Sources/main.cpp
 
 HEADERS += \
-    aj_client.h \
-    aj_win.h
+    Sources/aj_client.h \
+    Sources/aj_win.h \
+    Sources/backend.h
