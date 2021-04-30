@@ -13,11 +13,13 @@
 
 #include "backend.h"
 
-QString aj_getAccName(IAccessible *pAcc, long childId);
+QString aj_getAccNameI4(IAccessible *acc, long childId);
+QString aj_getAccName(IAccessible *acc, long childId);
 long aj_getChildCount(IAccessible *pAcc);
+IAccessible* aj_getChild(IAccessible *acc, int index);
 
 IAccessible* aj_getWinPAcc(HWND window);
 IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
-IAccessible* aj_getAccName(QString name, IAccessible *pAcc);
+int aj_getChildId(QString name, IAccessible *pAcc);
 
 #endif // AJACC_H

@@ -1,12 +1,9 @@
 #include "aj_win.h"
 
-AjWin::AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y, int o_id)
+AjWin::AjWin(QString acc_path, QString accName, int o_x, int o_y, int o_id)
 {
-    active_window = NULL;
-    active_win_pAcc = NULL;
     window_title = "";
     path = acc_path.split('.');
-    cmd_type = aj_clickType(cmd);
     acc_name = accName;
 
     offset_x = o_x;
@@ -63,53 +60,37 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
     qDebug() <<"####### Exit getChildren - acc path : " + pAcc_name;
 }
 
-int AjWin::setWinSpec()
+IAccessible *AjWin::getActiveAcc()
 {
     char buffer[256];
+    IAccessible *acc;
+    HWND active_window;
 
     active_window = GetForegroundWindow();
     if( active_window==NULL )
     {
         qDebug() << "Error: cannot get foreground window handler";
-        return -1;
+        return NULL;
     }
 
     GetWindowTextA(active_window, buffer, 256);
     window_title = QString(buffer);
 
-    active_win_pAcc = aj_getWinPAcc(active_window);
-    if( active_win_pAcc==NULL )
-    {
-        qDebug() << "Error: cannot get pAcc from active window (" << window_title << ")";
-        return -1;
-    }
-
-//    qDebug() << "Info: Processing window:" << window_title << ", object path:" << path
-//             << ", with click:" << aj_click_name(cmd_type);
-    return 0;
+    acc = aj_getWinPAcc(active_window);
+    return acc;
 }
 
-int AjWin::setObjSpec()
+int AjWin::setObjLocation(IAccessible *acc, int childID)
 {
     VARIANT varChild;
     varChild.vt = VT_I4;
-    varChild.lVal = CHILDID_SELF;
+    varChild.lVal = childID;
 
     long obj_x = 0, obj_y = 0, obj_w = 0, obj_h = 0;
 
-//    listChildren(active_win_pAcc, QString(""));
-
-    IAccessible *object_acc = aj_getAcc(path, active_win_pAcc);
-    if( object_acc==NULL )
-    {
-        qDebug() << "Error: cannot get object in window (" << window_title << ")";
-        return -1;
-    }
-
-    object_acc->accLocation(&obj_x, &obj_y, &obj_w, &obj_h, varChild);
+    acc->accLocation(&obj_x, &obj_y, &obj_w, &obj_h, varChild);
     if( obj_x==0 || obj_y==0 || obj_h<0 || obj_w<0 )
     {
-        qDebug() << "Error: cannot find location of object in window (" << window_title << ")";
         return -1;
     }
 
@@ -119,7 +100,69 @@ int AjWin::setObjSpec()
     return 0;
 }
 
-void AjWin::doClick()
+int AjWin::doAction(QString cmd)
+{
+    IAccessible *p_acc, *win_pAcc, *acc;
+
+    int cmd_type = aj_clickType(cmd);
+    if( cmd_type==-1 )
+    {
+        qDebug() << "Error: click" << cmd << "is not acceptable";
+        return -1;
+    }
+
+    win_pAcc = getActiveAcc();
+    if( win_pAcc==NULL )
+    {
+        qDebug() << "Error: cannot get acc of active window (" << window_title << ")";
+        return -1;
+    }
+    //listChildren(active_win_pAcc, QString(""));
+
+    //get parent path
+    int child_id;
+    if( acc_name.isEmpty() )
+    {
+        child_id = path.last().toInt();
+        path.removeLast();
+        qDebug() << "child id is" << child_id;
+    }
+
+    acc = aj_getAcc(path, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get parent acc in window (" << window_title << ")";
+        return -1;
+    }
+
+    if( acc_name.length() )
+    {
+        child_id = aj_getChildId(acc_name, acc);
+        if( child_id==-1 )
+        {
+            qDebug() << "Failed to get child id";
+            return -1;
+        }
+
+        if( cmd_type==AJ_CMD_CHILDID )
+        {
+            qDebug() << child_id;
+            return 0;
+        }
+    }
+
+    if( setObjLocation(acc,child_id)!=0 )
+    {
+        qDebug() << "Error: cannot get location in window (" << window_title << ")";
+        return -1;
+    }
+
+    doClick(cmd_type);
+
+    return 0;
+}
+
+void AjWin::doClick(int cmd)
 {
     if( obj_center_x==0 || obj_center_x==0 )
     {
@@ -132,32 +175,28 @@ void AjWin::doClick()
 
     Sleep(AJ_MOUSE_DELAY);
 
-    if( cmd_type==AJ_CMD_LMB )
+    if( cmd==AJ_CMD_LMB )
     {
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     }
-    else if( cmd_type==AJ_CMD_RMB )
+    else if( cmd==AJ_CMD_RMB )
     {
         mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
     }
-    else if( cmd_type==AJ_CMD_MMB )
+    else if( cmd==AJ_CMD_MMB )
     {
         mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
     }
-    else if( cmd_type==AJ_CMD_DCLICK )
+    else if( cmd==AJ_CMD_DCLICK )
     {
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
         Sleep(AJ_DOUBLE_DELAY);
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-    }
-    else if( cmd_type==AJ_CMD_CHILDID )
-    {
-        //Do nothing, Child ID is already printed
     }
     else
     {
@@ -168,33 +207,4 @@ void AjWin::doClick()
     Sleep(AJ_MOUSE_DELAY);
 
     SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
-}
-
-QString aj_click_name(int cmd_type)
-{
-    if( cmd_type==AJ_CMD_LMB )
-    {
-        return "left click";
-    }
-    else if( cmd_type==AJ_CMD_RMB )
-    {
-        return "right click";
-    }
-    else if( cmd_type==AJ_CMD_MMB )
-    {
-        return "middle click";
-    }
-    else if( cmd_type==AJ_CMD_DCLICK )
-    {
-        return "double click";
-    }
-    else if( cmd_type==AJ_CMD_CHILDID )
-    {
-        return "child id";
-    }
-    else
-    {
-        qDebug() << "Error: click type not found, type:" << cmd_type;
-        return "";
-    }
 }

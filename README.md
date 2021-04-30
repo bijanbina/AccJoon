@@ -21,6 +21,7 @@ AccJoon is a little tool that exerts MSAA library to present a command line inte
 Key codes are in match with AHK key code conventions. Some example are available below:
 
 Ctrl+R: ^R
+
 Ctrl+Alt+Del: ^!R
 
 ### Acknowledgment

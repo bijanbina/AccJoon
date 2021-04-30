@@ -10,36 +10,6 @@
 
 using namespace std;
 
-
-int aj_clickType(QString click_short_name)
-{
-    if( click_short_name.compare("L", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_LMB;
-    }
-    else if( click_short_name.compare("R", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_RMB;
-    }
-    else if( click_short_name.compare("M", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_MMB;
-    }
-    else if( click_short_name.compare("D", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_DCLICK;
-    }
-    else if( click_short_name.compare("C", Qt::CaseInsensitive)==0 )
-    {
-        return AJ_CMD_CHILDID;
-    }
-    else
-    {
-        qDebug() << "Error: click" << click_short_name << "is not acceptable";
-        return -1;
-    }
-}
-
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
@@ -61,7 +31,6 @@ int main(int argc, char *argv[])
         offset_y = 0;
         offset_id = 1;
     }
-
     if ( argc>2 )
     {
         cmd = argv[1];
@@ -101,18 +70,13 @@ int main(int argc, char *argv[])
     }
     else
     {
-        AjWin *aj_win = new AjWin(path, cmd, acc_name, offset_x, offset_y, offset_id);
-        if( aj_win->setWinSpec()!=0 )
+        AjWin *aj_win = new AjWin(path, acc_name, offset_x, offset_y, offset_id);
+
+        if( aj_win->doAction(cmd)!=0 )
         {
             Sleep(DEBUG_SLEEP);
             return -1;
         }
-        if( aj_win->setObjSpec()!=0 )
-        {
-            Sleep(DEBUG_SLEEP);
-            return -1;
-        }
-        aj_win->doClick();
 
         Sleep(DEBUG_SLEEP);
 

@@ -14,32 +14,24 @@
 #include "backend.h"
 #include  "aj_acc.h"
 
-#define AJ_CMD_LMB     0 //Left Mouse Button
-#define AJ_CMD_RMB     1
-#define AJ_CMD_MMB     2
-#define AJ_CMD_DCLICK  3 // Double Click
-#define AJ_CMD_CHILDID 4 // Show Child ID
-
 #define AJ_MOUSE_DELAY   10
 #define AJ_DOUBLE_DELAY  3
 
 class AjWin
 {
 public:
-    AjWin(QString acc_path, QString cmd, QString accName, int o_x, int o_y, int o_id);
-    int setWinSpec();
-    int setObjSpec();
-    void doClick();
+    AjWin(QString acc_path, QString accName, int o_x, int o_y, int o_id);
+    int doAction(QString cmd);
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
+    IAccessible *getActiveAcc();
+    int setObjLocation(IAccessible *acc, int childID);
+    void doClick(int cmd);
 
-    HWND active_window;
-    IAccessible *active_win_pAcc;
     QString window_title;
     QString acc_name;
     QStringList path;
-    int cmd_type;
     int obj_center_y;
     int obj_center_x;
 
@@ -48,8 +40,5 @@ private:
     int offset_id;
     POINT cursor_last;
 };
-
-int aj_clickType(QString click_short_name);
-QString aj_click_name(int cmd_type);
 
 #endif // AJWIN_H

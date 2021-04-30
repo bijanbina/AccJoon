@@ -1,15 +1,45 @@
 #include "aj_acc.h"
 
-
-QString aj_getAccName(IAccessible *pAcc, long childId)
+QString aj_getAccNameI4(IAccessible *acc, long childId)
 {
     BSTR bstrName;
     VARIANT varChild;
     varChild.vt = VT_I4;
     varChild.lVal = childId;
-    pAcc->get_accName(varChild, &bstrName);
+    acc->get_accName(varChild, &bstrName);
 
     return QString::fromWCharArray(bstrName);
+}
+
+QString aj_getAccName(IAccessible *acc, long childId)
+{
+    long childCount = aj_getChildCount(acc);
+    long returnCount;
+    VARIANT* pArray = new VARIANT[childCount];
+    AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
+
+    VARIANT vtChild  = pArray[childId];
+
+    // return if path is not correct
+    if(childId > childCount)
+    {
+        return "";
+    }
+    else if( vtChild.vt==VT_DISPATCH )
+    {
+        IDispatch* pDisp = vtChild.pdispVal;
+        IAccessible* pChild = NULL;
+        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+        return aj_getAccNameI4(pChild, CHILDID_SELF);
+    }
+    else if( vtChild.vt==VT_I4 ) //An element object
+    {
+        return aj_getAccNameI4(acc, childId);
+    }
+    else
+    {
+        return "";
+    }
 }
 
 long aj_getChildCount(IAccessible *pAcc)
@@ -28,153 +58,94 @@ IAccessible* aj_getWinPAcc(HWND window)
     return pAcc;
 }
 
-// return Acc specific chilren
-IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
+IAccessible* aj_getChild(IAccessible *acc, int index)
 {
-    VARIANT vtChild;
-    if( varpath.size()>0 )
+    long childCount = aj_getChildCount(acc);
+    long returnCount;
+    VARIANT* pArray = new VARIANT[childCount];
+    AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
+
+    VARIANT vtChild  = pArray[index];
+
+    QString msg = "Get Child:" + QString::number(index);
+    msg += " childCount:" + QString::number(childCount) + " " +
+            aj_getAccName(acc, CHILDID_SELF) + " " + QString::number(returnCount);
+    logMessage(msg);
+
+    // return if path is not correct
+    if(index > childCount)
     {
-        long childCount = aj_getChildCount(pAcc);
-        long returnCount;
-        VARIANT* pArray = new VARIANT[childCount];
+        QString msg = "path is not correct, index greater than child";
+        qDebug() << msg;
+        return NULL;
+    }
+    else if( vtChild.vt==VT_DISPATCH )
+    {
+        IDispatch* pDisp = vtChild.pdispVal;
+        IAccessible* pChild = NULL;
+        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
 
-        AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
-
-        // FIXME: handle error if number
-        int indx = varpath[0].toInt() - 1;
-        vtChild = pArray[indx];
-
-        QString msg = "--path:";
-        msg += varpath.join('.') + " childCount:" + QString::number(childCount) + " " +
-                aj_getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
+        return pChild;
+    }
+    else if( vtChild.vt==VT_I4 ) //An element object
+    {
+        QString msg = "child is an element " + QString::number(vtChild.iVal);
+        msg += " name = " + aj_getAccName(acc, vtChild.iVal);
         logMessage(msg);
 
-
-        // return if path is not correct
-        if(indx > childCount)
-        {
-            QString msg = "path is not correct, index greater than child";
-            qDebug() << msg;
-            return NULL;
-        }
-        else if( vtChild.vt==VT_DISPATCH )
-        {
-            IDispatch* pDisp = vtChild.pdispVal;
-            IAccessible* pChild = NULL;
-            pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-
-            return aj_getAcc(varpath.mid(1), pChild);
-        }
-        else if( vtChild.vt==VT_I4 ) //An element object
-        {
-            qDebug() << "Hello Baby";
-
-            QString msg = "child is an element " + QString::number(vtChild.iVal);
-            msg += " name = " + aj_getAccName(pAcc, vtChild.iVal);
-            logMessage(msg);
-
-            return NULL;
-        }
-        else
-        {
-            QString msg = "child is not an Acc, variable type: ";
-            msg += QString::number(vtChild.vt);
-            logMessage(msg);
-
-            IDispatch* pDisp = vtChild.pdispVal;
-            IAccessible* pChild = NULL;
-            pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-            QString child_name = aj_getAccName(pChild, CHILDID_SELF);
-
-            msg = "--path:";
-            msg += child_name + " childCount:" + QString::number(childCount) + " " +
-                    aj_getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(indx) + " " + QString::number(returnCount);
-            logMessage(msg);
-            return NULL;
-        }
+        return NULL;
     }
     else
     {
-//        if ( acc_name.length() )
-//        {
-//            return aj_getAccName(acc_name, pAcc);
-//        }
-//        else
-//        {
-            return pAcc;
-//        }
+        QString msg = "child is not an Acc, variable type: ";
+        msg += QString::number(vtChild.vt);
+        logMessage(msg);
+
+        return NULL;
     }
 }
 
-IAccessible* aj_getAccName(QString name, IAccessible *pAcc)
+// return Acc specific chilren
+IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
 {
-    VARIANT vtChild;
-
-    long childCount = aj_getChildCount(pAcc);
-    long returnCount;
-    VARIANT* pArray = new VARIANT[childCount];
-
-    AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
-
-    //FIXME: handle error if number
-
-    for( int i=0 ; i<childCount ; i++ )
+    if( varpath.size()>0 )
     {
-        vtChild = pArray[i];
+        int index = varpath[0].toInt() - 1;
+        IAccessible* pChild = aj_getChild(pAcc, index);
 
-        if( vtChild.vt==VT_DISPATCH )
+        if ( pChild!=NULL )
         {
-            IDispatch* pDisp = vtChild.pdispVal;
-            IAccessible* pChild = NULL;
-            pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-            QString child_name = aj_getAccName(pChild, CHILDID_SELF);
-
-            QString msg = "--path:";
-            msg += name + " childCount:" + QString::number(childCount) + " " +
-                    aj_getAccName(pAcc, CHILDID_SELF) + " indx:" + QString::number(i) + " " + QString::number(returnCount);
-            logMessage(msg);
-
-            if ( child_name.contains(name) )
-            {
-                //qDebug() << "found the child";
-//                if ( cmd_type==AJ_CMD_CHILDID )
-//                {
-//                    qDebug() << i;
-//                }
-
-//                if ( offset_id )
-//                {
-//                    vtChild = pArray[i+offset_id];
-//                    if( vtChild.vt==VT_DISPATCH )
-//                    {
-//                        pDisp = vtChild.pdispVal;
-//                        pChild = NULL;
-//                        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-//                        return pChild;
-//                    }
-//                    else
-//                    {
-//                        qDebug() <<"child offset is not an Acc, variable type:" << vtChild.vt;
-//                        return NULL;
-//                    }
-//                }
-//                else // if offset_id==0
-//                {
-                    return pChild;
-//                }
-            }
+            return aj_getAcc(varpath.mid(1), pChild);
         }
         else
         {
-            QString msg = "child ";
-            msg += QString::number(i) + "is not an Acc, variable type:" + QString::number(vtChild.vt);
-            logMessage(msg);
+            return NULL;
+        }
+
+    }
+    else
+    {
+        return pAcc;
+    }
+}
+
+int aj_getChildId(QString name, IAccessible *pAcc)
+{
+    long childCount = aj_getChildCount(pAcc);
+
+    for( int i=0 ; i<childCount ; i++ )
+    {
+        QString child_name = aj_getAccName(pAcc, i+1);
+        QString msg = "Get Child:" + QString::number(i);
+        msg += " childCount:" + QString::number(childCount) + " " +
+                child_name;
+        logMessage(msg);
+
+        if ( child_name.contains(name) )
+        {
+           return i;
         }
     }
 
-    QString msg = "No child found with name ";
-    msg += name;
-    logMessage(msg);
-    return NULL;
+    return -1;
 }
-
