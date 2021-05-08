@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     int offset_x = 0;
     int offset_y = 0;
     int offset_id = 0;
-    Sleep(DEBUG_SLEEP/5);
+//    Sleep(DEBUG_SLEEP/5);
 
     if ( argc==1 )
     {
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
             return -1;
         }
 
-        Sleep(DEBUG_SLEEP);
+//        Sleep(DEBUG_SLEEP);
 
         return 0;
     }

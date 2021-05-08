@@ -97,13 +97,13 @@ int AjWin::doAction(QString cmd)
         qDebug() << "Error: cannot get acc of active window (" << window_title << ")";
         return -1;
     }
-    //listChildren(active_win_pAcc, QString(""));
+//    listChildren(win_pAcc, QString(""));
 
     //get parent path
     int child_id;
     if( acc_name.isEmpty() )
     {
-        child_id = path.last().toInt();
+        child_id = path.last().toInt()-1;
         path.removeLast();
         qDebug() << "child id is" << child_id;
     }

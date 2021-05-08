@@ -72,28 +72,29 @@ POINT getAccLocation(IAccessible *acc, int childID)
     VARIANT* pArray = new VARIANT[childCount];
     AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
 
-    VARIANT vtChild  = pArray[childID];
-
     // return if path is not correct
-    if(childID > childCount)
+    if(childID < childCount)
     {
-        return ret;
+        VARIANT vtChild  = pArray[childID];
+        if( vtChild.vt==VT_DISPATCH )
+        {
+            IDispatch* pDisp = vtChild.pdispVal;
+            IAccessible* pChild = NULL;
+            pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+            return getAccLocationI4(pChild, CHILDID_SELF);
+        }
+        else if( vtChild.vt==VT_I4 ) //An element object
+        {
+            return getAccLocationI4(acc, childID);
+        }
     }
-    else if( vtChild.vt==VT_DISPATCH )
+    else
     {
-        IDispatch* pDisp = vtChild.pdispVal;
-        IAccessible* pChild = NULL;
-        pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-        return getAccLocationI4(pChild, CHILDID_SELF);
-    }
-    else if( vtChild.vt==VT_I4 ) //An element object
-    {
-        return getAccLocationI4(acc, childID);
+        qDebug() << "ChildID exceed, id"<< childID << "count" << childCount;
     }
 
     return ret;
 }
-
 
 long aj_getChildCount(IAccessible *pAcc)
 {
