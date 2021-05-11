@@ -85,7 +85,7 @@ POINT getAccLocation(IAccessible *acc, int childID)
         }
         else if( vtChild.vt==VT_I4 ) //An element object
         {
-            return getAccLocationI4(acc, childID);
+            return getAccLocationI4(acc, childID+1);
         }
     }
     else
@@ -121,7 +121,7 @@ IAccessible* aj_getChild(IAccessible *acc, int index)
 
     VARIANT vtChild  = pArray[index];
 
-    QString msg = "Get Child:" + QString::number(index);
+    QString msg = "Get Child:" + QString::number(index+1);
     msg += " childCount:" + QString::number(childCount) + " " +
             aj_getAccName(acc, CHILDID_SELF) + " " + QString::number(returnCount);
     logMessage(msg);
@@ -190,10 +190,10 @@ int aj_getChildId(QString name, IAccessible *pAcc)
     for( int i=0 ; i<childCount ; i++ )
     {
         QString child_name = aj_getAccName(pAcc, i+1);
-        QString msg = "Get Child:" + QString::number(i);
-        msg += " childCount:" + QString::number(childCount) + " " +
-                child_name;
-        logMessage(msg);
+//        QString msg = "Get ChildID:" + QString::number(i+1);
+//        msg += " childCount:" + QString::number(childCount) + " " +
+//                child_name;
+//        logMessage(msg);
 
         if ( child_name.contains(name) )
         {

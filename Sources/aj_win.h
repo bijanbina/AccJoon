@@ -14,7 +14,7 @@
 #include "backend.h"
 #include  "aj_acc.h"
 
-#define AJ_MOUSE_DELAY   10
+#define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3
 
 class AjWin

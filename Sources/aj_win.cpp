@@ -37,10 +37,10 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
                 long child_count = aj_getChildCount(pChild);
                 qDebug() << "-> acc path : " + pAcc_name +
                             " - child[" + QString::number(x) + "/" + QString::number(returnCount-1) + "], childname:" + child_name +
-                            "| child count " + QString::number(child_count) + " path:" + path + QString::number(x);
+                            "| child count " + QString::number(child_count) + " path:" + path + QString::number(x+1);
                 if(child_count>0)
                 {
-                    listChildren(pChild, path + QString::number(x));
+                    listChildren(pChild, path + QString::number(x+1));
                 }
                 pChild->Release();
             }
@@ -53,7 +53,7 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
             qDebug() <<"-> acc path : " + pAcc_name +
                         " - child[" + QString::number(x) + "/" + QString::number(returnCount-1) +
                         "] ELEMENT - " + aj_getAccName(pAcc, vtChild.lVal)
-                        + " path:" + path + QString::number(x);
+                        + " path:" + path + QString::number(x+1);
         }
     }
     delete[] pArray;
