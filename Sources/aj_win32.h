@@ -43,5 +43,7 @@ long ajGetPid(HWND hWnd);
 QString ajGetPName(long pid);
 void aj_InsertWindow(AjListW *thread_w, AjWindow win);
 void aj_getType(AjWindow *win);
+void aj_setActiveWindow(HWND hWnd);
+void aj_setActiveWindow(QString win_name);
 
 #endif // AJWIN_H

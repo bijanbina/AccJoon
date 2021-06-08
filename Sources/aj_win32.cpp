@@ -1,15 +1,25 @@
 #include "aj_win32.h"
 
 int win_debug = 0;
+int win_offset = 0;
+int win_current = 0;
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
     char buffer[128];
-    AjListW *list_w = (AjListW *)lParam;
+    char *win_name = (char *)lParam;
     int written = GetWindowTextA(hwnd, buffer, 128);
-    if(written && strlen(buffer) != 0 && strcmp(buffer, "Rebound") != 0)
+    if( written && strlen(buffer)!=0 )
     {
-        aj_AddHwnd(hwnd, list_w);
+        QString buff_s = buffer;
+        if( buff_s.contains(win_name) )
+        {
+            win_current++;
+            if( win_offset>win_current )
+            {
+                aj_setActiveWindow(hwnd);
+            }
+        }
     }
     return TRUE;
 }
@@ -213,10 +223,28 @@ void aj_getType(AjWindow *win)
     }
 }
 
-AjListW getWindowList()
+void aj_setActiveWindow(QString win_name)
 {
-    AjListW priv;
-    EnumWindows(EnumWindowsProc, (LPARAM) &priv);
+    char buffer[200];
+    strcpy(buffer, win_name.toStdString().c_str());
+    win_current = 0;
+    EnumWindows(EnumWindowsProc, (LPARAM) buffer);
+}
 
-    return priv;
+void aj_setActiveWindow(HWND hWnd)
+{
+    DWORD dwCurrentThread = GetCurrentThreadId();
+    DWORD dwFGThread = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
+    AttachThreadInput(dwCurrentThread, dwFGThread, TRUE);
+
+    SetForegroundWindow(hWnd);
+    SetActiveWindow(hWnd);
+
+    // If window is minimzed
+    if( IsIconic(hWnd) )
+    {
+        ShowWindow(hWnd, SW_RESTORE);
+    }
+
+    AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
 }
