@@ -12,7 +12,8 @@
 #include <tchar.h> // to get application file path
 
 #include "backend.h"
-#include  "aj_acc.h"
+#include "aj_conf_parser.h"
+#include "aj_acc.h"
 
 #define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3
@@ -20,7 +21,7 @@
 class AjWin
 {
 public:
-    AjWin(QString acc_path, QString accName, int o_x, int o_y, int o_id);
+    AjWin(AjAccOptions acc_conf);
     int doAction(QString cmd);
 
 private:

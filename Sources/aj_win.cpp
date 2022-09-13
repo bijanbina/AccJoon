@@ -1,14 +1,14 @@
 #include "aj_win.h"
 
-AjWin::AjWin(QString acc_path, QString accName, int o_x, int o_y, int o_id)
+AjWin::AjWin(AjAccOptions acc_conf)
 {
     window_title = "";
-    path = acc_path.split('.');
-    acc_name = accName;
+    path = acc_conf.acc_path.split('.');
+    acc_name = acc_conf.acc_name;
 
-    offset_x = o_x;
-    offset_y = o_y;
-    offset_id = o_id;
+    offset_x = acc_conf.offset_x;
+    offset_y = acc_conf.offset_y;
+    offset_id = acc_conf.offset_id;
 }
 
 void AjWin::listChildren(IAccessible *pAcc, QString path)
