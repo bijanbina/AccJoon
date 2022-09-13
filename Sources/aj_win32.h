@@ -27,6 +27,7 @@ typedef struct AjWindow
 {
     int  verify; //verify hwnd still exist
     int  type;
+    long pid;
     QString title;
     QString pname;
     HWND hWnd;
@@ -38,6 +39,12 @@ typedef struct AjListW
     AjWindow win_active;
 }AjThreadW;
 
+typedef struct AjAppName
+{
+    QString app_name;
+    QString exe_name;
+}AjAppName;
+
 void aj_AddHwnd(HWND hwnd, AjListW *thread_w);
 long ajGetPid(HWND hWnd);
 QString ajGetPName(long pid);
@@ -45,5 +52,7 @@ void aj_InsertWindow(AjListW *thread_w, AjWindow win);
 void aj_getType(AjWindow *win);
 void aj_setActiveWindow(HWND hWnd);
 void aj_setActiveWindow(QString win_name);
+void aj_fillWinSpec(HWND hwnd, QString title, QString exe_name);
+AjWindow* aj_findApp(QString app_name, QString exe_name);
 
 #endif // AJWIN_H

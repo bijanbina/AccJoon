@@ -3,6 +3,7 @@
 int win_debug = 0;
 int win_offset = 0;
 int win_current = 0;
+AjWindow *req_win = NULL;
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
@@ -19,6 +20,22 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
             {
                 aj_setActiveWindow(hwnd);
             }
+        }
+    }
+    return TRUE;
+}
+
+BOOL CALLBACK EnumWindowsFind(HWND hwnd, LPARAM lParam)
+{
+    char buffer[128];
+    int written = GetWindowTextA(hwnd, buffer, 128);
+    AjAppName *app = (AjAppName *)lParam;
+    if( written && strlen(buffer)!=0 )
+    {
+        QString buff_s = buffer;
+        if( buff_s.contains(app->app_name) )
+        {
+            aj_fillWinSpec(hwnd, buff_s, app->exe_name);
         }
     }
     return TRUE;
@@ -247,4 +264,35 @@ void aj_setActiveWindow(HWND hWnd)
     }
 
     AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
+}
+
+void aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
+{
+    long pid = ajGetPid(hwnd);
+    QString pname = ajGetPName(pid);
+    qDebug() << "title" << title << "|" << exe_name;
+    if( exe_name==pname )
+    {
+        req_win = new AjWindow;
+        req_win->hWnd = hwnd;
+        req_win->title = title;
+        req_win->pname = pname;
+        req_win->pid = pid;
+        qDebug() << "found one!";
+    }
+}
+
+AjWindow* aj_findApp(QString app_name, QString exe_name)
+{
+    AjAppName *app = new AjAppName;
+    app->app_name = app_name;
+    app->exe_name = exe_name;
+    if( req_win!=NULL )
+    {
+        delete req_win;
+        req_win = NULL;
+    }
+    EnumWindows(EnumWindowsFind, (LPARAM) app);
+
+    return req_win;
 }
