@@ -26,7 +26,7 @@ typedef struct AjCmdOptions
     QString conf_path;
     QString app_name;
     QString app_func;
-    QVector<AjAccOptions> acc_conf_list;
+    AjAccOptions cmd;
 }AjCmdOptions;
 
 class AjExecuter
