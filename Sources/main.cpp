@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
     }
     else if( parser->is_remote )
     {
-//        Sleep(DEBUG_SLEEP);
+//        QThread::msleep(DEBUG_SLEEP);
         QString command = "";//"AccJoon ";
-        AjAccOptions acc_conf = parser->cmd;
-        command += acc_conf.cmd[1] + " ";
+        AjCommand acc_conf = parser->cmd;
+        command += acc_conf.action[1] + " ";
         command += acc_conf.acc_path + " 0 0 ";
         command += acc_conf.acc_name;
 
@@ -41,12 +41,12 @@ int main(int argc, char *argv[])
     }
     else // execute on local computer
     {
-        AjWin *aj_win = new AjWin(parser->cmd);
+        AjWin *aj_win = new AjWin();
 
-        AjAccOptions acc_conf = parser->cmd;
-        if( aj_win->doAction(acc_conf.cmd)!=0 )
+        AjCommand acc_conf = parser->cmd;
+        if( aj_win->doAction(acc_conf)!=0 )
         {
-            Sleep(DEBUG_SLEEP);
+            QThread::msleep(DEBUG_SLEEP);
             return -1;
         }
         return 0;
@@ -119,7 +119,7 @@ AjCmdOptions* parseClOptions(QCoreApplication *app)
     ret_opt->conf_path = parser.value(conf_option);
     ret_opt->is_remote = parser.isSet(remote_option);
     ret_opt->cmd.acc_path = parser.value(accpath_option);
-    ret_opt->cmd.cmd = parser.value(cmd_option);
+    ret_opt->cmd.action = parser.value(cmd_option);
     ret_opt->cmd.acc_name = parser.value(accname_option);
     ret_opt->cmd.offset_x = parser.value(offsetx_option).toInt();
     ret_opt->cmd.offset_y = parser.value(offsety_option).toInt();
