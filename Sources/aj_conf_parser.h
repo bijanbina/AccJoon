@@ -5,19 +5,11 @@
 #include <QTextStream>
 #include <QDebug>
 #include "aj_win32_launcher.h"
+#include "aj_win.h"
 
-#define AJ_ACC_PAR 7
-
-typedef struct AjAccOptions
-{
-    QString acc_path;
-    QString cmd;
-    QString acc_name;
-    int offset_x;
-    int offset_y;
-    int offset_id;
-    int delay;
-}AjAccOptions;
+#define AJ_ACC_PAR  7
+#define AJ_KEY_PAR  2
+#define AJ_OPEN_PAR 2
 
 typedef struct AjCmdOptions
 {
@@ -26,7 +18,7 @@ typedef struct AjCmdOptions
     QString conf_path;
     QString app_name;
     QString app_func;
-    AjAccOptions cmd;
+    AjCommand cmd;
 }AjCmdOptions;
 
 class AjExecuter
@@ -38,7 +30,9 @@ public:
 private:
     bool setAppConf(QByteArray data);
     bool setOpenState(QByteArray data);
-    bool addAccConf(QByteArray data);
+    bool addCmd(QByteArray data);
+    bool addAcc(QByteArrayList data_list);
+    bool addKey(QByteArrayList data_list);
     bool checkParam(QByteArray data, QString match, char sep='=');
     void printConf();
 
@@ -46,7 +40,8 @@ private:
     QString exe_name;
     QString app_func;
     int is_open;
-    QVector<AjAccOptions> acc_conf_list;
+    int open_delay;
+    QVector<AjCommand> commands;
 };
 
 #endif // AJCONFPARSER_H
