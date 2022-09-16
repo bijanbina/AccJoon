@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QtDebug>
+#include <QThread>
 
 #include <oleacc.h>
 #include <winbase.h>
@@ -12,28 +13,48 @@
 #include <tchar.h> // to get application file path
 
 #include "backend.h"
-#include "aj_conf_parser.h"
 #include "aj_acc.h"
 
 #define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3
 
+typedef struct AjCommand
+{
+    int delay;
+    // key section
+    QString key;
+    int alt_key;
+    int ctrl_key;
+    int shift_key;
+    int meta_key;
+    // acc section
+    QString acc_path;
+    QString action;
+    QString acc_name;
+    int offset_x;
+    int offset_y;
+    int offset_id;
+}AjCommand;
+
 class AjWin
 {
 public:
-    AjWin(AjAccOptions acc_conf);
-    int doAction(QString cmd);
+    AjWin(HWND hWindow=NULL);
+    int doAction(AjCommand acc_conf);
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
-    IAccessible *getActiveAcc();
+    IAccessible *getHwndAcc(HWND hWindow);
     int setObjLocation(IAccessible *acc, int childID);
     void doClick(int cmd);
+    int doAcc(AjCommand cmd);
+    int doKey(AjCommand cmd);
 
     QString window_title;
     QString acc_name;
     QStringList path;
     POINT obj_center;
+    HWND hwnd;
 
     int offset_x;
     int offset_y;

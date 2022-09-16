@@ -1,14 +1,10 @@
 #include "aj_win.h"
+#include "aj_keyboard.h"
 
-AjWin::AjWin(AjAccOptions acc_conf)
+AjWin::AjWin(HWND hWindow)
 {
+    hwnd = hWindow;
     window_title = "";
-    path = acc_conf.acc_path.split('.');
-    acc_name = acc_conf.acc_name;
-
-    offset_x = acc_conf.offset_x;
-    offset_y = acc_conf.offset_y;
-    offset_id = acc_conf.offset_id;
 }
 
 void AjWin::listChildren(IAccessible *pAcc, QString path)
@@ -60,38 +56,120 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
     qDebug() <<"####### Exit getChildren - acc path : " + pAcc_name;
 }
 
-IAccessible *AjWin::getActiveAcc()
+IAccessible *AjWin::getHwndAcc(HWND hWindow)
 {
     char buffer[256];
     IAccessible *acc;
-    HWND active_window;
 
-    active_window = GetForegroundWindow();
-    if( active_window==NULL )
+    if( hWindow==NULL )
     {
-        qDebug() << "Error: cannot get foreground window handler";
-        return NULL;
+        hWindow = GetForegroundWindow();
+        if( hWindow==NULL )
+        {
+            qDebug() << "Error: cannot get foreground window handler";
+            return NULL;
+        }
     }
 
-    GetWindowTextA(active_window, buffer, 256);
+    GetWindowTextA(hWindow, buffer, 256);
     window_title = QString(buffer);
 
-    acc = aj_getWinPAcc(active_window);
+    acc = aj_getWinPAcc(hWindow);
     return acc;
 }
 
-int AjWin::doAction(QString cmd)
+int AjWin::doAction(AjCommand cmd)
+{
+    if( cmd.key.isEmpty() )
+    {
+        return doAcc(cmd);
+    }
+    else if( cmd.action.isEmpty() )
+    {
+        return doKey(cmd);
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int AjWin::doKey(AjCommand cmd)
+{
+    AjKeyboard *keyboard = new AjKeyboard();
+    printf("doKey: ");
+
+    if( cmd.alt_key )
+    {
+        keyboard->pressKey(KEY_LEFTALT);
+        qDebug("Alt+");
+    }
+    if( cmd.ctrl_key )
+    {
+        QThread::msleep(20);
+        keyboard->pressKey(KEY_LEFTCTRL);
+        qDebug("Ctrl+");
+    }
+    if( cmd.shift_key )
+    {
+        QThread::msleep(20);
+        keyboard->pressKey(KEY_LEFTSHIFT);
+        qDebug("Shift+");
+    }
+    if( cmd.meta_key )
+    {
+        QThread::msleep(20);
+        keyboard->pressKey(KEY_META);
+        qDebug("Super+");
+    }
+    cmd.key = cmd.key.toUpper();
+    int key = cmd.key.toStdString().c_str()[0];
+    QThread::msleep(1000);
+    keyboard->sendKey(key);
+    qDebug() << cmd.key << key;
+    if( cmd.alt_key )
+    {
+        QThread::msleep(20);
+        keyboard->releaseKey(KEY_LEFTALT);
+    }
+    if( cmd.ctrl_key )
+    {
+        QThread::msleep(20);
+        keyboard->releaseKey(KEY_LEFTCTRL);
+    }
+    if( cmd.shift_key )
+    {
+        QThread::msleep(20);
+        keyboard->releaseKey(KEY_LEFTSHIFT);
+    }
+    if( cmd.meta_key )
+    {
+        QThread::msleep(20);
+        keyboard->releaseKey(KEY_META);
+    }
+
+    return 0;
+}
+
+int AjWin::doAcc(AjCommand cmd)
 {
     IAccessible *win_pAcc, *acc;
 
-    int cmd_type = aj_clickType(cmd);
+    path = cmd.acc_path.split('.');
+    acc_name = cmd.acc_name;
+
+    offset_x = cmd.offset_x;
+    offset_y = cmd.offset_y;
+    offset_id = cmd.offset_id;
+
+    int cmd_type = aj_clickType(cmd.action);
     if( cmd_type==-1 )
     {
-        qDebug() << "Error: click" << cmd << "is not acceptable";
+        qDebug() << "Error: click" << cmd.action << "is not acceptable";
         return -1;
     }
 
-    win_pAcc = getActiveAcc();
+    win_pAcc = getHwndAcc(hwnd);
     if( win_pAcc==NULL )
     {
         qDebug() << "Error: cannot get acc of active window (" << window_title << ")";
@@ -149,7 +227,7 @@ void AjWin::doClick(int cmd)
 
     SetCursorPos(obj_center.x + offset_x, obj_center.y + offset_y);
 
-    Sleep(AJ_MOUSE_DELAY);
+    QThread::msleep(AJ_MOUSE_DELAY);
 
     if( cmd==AJ_CMD_LMB )
     {
@@ -170,7 +248,7 @@ void AjWin::doClick(int cmd)
     {
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-        Sleep(AJ_DOUBLE_DELAY);
+        QThread::msleep(AJ_DOUBLE_DELAY);
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     }
@@ -180,7 +258,7 @@ void AjWin::doClick(int cmd)
         return;
     }
 
-    Sleep(AJ_MOUSE_DELAY);
+    QThread::msleep(AJ_MOUSE_DELAY);
 
     SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
 }
