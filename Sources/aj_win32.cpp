@@ -1,4 +1,5 @@
 #include "aj_win32.h"
+#include <QFileInfo>
 
 int win_debug = 0;
 int win_offset = 0;
@@ -29,14 +30,40 @@ BOOL CALLBACK EnumWindowsFind(HWND hwnd, LPARAM lParam)
 {
     char buffer[128];
     int written = GetWindowTextA(hwnd, buffer, 128);
-    AjAppName *app = (AjAppName *)lParam;
     if( written && strlen(buffer)!=0 )
     {
         QString buff_s = buffer;
-        if( buff_s.contains(app->app_name) )
+        long pid = ajGetPid(hwnd);
+        QString pname = ajGetPName(pid);
+        QString exe_name = *(QString *)lParam;
+        if( pname.contains(exe_name) )
         {
-            aj_fillWinSpec(hwnd, buff_s, app->exe_name);
+            if( aj_fillWinSpec(hwnd, buff_s, exe_name) )
+            {
+                return FALSE;
+            }
+
         }
+    }
+    return TRUE;
+}
+
+BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
+{
+    DWORD enum_pid, pid;
+    pid = *(DWORD *)lParam;
+    GetWindowThreadProcessId(hwnd,&enum_pid);
+    if( pid==enum_pid )
+    {
+        qDebug() << "found one!" << pid;
+        char buffer[128];
+        GetWindowTextA(hwnd, buffer, 128);
+        req_win = new AjWindow;
+        req_win->hWnd = hwnd;
+        req_win->pid = pid;
+        req_win->pname = ajGetPName(pid);
+        req_win->title = buffer;
+        return FALSE;
     }
     return TRUE;
 }
@@ -266,33 +293,78 @@ void aj_setActiveWindow(HWND hWnd)
     AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
 }
 
-void aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
+bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
 {
-    long pid = ajGetPid(hwnd);
-    QString pname = ajGetPName(pid);
-    qDebug() << "title" << title << "|" << exe_name;
-    if( exe_name==pname )
+    RECT rc;
+
+    if(IsWindowVisible(hwnd))
     {
-        req_win = new AjWindow;
-        req_win->hWnd = hwnd;
-        req_win->title = title;
-        req_win->pname = pname;
-        req_win->pid = pid;
-        qDebug() << "found one!";
+        HWND shell_window = GetShellWindow();
+        GetWindowRect(hwnd, &rc);
+        int width = rc.right - rc.left;
+
+        if((hwnd!=shell_window) && (width>100) ) //&& (rc.bottom>0)
+        {
+            long pid = ajGetPid(hwnd);
+            QString pname = ajGetPName(pid);
+            QFileInfo fi(pname);
+            pname = fi.completeBaseName();
+            if( exe_name==pname )
+            {
+                qDebug() << "title" << title << "|" << exe_name << "|" << pname;
+                req_win = new AjWindow;
+                req_win->hWnd = hwnd;
+                req_win->title = title;
+                req_win->pname = pname;
+                req_win->pid = pid;
+                return true;
+            }
+        }
+        else
+        {
+//                int success = GetWindowTextA(hwnd, buffer, 128); //get title
+//                qDebug() << "----------" << buffer << rc.bottom << width;
+        }
     }
+    else
+    {
+//        int success = GetWindowTextA(hwnd, buffer, 128); //get title
+//        qDebug() << "not vis" << buffer << IsWindowVisible(hwnd);
+    }
+    return false;
 }
 
-AjWindow* aj_findApp(QString app_name, QString exe_name)
+AjWindow* aj_findAppByName(QString exe_name)
 {
-    AjAppName *app = new AjAppName;
-    app->app_name = app_name;
-    app->exe_name = exe_name;
     if( req_win!=NULL )
     {
         delete req_win;
         req_win = NULL;
     }
-    EnumWindows(EnumWindowsFind, (LPARAM) app);
+    EnumWindows(EnumWindowsFind, (LPARAM) &exe_name);
+
+    return req_win;
+}
+
+AjWindow* aj_findAppByPid(DWORD pid)
+{
+    if( req_win!=NULL )
+    {
+        delete req_win;
+        req_win = NULL;
+    }
+    int cntr=0;
+    while( req_win==NULL )
+    {
+        cntr++;
+        EnumWindows(EnumWindowsPid, (LPARAM) &pid);
+        QThread::msleep(50);
+        if( cntr%100==0 )
+        {
+            qDebug() << "Info: searching for HWND with pid:" << pid;
+            cntr = 0;
+        }
+    }
 
     return req_win;
 }

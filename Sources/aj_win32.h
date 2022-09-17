@@ -4,6 +4,7 @@
 #include <QString>
 #include <QtDebug>
 #include <QVector>
+#include <QThread>
 
 #include <dwmapi.h>
 #include "Windows.h"
@@ -39,12 +40,6 @@ typedef struct AjListW
     AjWindow win_active;
 }AjThreadW;
 
-typedef struct AjAppName
-{
-    QString app_name;
-    QString exe_name;
-}AjAppName;
-
 void aj_AddHwnd(HWND hwnd, AjListW *thread_w);
 long ajGetPid(HWND hWnd);
 QString ajGetPName(long pid);
@@ -52,7 +47,8 @@ void aj_InsertWindow(AjListW *thread_w, AjWindow win);
 void aj_getType(AjWindow *win);
 void aj_setActiveWindow(HWND hWnd);
 void aj_setActiveWindow(QString win_name);
-void aj_fillWinSpec(HWND hwnd, QString title, QString exe_name);
-AjWindow* aj_findApp(QString app_name, QString exe_name);
+bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name);
+AjWindow* aj_findAppByName(QString exe_name);
+AjWindow* aj_findAppByPid(DWORD pid);
 
 #endif // AJWIN_H
