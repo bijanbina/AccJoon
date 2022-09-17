@@ -11,11 +11,14 @@ AjWin32Launcher::AjWin32Launcher(QString app_name)
 
 QString AjWin32Launcher::getExeName()
 {
+    char buffer[200];
+    GetLongPathNameA(link_path.toStdString().c_str(), buffer, 200);
+    link_path = buffer;
     QFileInfo fi(link_path);
     return fi.completeBaseName();
 }
 
-void AjWin32Launcher::launchApp(QString arg)
+DWORD AjWin32Launcher::launchApp(QString arg)
 {
     QString path = link_path + " " + arg;
 
@@ -33,11 +36,14 @@ void AjWin32Launcher::launchApp(QString arg)
                              NULL, FALSE, 0, NULL,
                              NULL, &StartupInfo,
                              &ProcessInfo);
-    if( ret == 0 )
+    if( ret==0 )
     {
         long last_error = GetLastError();
         qDebug() << "CreateProcess failed" << last_error;
+        return 0;
     }
+
+    return ProcessInfo.dwProcessId;
 }
 
 QString AjWin32Launcher::getLinkPath(QString path)

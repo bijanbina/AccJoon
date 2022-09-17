@@ -8,7 +8,7 @@ class AjWin32Launcher
 {
 public:
     AjWin32Launcher(QString app_name);
-    void launchApp(QString arg="");
+    DWORD launchApp(QString arg="");
     QString getExeName();
 private:
     QString getLinkPath(QString path);
