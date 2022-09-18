@@ -10,18 +10,21 @@ AjWin::AjWin(HWND hWindow)
 void AjWin::listChildren(IAccessible *pAcc, QString path)
 {
     QString pAcc_name = aj_getAccName(pAcc, CHILDID_SELF);
-    qDebug() << "####### getChildren - acc path : " + pAcc_name;
+    qDebug() << "####### getChildren: " + path;
 
     long childCount;
     long returnCount;
     HRESULT hr = pAcc->get_accChildCount(&childCount);
     VARIANT* pArray = new VARIANT[childCount];
     hr = AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
-    path += QString(".");
-
-    for (int x = 0; x < returnCount; x++)
+    if( path.length() )
     {
-        VARIANT vtChild = pArray[x];
+        path += QString(".");
+    }
+
+    for (int i=0 ; i<returnCount ; i++ )
+    {
+        VARIANT vtChild = pArray[i];
         if (vtChild.vt == VT_DISPATCH)
         {
             IDispatch* pDisp = vtChild.pdispVal;
@@ -29,14 +32,15 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
             hr = pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             if (hr == S_OK)
             {
-                QString child_name = aj_getAccName(pChild, CHILDID_SELF);
+                QString child_name = aj_getAccName(pAcc, i);
                 long child_count = aj_getChildCount(pChild);
-                qDebug() << "-> acc path : " + pAcc_name +
-                            " - child[" + QString::number(x) + "/" + QString::number(returnCount-1) + "], childname:" + child_name +
-                            "| child count " + QString::number(child_count) + " path:" + path + QString::number(x+1);
+                qDebug() << "acc[" + QString::number(i) + "/" + QString::number(returnCount-1)
+                            + "], name:" + child_name +
+                            " | child:" + QString::number(child_count)
+                            + " path:" + path + QString::number(i+1);
                 if(child_count>0)
                 {
-                    listChildren(pChild, path + QString::number(x+1));
+                    listChildren(pChild, path + QString::number(i+1));
                 }
                 pChild->Release();
             }
@@ -46,14 +50,14 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
         //   and we do not recurse because child elements can't have children.
         else
         {
-            qDebug() <<"-> acc path : " + pAcc_name +
-                        " - child[" + QString::number(x) + "/" + QString::number(returnCount-1) +
-                        "] ELEMENT - " + aj_getAccName(pAcc, vtChild.lVal)
-                        + " path:" + path + QString::number(x+1);
+            qDebug() <<"Element:" + pAcc_name +
+                        " - child[" + QString::number(i) + "/" + QString::number(returnCount-1) +
+                        "] name:" + aj_getAccName(pAcc, vtChild.lVal)
+                        + " path:" + path + QString::number(i+1);
         }
     }
     delete[] pArray;
-    qDebug() <<"####### Exit getChildren - acc path : " + pAcc_name;
+    qDebug() <<"####### Exit getChildren: " + path;
 }
 
 IAccessible *AjWin::getHwndAcc(HWND hWindow)
@@ -175,7 +179,7 @@ int AjWin::doAcc(AjCommand cmd)
         qDebug() << "Error: cannot get acc of active window (" << window_title << ")";
         return -1;
     }
-//    listChildren(win_pAcc, QString(""));
+    listChildren(win_pAcc, QString(""));
 
     //get parent path
     int child_id;

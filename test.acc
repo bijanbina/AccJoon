@@ -1,0 +1,4 @@
+shortcut=Qt 5.14.2\Qt Creator 4.11.1 (Community)
+open=0 delay=5000
+key=Ctrl+1 delay=1000
+path=4.1.3.3.1.7 name=Headers cmd=D delay=1000 ox=0 oy=0 oid=1

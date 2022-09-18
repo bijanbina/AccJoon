@@ -6,7 +6,7 @@
 #include "aj_client.h"
 #include "aj_conf_parser.h"
 
-#define DEBUG_SLEEP 30000
+#define DEBUG_SLEEP 5000
 //set PATH=%PATH%;C:\Qt\Qt5.12.10\5.12.10\mingw73_32\bin
 //windeployqt O:\Projects\AccJoon\release
 
