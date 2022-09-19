@@ -25,6 +25,7 @@ SOURCES += \
         Sources/aj_acc.cpp \
         Sources/aj_client.cpp \
         Sources/aj_conf_parser.cpp \
+        Sources/aj_dllgen.cpp \
         Sources/aj_keyboard.cpp \
         Sources/aj_win.cpp \
         Sources/aj_win32.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     Sources/aj_acc.h \
     Sources/aj_client.h \
     Sources/aj_conf_parser.h \
+    Sources/aj_dllgen.h \
     Sources/aj_keyboard.h \
     Sources/aj_win.h \
     Sources/aj_win32.h \
