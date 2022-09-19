@@ -1,74 +1,11 @@
 #include "aj_conf_parser.h"
 #include "aj_win32.h"
+#include "aj_dllgen.h"
 
 AjExecuter::AjExecuter(QString conf_path)
 {
-    QFile conf_file(conf_path);
-    if( !conf_file.open(QIODevice::ReadOnly |
-                        QIODevice::Text) )
-    {
-        qDebug() << "Error: cannot open conf file" << conf_path;
-        return;
-    }
-
-    if( !conf_file.atEnd() )
-    {
-        QByteArray line = conf_file.readLine();
-        if( !setAppConf(line) )
-        {
-            qDebug() << "Error: cannot parse 1st line" << conf_path;
-            return;
-        }
-    }
-    else
-    {
-        qDebug() << "Error: incomplete conf file" << conf_path;
-        return;
-    }
-
-    if( !conf_file.atEnd() )
-    {
-        QByteArray line = conf_file.readLine();
-        if( !setOpenState(line) )
-        {
-            qDebug() << "Error: cannot parse 2nd line" << conf_path;
-            return;
-        }
-    }
-    else
-    {
-        qDebug() << "Error: incomplete conf file" << conf_path;
-        return;
-    }
-
-    if( !conf_file.atEnd() )
-    {
-        QByteArray line = conf_file.readLine();
-        if( !addCmd(line) )
-        {
-            qDebug() << "Error: cannot parse 3rd line" << conf_path;
-            return;
-        }
-    }
-    else
-    {
-        qDebug() << "Error: incomplete conf file" << conf_path;
-        return;
-    }
-
-    int line_cnt = 4;
-    while( !conf_file.atEnd() )
-    {
-        QByteArray line = conf_file.readLine();
-        if( !addCmd(line) )
-        {
-            qDebug() << "Error: cannot parse" << line_cnt++
-                     << "th line" << conf_path;
-            return;
-        }
-    }
-    conf_file.close();
-
+    readConfFile(conf_path);
+    AjDllGen *test = new AjDllGen("dll_gen.bat");
 //    printConf();
 }
 
@@ -77,6 +14,11 @@ void AjExecuter::run()
     AjWindow *req_win;
     AjWin32Launcher *win_launcher = new AjWin32Launcher(app_name);
     exe_name = win_launcher->getExeName();
+    if( exe_name=="" )
+    {
+        qDebug() << "Error: exe file not found.";
+        return;
+    }
     if( is_open )
     {
         DWORD pid = win_launcher->launchApp();
@@ -100,10 +42,80 @@ void AjExecuter::run()
     delete aj_win;
 }
 
+void AjExecuter::readConfFile(QString conf_path)
+{
+    conf_file = new QFile(conf_path);
+    if( !conf_file->open(QIODevice::ReadOnly |
+                        QIODevice::Text) )
+    {
+        qDebug() << "Error: cannot open conf file" << conf_path;
+        return;
+    }
+
+    QByteArray line = readLine();
+    if( line!="" )
+    {
+        if( !setAppConf(line) )
+        {
+            qDebug() << "Error: cannot parse 1st line" << conf_path;
+            return;
+        }
+    }
+    else
+    {
+        qDebug() << "Error: incomplete conf file" << conf_path;
+        return;
+    }
+
+    line = readLine();
+    if( line!="" )
+    {
+        if( !setOpenState(line) )
+        {
+            qDebug() << "Error: cannot parse 2nd line" << conf_path;
+            return;
+        }
+    }
+    else
+    {
+        qDebug() << "Error: incomplete conf file" << conf_path;
+        return;
+    }
+
+    line = readLine();
+    if( line!="" )
+    {
+        if( !addCmd(line) )
+        {
+            qDebug() << "Error: cannot parse 3rd line" << conf_path;
+            return;
+        }
+    }
+    else
+    {
+        qDebug() << "Error: incomplete conf file" << conf_path;
+        return;
+    }
+
+    int line_cnt = 4;
+    line = readLine();
+    while( line!="" )
+    {
+        if( !addCmd(line) )
+        {
+            qDebug() << "Error: cannot parse" << line_cnt++
+                     << "th line" << conf_path;
+            return;
+        }
+        line = readLine();
+    }
+    conf_file->close();
+}
+
 bool AjExecuter::addCmd(QByteArray data)
 {
     QByteArrayList data_list = data.split(' ');
-    if( data_list.size()<AJ_KEY_PAR )
+    if( data_list.size()<1 )
     {
         return false;
     }
@@ -114,10 +126,6 @@ bool AjExecuter::addCmd(QByteArray data)
     }
     else if( data_list[0].contains("path") )
     {
-        if( data_list.size()<AJ_ACC_PAR )
-        {
-            return false;
-        }
         return addAcc(data_list);
     }
     return true;
@@ -126,58 +134,56 @@ bool AjExecuter::addCmd(QByteArray data)
 bool AjExecuter::addKey(QByteArrayList data_list)
 {
     QString key;
-    int delay, alt_key=0, ctrl_key=0, shift_key=0, meta_key=0;
+    int delay=0, alt_key=0, ctrl_key=0, shift_key=0, meta_key=0;
 
-    if( checkParam(data_list[0], "key") )
+    for( int i=0; i<data_list.size(); i++)
     {
-        key = data_list[0].split('=')[1];
-        key = key.toLower();
-        QStringList key_list = key.split('+');
-        for( int i=0; i<key_list.size(); i++ )
+        if( checkParam(data_list[i], "key") )
         {
-            if( i==key_list.size()-1 )
+            key = data_list[i].split('=')[1];
+            key = key.toLower();
+            QStringList key_list = key.split('+');
+            for( int i=0; i<key_list.size(); i++ )
             {
-                key = key_list[i];
-                if( key.size()>1 )
+                if( i==key_list.size()-1 )
                 {
-                    qDebug() << "Error: more than 1 key is not supported";
+                    key = key_list[i];
+                    if( key.size()>1 )
+                    {
+                        qDebug() << "Error: more than 1 key is not supported";
+                        return false;
+                    }
+                }
+                else if( key_list[i].contains("alt") )
+                {
+                    alt_key = 1;
+                }
+                else if( key_list[i].contains("ctrl") )
+                {
+                    ctrl_key = 1;
+                }
+                else if( key_list[i].contains("shift") )
+                {
+                    shift_key = 1;
+                }
+                else if( key_list[i].contains("super") )
+                {
+                    meta_key = 1;
+                }
+                else
+                {
                     return false;
                 }
             }
-            else if( key_list[i].contains("alt") )
-            {
-                alt_key = 1;
-            }
-            else if( key_list[i].contains("ctrl") )
-            {
-                ctrl_key = 1;
-            }
-            else if( key_list[i].contains("shift") )
-            {
-                shift_key = 1;
-            }
-            else if( key_list[i].contains("super") )
-            {
-                meta_key = 1;
-            }
-            else
-            {
-                return false;
-            }
         }
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[1], "delay") )
-    {
-        delay = data_list[1].split('=')[1].toInt();
-    }
-    else
-    {
-        return false;
+        else if( checkParam(data_list[i], "delay") )
+        {
+            delay = data_list[i].split('=')[1].toInt();
+        }
+        else
+        {
+            return false;
+        }
     }
 
     AjCommand acc_conf;
@@ -193,70 +199,43 @@ bool AjExecuter::addKey(QByteArrayList data_list)
 
 bool AjExecuter::addAcc(QByteArrayList data_list)
 {
-    QString acc_path, cmd, acc_name;
-    int delay, offset_x, offset_y, offset_id;
+    QString acc_path, cmd="L", acc_name="";
+    int delay=0, offset_x=0, offset_y=0, offset_id=0;
 
-    if( checkParam(data_list[0], "path") )
+    for( int i=0; i<data_list.size(); i++ )
     {
-        acc_path = data_list[0].split('=')[1];
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[1], "name") )
-    {
-        acc_name = data_list[1].split('=')[1];
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[2], "cmd") )
-    {
-        cmd = data_list[2].split('=')[1];
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[3], "delay") )
-    {
-        delay = data_list[3].split('=')[1].toInt();
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[4], "ox") )
-    {
-        offset_x = data_list[4].split('=')[1].toInt();
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[5], "oy") )
-    {
-        offset_y = data_list[5].split('=')[1].toInt();
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[6], "oid") )
-    {
-        offset_id = data_list[6].split('=')[1].toInt();
-    }
-    else
-    {
-        return false;
+        if( checkParam(data_list[i], "path") )
+        {
+            acc_path = data_list[i].split('=')[1];
+        }
+        else if( checkParam(data_list[i], "name") )
+        {
+            acc_name = data_list[i].split('=')[1];
+        }
+        else if( checkParam(data_list[i], "cmd") )
+        {
+            cmd = data_list[i].split('=')[1];
+        }
+        else if( checkParam(data_list[i], "delay") )
+        {
+            delay = data_list[i].split('=')[1].toInt();
+        }
+        else if( checkParam(data_list[i], "ox") )
+        {
+            offset_x = data_list[i].split('=')[1].toInt();
+        }
+        else if( checkParam(data_list[i], "oy") )
+        {
+            offset_y = data_list[i].split('=')[1].toInt();
+        }
+        else if( checkParam(data_list[i], "oid") )
+        {
+            offset_id = data_list[i].split('=')[1].toInt();
+        }
+        else
+        {
+            return false;
+        }
     }
 
     AjCommand acc_conf;
@@ -321,6 +300,23 @@ bool AjExecuter::setOpenState(QByteArray data)
         return false;
     }
     return true;
+}
+
+QByteArray AjExecuter::readLine()
+{
+    while( !conf_file->atEnd() )
+    {
+        QByteArray line = conf_file->readLine();
+        if( line.size()>2 )
+        {
+            if( line.mid(0, 2)=="--" )
+            {
+                continue;
+            }
+        }
+        return line;
+    }
+    return "";
 }
 
 bool AjExecuter::checkParam(QByteArray data, QString match, char sep)
