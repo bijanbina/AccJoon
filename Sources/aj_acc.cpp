@@ -189,8 +189,8 @@ int aj_getChildId(QString name, IAccessible *pAcc)
 
     for( int i=0 ; i<childCount ; i++ )
     {
-        QString child_name = aj_getAccName(pAcc, i+1);
-//        QString msg = "Get ChildID:" + QString::number(i+1);
+        QString child_name = aj_getAccName(pAcc, i);
+//        QString msg = "Get ChildID:" + QString::number(i);
 //        msg += " childCount:" + QString::number(childCount) + " " +
 //                child_name;
 //        logMessage(msg);

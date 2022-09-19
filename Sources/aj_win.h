@@ -51,7 +51,6 @@ private:
     int doKey(AjCommand cmd);
 
     QString window_title;
-    QString acc_name;
     QStringList path;
     POINT obj_center;
     HWND hwnd;

@@ -7,13 +7,14 @@ AjWin32Launcher::AjWin32Launcher(QString app_name)
 {
     app_name += ".lnk";
     link_path = getLinkPath(app_name);
+    qDebug() << "***" << app_name << "|" << link_path;
+    char buffer[200];
+    GetLongPathNameA(link_path.toStdString().c_str(), buffer, 200);
+    link_path = buffer;
 }
 
 QString AjWin32Launcher::getExeName()
 {
-    char buffer[200];
-    GetLongPathNameA(link_path.toStdString().c_str(), buffer, 200);
-    link_path = buffer;
     QFileInfo fi(link_path);
     return fi.completeBaseName();
 }

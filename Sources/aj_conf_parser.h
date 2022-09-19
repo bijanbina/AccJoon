@@ -28,6 +28,8 @@ public:
     void run();
 
 private:
+    void readConfFile(QString conf_path);
+    QByteArray readLine();
     bool setAppConf(QByteArray data);
     bool setOpenState(QByteArray data);
     bool addCmd(QByteArray data);
@@ -36,6 +38,7 @@ private:
     bool checkParam(QByteArray data, QString match, char sep='=');
     void printConf();
 
+    QFile *conf_file;
     QString app_name;
     QString exe_name;
     QString app_func;

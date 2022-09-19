@@ -10,13 +10,14 @@ public:
     AjWin32Launcher(QString app_name);
     DWORD launchApp(QString arg="");
     QString getExeName();
+
+    QString link_path;
+
 private:
     QString getLinkPath(QString path);
     QString getLinkPathA(QString path);
     QString getLinkPathB(QString path);
     HRESULT resolveIt(LPCSTR lnk_path, char *target);
-
-    QString link_path;
 };
 
 #endif // AJWIN32LAUNCHER_H

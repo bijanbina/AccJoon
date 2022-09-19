@@ -160,7 +160,6 @@ int AjWin::doAcc(AjCommand cmd)
     IAccessible *win_pAcc, *acc;
 
     path = cmd.acc_path.split('.');
-    acc_name = cmd.acc_name;
 
     offset_x = cmd.offset_x;
     offset_y = cmd.offset_y;
@@ -179,11 +178,11 @@ int AjWin::doAcc(AjCommand cmd)
         qDebug() << "Error: cannot get acc of active window (" << window_title << ")";
         return -1;
     }
-    listChildren(win_pAcc, QString(""));
+//    listChildren(win_pAcc, QString(""));
 
     //get parent path
     int child_id;
-    if( acc_name.isEmpty() )
+    if( cmd.acc_name.isEmpty() )
     {
         child_id = path.last().toInt()-1;
         path.removeLast();
@@ -197,9 +196,9 @@ int AjWin::doAcc(AjCommand cmd)
         return -1;
     }
 
-    if( acc_name.length() )
+    if( cmd.acc_name.length() )
     {
-        child_id = aj_getChildId(acc_name, acc) + offset_id;
+        child_id = aj_getChildId(cmd.acc_name, acc) + offset_id;
         if( child_id==-1 )
         {
             qDebug() << "Failed to get child id";

@@ -5,6 +5,7 @@
 #include "aj_win.h"
 #include "aj_client.h"
 #include "aj_conf_parser.h"
+#include "aj_dllgen.h"
 
 #define DEBUG_SLEEP 5000
 //set PATH=%PATH%;C:\Qt\Qt5.12.10\5.12.10\mingw73_32\bin
@@ -17,6 +18,7 @@ AjCmdOptions* parseClOptions(QCoreApplication *app);
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+    AjDllGen *test = new AjDllGen("dll_gen.bat");
 
     AjCmdOptions *parser = parseClOptions(&app);
 
@@ -25,7 +27,7 @@ int main(int argc, char *argv[])
     if( !parser->conf_path.isEmpty() )
     {
         AjExecuter *conf = new AjExecuter(parser->conf_path); // value stored in parser
-        conf->run();
+//        conf->run();
     }
     else if( parser->is_remote )
     {
