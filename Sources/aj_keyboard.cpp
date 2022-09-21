@@ -66,3 +66,29 @@ bool AjKeyboard::isExtended(int key_val)
     }
     return false;
 }
+
+int aj_keyCode(QString key)
+{
+    if( key.size()<2 )
+    {
+        return -1;
+    }
+    key = key.toLower();
+    if( key[0]=='f' )
+    {
+        key.remove(0,1);
+        int key_int = key.toInt();
+        if( key_int>0 && key_int<13 )
+        {
+            return VK_F1 + key_int - 1;
+        }
+        else
+        {
+            qDebug() << "Error: Wrong function key number"
+                     << key_int;
+            return -1;
+        }
+    }
+    qDebug() << "Error: Wrong key code entered";
+    return -1;
+}

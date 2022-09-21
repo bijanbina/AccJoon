@@ -30,6 +30,7 @@ SOURCES += \
         Sources/aj_win.cpp \
         Sources/aj_win32.cpp \
         Sources/aj_win32_launcher.cpp \
+        Sources/aj_win_process.cpp \
         Sources/backend.cpp \
         Sources/main.cpp
 
@@ -42,4 +43,5 @@ HEADERS += \
     Sources/aj_win.h \
     Sources/aj_win32.h \
     Sources/aj_win32_launcher.h \
+    Sources/aj_win_process.h \
     Sources/backend.h

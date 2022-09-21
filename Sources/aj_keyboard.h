@@ -72,4 +72,6 @@ private:
     int uinput_f;
 };
 
+int aj_keyCode(QString key);
+
 #endif // AJKEYBOARD_H
