@@ -1,16 +1,24 @@
 #include "aj_conf_parser.h"
 #include "aj_win32.h"
 #include "aj_dllgen.h"
+#include "aj_win_process.h"
+#include "aj_keyboard.h"
 
 AjExecuter::AjExecuter(QString conf_path)
 {
     readConfFile(conf_path);
-    AjDllGen *test = new AjDllGen("dll_gen.bat");
 //    printConf();
 }
 
 void AjExecuter::run()
 {
+    if( pcheck.length() )
+    {
+        if( aj_isProcOpen(pcheck) )
+        {
+            return;
+        }
+    }
     AjWindow *req_win;
     AjWin32Launcher *win_launcher = new AjWin32Launcher(app_name);
     exe_name = win_launcher->getExeName();
@@ -133,7 +141,8 @@ bool AjExecuter::addCmd(QByteArray data)
 
 bool AjExecuter::addKey(QByteArrayList data_list)
 {
-    QString key;
+    QString key = "";
+    int key_int = -1;
     int delay=0, alt_key=0, ctrl_key=0, shift_key=0, meta_key=0;
 
     for( int i=0; i<data_list.size(); i++)
@@ -150,8 +159,11 @@ bool AjExecuter::addKey(QByteArrayList data_list)
                     key = key_list[i];
                     if( key.size()>1 )
                     {
-                        qDebug() << "Error: more than 1 key is not supported";
-                        return false;
+                        key_int = aj_keyCode(key);
+                    }
+                    else
+                    {
+                        key_int = key.toUpper().toStdString()[0];
                     }
                 }
                 else if( key_list[i].contains("alt") )
@@ -187,7 +199,7 @@ bool AjExecuter::addKey(QByteArrayList data_list)
     }
 
     AjCommand acc_conf;
-    acc_conf.key = key;
+    acc_conf.key = key_int;
     acc_conf.delay = delay;
     acc_conf.alt_key = alt_key;
     acc_conf.ctrl_key = ctrl_key;
@@ -246,6 +258,7 @@ bool AjExecuter::addAcc(QByteArrayList data_list)
     acc_conf.offset_x = offset_x;
     acc_conf.offset_y = offset_y;
     acc_conf.offset_id = offset_id;
+    acc_conf.key = -1;
     commands.push_back(acc_conf);
     return true;
 }
@@ -274,30 +287,37 @@ bool AjExecuter::setAppConf(QByteArray data)
 
 bool AjExecuter::setOpenState(QByteArray data)
 {
+    is_open = 0;
+    open_delay = 0;
+    pcheck = "";
+
     QByteArrayList data_list = data.split(' ');
-    if( data_list.size()<AJ_OPEN_PAR )
+    if( data_list.size()<1 )
     {
         return false;
     }
 
-    if( checkParam(data_list[0], "open") )
+    for( int i=0 ; i<data_list.size() ; i++ )
     {
-        QByteArray value = data_list[0].split('=')[1];
-        is_open = value.trimmed().toInt();
-    }
-    else
-    {
-        return false;
-    }
-
-    if( checkParam(data_list[1], "delay") )
-    {
-        QByteArray value = data_list[1].split('=')[1];
-        open_delay = value.trimmed().toInt();
-    }
-    else
-    {
-        return false;
+        if( checkParam(data_list[i], "open") )
+        {
+            QByteArray value = data_list[i].split('=')[1];
+            is_open = value.trimmed().toInt();
+        }
+        else if( checkParam(data_list[i], "delay") )
+        {
+            QByteArray value = data_list[i].split('=')[1];
+            open_delay = value.trimmed().toInt();
+        }
+        else if( checkParam(data_list[i], "check") )
+        {
+            QByteArray value = data_list[i].split('=')[1];
+            pcheck = value.trimmed();
+        }
+        else
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -336,11 +356,11 @@ bool AjExecuter::checkParam(QByteArray data, QString match, char sep)
 void AjExecuter::printConf()
 {
     qDebug() << "--------" << app_func << app_name << "-------";
-    qDebug() << "open:" << is_open;
+    qDebug() << "open:" << is_open << "check:" << pcheck;
     for( int i=0; i<commands.size(); i++ )
     {
         AjCommand acc_conf = commands[i];
-        if( acc_conf.key.isEmpty() )
+        if( acc_conf.key>0 )
         {
             qDebug() << i << ")" << acc_conf.acc_path
                      << acc_conf.acc_name

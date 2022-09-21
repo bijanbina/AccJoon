@@ -7,10 +7,6 @@
 #include "aj_win32_launcher.h"
 #include "aj_win.h"
 
-#define AJ_ACC_PAR  7
-#define AJ_KEY_PAR  2
-#define AJ_OPEN_PAR 2
-
 typedef struct AjCmdOptions
 {
     bool is_remote;
@@ -42,6 +38,7 @@ private:
     QString app_name;
     QString exe_name;
     QString app_func;
+    QString pcheck; // process check
     int is_open;
     int open_delay;
     QVector<AjCommand> commands;
