@@ -18,16 +18,16 @@ AjCmdOptions* parseClOptions(QCoreApplication *app);
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+    CoInitialize(NULL);
+
     AjDllGen *test = new AjDllGen("dll_gen.bat");
 
     AjCmdOptions *parser = parseClOptions(&app);
 
-    CoInitialize(NULL);
-
     if( !parser->conf_path.isEmpty() )
     {
         AjExecuter *conf = new AjExecuter(parser->conf_path); // value stored in parser
-//        conf->run();
+        conf->run();
     }
     else if( parser->is_remote )
     {

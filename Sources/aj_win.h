@@ -22,7 +22,7 @@ typedef struct AjCommand
 {
     int delay;
     // key section
-    QString key;
+    int key;
     int alt_key;
     int ctrl_key;
     int shift_key;

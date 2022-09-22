@@ -84,13 +84,13 @@ IAccessible *AjWin::getHwndAcc(HWND hWindow)
 
 int AjWin::doAction(AjCommand cmd)
 {
-    if( cmd.key.isEmpty() )
-    {
-        return doAcc(cmd);
-    }
-    else if( cmd.action.isEmpty() )
+    if( cmd.key>0 )
     {
         return doKey(cmd);
+    }
+    else if( cmd.action.length() )
+    {
+        return doAcc(cmd);
     }
     else
     {
@@ -101,7 +101,7 @@ int AjWin::doAction(AjCommand cmd)
 int AjWin::doKey(AjCommand cmd)
 {
     AjKeyboard *keyboard = new AjKeyboard();
-    printf("doKey: ");
+    qDebug("doKey: ");
 
     if( cmd.alt_key )
     {
@@ -126,11 +126,9 @@ int AjWin::doKey(AjCommand cmd)
         keyboard->pressKey(KEY_META);
         qDebug("Super+");
     }
-    cmd.key = cmd.key.toUpper();
-    int key = cmd.key.toStdString().c_str()[0];
     QThread::msleep(1000);
-    keyboard->sendKey(key);
-    qDebug() << cmd.key << key;
+    keyboard->sendKey(cmd.key);
+    qDebug() << cmd.key;
     if( cmd.alt_key )
     {
         QThread::msleep(20);
@@ -157,6 +155,7 @@ int AjWin::doKey(AjCommand cmd)
 
 int AjWin::doAcc(AjCommand cmd)
 {
+    qDebug("doAcc: ");
     IAccessible *win_pAcc, *acc;
 
     path = cmd.acc_path.split('.');
