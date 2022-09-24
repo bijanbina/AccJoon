@@ -4,26 +4,15 @@
 #include <QFile>
 #include "aj_win32_launcher.h"
 
-class AjDllGen
-{
-public:
-    AjDllGen(QString dll_path);
-
-private:
-    void fillBatFile();
-    QString getQtCompiler();
-    QString getQtPath();
-    QString getQtCreator();
-    QString findCompiler(QString pattern, QString dirname);
-    QString findQtShortcut(QString dirname);
-    QString getFirstDir(QString path);
-    QString makeToolsPath();
-    void addToolsLib(QString lib);
-
-    QFile *bat_file;
-    QString creator_path;
-    QString project_path;
-    QString tools_path;
-};
+void aj_dllGen();
+void aj_fillBatFile(QFile *bat_file);
+QString aj_getQtCompiler();
+QString aj_getQtPath();
+QString aj_getQtShortCut();
+QString aj_getQtCreator();
+QString aj_findCompiler(QString pattern, QString dirname);
+QString aj_findQtShortcut(QString dirname);
+QString aj_getFirstDir(QString path);
+QString aj_makeToolsPath();
 
 #endif // AJDLLGEN_H

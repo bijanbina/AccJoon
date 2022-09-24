@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     CoInitialize(NULL);
 
-    AjDllGen *test = new AjDllGen("dll_gen.bat");
+    aj_dllGen();
 
     AjCmdOptions *parser = parseClOptions(&app);
 

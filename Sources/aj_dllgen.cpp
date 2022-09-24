@@ -2,7 +2,7 @@
 #include <QDir>
 #include <QDebug>
 
-AjDllGen::AjDllGen(QString bat_name)
+void aj_dllGen()
 {
     QString project_path = QDir::currentPath();
     project_path.replace("/", "\\");
@@ -20,22 +20,22 @@ AjDllGen::AjDllGen(QString bat_name)
         return;
     }
 
-    project_path += "\\" + bat_name;
-    bat_file = new QFile(project_path);
+    project_path += "\\dll_gen.bat";
+    QFile *bat_file = new QFile(project_path);
     if( !bat_file->open(QIODevice::WriteOnly |
                         QIODevice::Text) )
     {
         qDebug() << "Error: cannot open conf file" << bat_file;
         return;
     }
-    fillBatFile();
+    aj_fillBatFile(bat_file);
     bat_file->close();
     qDebug() << "ending" << project_path;
 }
 
-void AjDllGen::fillBatFile()
+void aj_fillBatFile(QFile *bat_file)
 {
-    QString qt_compiler_path = getQtCompiler();
+    QString qt_compiler_path = aj_getQtCompiler();
     if( qt_compiler_path.isEmpty() )
     {
         qDebug() << "Error: Cannot retreive compiler path";
@@ -44,7 +44,7 @@ void AjDllGen::fillBatFile()
     bat_file->write("set PATH=%PATH%;");
     bat_file->write(qt_compiler_path.toStdString().c_str());
     bat_file->write("\nwindeployqt ");
-    project_path = QDir::currentPath();
+    QString project_path = QDir::currentPath();
     project_path.replace("/", "\\");
 //    bat_file->write(project_path.toStdString().c_str());
 //    bat_file->write("\\Sources ");
@@ -55,28 +55,36 @@ void AjDllGen::fillBatFile()
 #endif
     bat_file->write(project_path.toStdString().c_str());
 
-    tools_path = makeToolsPath();
+    QString tools_path = aj_makeToolsPath();
     if( tools_path.isEmpty() )
     {
         qDebug() << "Error: Cannot retreive "
                     "cp path from compiler path";
         return;
     }
-    addToolsLib("libgcc_s_dw2-1.dll");
-    addToolsLib("libstdc++-6.dll");
-    addToolsLib("libwinpthread-1.dll");
+    QStringList libs;
+    libs << "libgcc_s_dw2-1.dll" << "libstdc++-6.dll"
+         << "libwinpthread-1.dll";
+    for( int i=0 ; i<libs.size() ; i++ )
+    {
+        bat_file->write("\ncopy \"");
+        bat_file->write(tools_path.toStdString().c_str());
+        bat_file->write(libs[i].toStdString().c_str());
+        bat_file->write("\" ");
+        bat_file->write(project_path.toStdString().c_str());
+    }
 }
 
-QString AjDllGen::getQtCompiler()
+QString aj_getQtCompiler()
 {
     // C:\Qt\Qt5.7.0
-    QString qt_compiler = getQtPath();
+    QString qt_compiler = aj_getQtPath();
     if( qt_compiler.isEmpty() )
     {
         return "";
     }
     // 5.7.0
-    QString qt_dir = getFirstDir(qt_compiler);
+    QString qt_dir = aj_getFirstDir(qt_compiler);
     if( qt_dir.isEmpty() )
     {
         return "";
@@ -84,7 +92,7 @@ QString AjDllGen::getQtCompiler()
     // C:\Qt\Qt5.7.0\5.7.0
     qt_compiler += "\\" + qt_dir;
     // mingw53_32
-    QString compiler = findCompiler("mingw", qt_compiler);
+    QString compiler = aj_findCompiler("mingw", qt_compiler);
     if( compiler.isEmpty() )
     {
         return "";
@@ -94,17 +102,13 @@ QString AjDllGen::getQtCompiler()
     return qt_compiler;
 }
 
-void AjDllGen::addToolsLib(QString lib)
+QString aj_makeToolsPath()
 {
-    bat_file->write("\ncopy \"");
-    bat_file->write(tools_path.toStdString().c_str());
-    bat_file->write(lib.toStdString().c_str());
-    bat_file->write("\" ");
-    bat_file->write(project_path.toStdString().c_str());
-}
-
-QString AjDllGen::makeToolsPath()
-{
+    QString creator_path = aj_getQtCreator();
+    if( creator_path.isEmpty() )
+    {
+        return "";
+    }
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin\qtcreator.exe
     int index = creator_path.lastIndexOf("\\");
     QString lib_path = creator_path.mid(0, index);
@@ -115,7 +119,7 @@ QString AjDllGen::makeToolsPath()
     index = lib_path.lastIndexOf("\\");
     lib_path = lib_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools
-    QString compiler = findCompiler("mingw", lib_path);
+    QString compiler = aj_findCompiler("mingw", lib_path);
     if( compiler.isEmpty() )
     {
         return "";
@@ -124,17 +128,9 @@ QString AjDllGen::makeToolsPath()
     return lib_path;
 }
 
-QString AjDllGen::getQtPath()
+QString aj_getQtPath()
 {
-    QString qt_path;
-    // get qt creator path
-    qt_path = getQtCreator();
-    if( qt_path.isEmpty() )
-    {
-        return "";
-    }
-    AjWin32Launcher *win_launcher = new AjWin32Launcher(qt_path);
-    creator_path = win_launcher->link_path;
+    QString creator_path = aj_getQtCreator();
     if( creator_path.isEmpty() )
     {
         return "";
@@ -142,7 +138,7 @@ QString AjDllGen::getQtPath()
     // 3-level parent dir
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin\qtcreator.exe
     int index = creator_path.lastIndexOf("\\");
-    qt_path = creator_path.mid(0, index);
+    QString qt_path = creator_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin
     index = qt_path.lastIndexOf("\\");
     qt_path = qt_path.mid(0, index);
@@ -157,21 +153,35 @@ QString AjDllGen::getQtPath()
     return qt_path;
 }
 
-QString AjDllGen::getQtCreator()
+QString aj_getQtShortCut()
 {
     QString start_menu = getenv("APPDATA");
     start_menu += "\\Microsoft\\Windows\\Start Menu\\Programs\\";
-    QString qt_shortcut = findQtShortcut(start_menu);
+    QString qt_shortcut = aj_findQtShortcut(start_menu);
     if( qt_shortcut.isEmpty() )
     {
         start_menu = getenv("PROGRAMDATA");
         start_menu += "\\Microsoft\\Windows\\Start Menu\\Programs\\";
-        qt_shortcut = findQtShortcut(start_menu);
+        qt_shortcut = aj_findQtShortcut(start_menu);
     }
     return qt_shortcut;
 }
 
-QString AjDllGen::findCompiler(QString pattern, QString dirname)
+QString aj_getQtCreator()
+{
+    QString qt_path;
+    // get qt creator path
+    qt_path = aj_getQtShortCut();
+    if( qt_path.isEmpty() )
+    {
+        return "";
+    }
+    AjWin32Launcher *win_launcher = new AjWin32Launcher(qt_path);
+    QString creator_path = win_launcher->link_path;
+    return creator_path;
+}
+
+QString aj_findCompiler(QString pattern, QString dirname)
 {
     QDir dir(dirname);
     dir.setFilter(QDir::Dirs | QDir::NoSymLinks |
@@ -199,7 +209,7 @@ QString AjDllGen::findCompiler(QString pattern, QString dirname)
     return "";
 }
 
-QString AjDllGen::findQtShortcut(QString dirname)
+QString aj_findQtShortcut(QString dirname)
 {
     QDir menu_dir(dirname);
     QRegExp Qt_reg("^Qt");
@@ -230,7 +240,7 @@ QString AjDllGen::findQtShortcut(QString dirname)
     return "";
 }
 
-QString AjDllGen::getFirstDir(QString path)
+QString aj_getFirstDir(QString path)
 {
     QDir menu_dir(path);
     menu_dir.setFilter(QDir::Dirs | QDir::NoSymLinks |
