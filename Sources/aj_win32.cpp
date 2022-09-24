@@ -33,8 +33,8 @@ BOOL CALLBACK EnumWindowsFind(HWND hwnd, LPARAM lParam)
     if( written && strlen(buffer)!=0 )
     {
         QString buff_s = buffer;
-        long pid = ajGetPid(hwnd);
-        QString pname = ajGetPName(pid);
+        long pid = aj_getPid(hwnd);
+        QString pname = aj_getPPath(pid);
         QString exe_name = *(QString *)lParam;
         if( pname.contains(exe_name) )
         {
@@ -61,7 +61,7 @@ BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
         req_win = new AjWindow;
         req_win->hWnd = hwnd;
         req_win->pid = pid;
-        req_win->pname = ajGetPName(pid);
+        req_win->pname = aj_getPPath(pid);
         req_win->title = buffer;
         return FALSE;
     }
@@ -96,7 +96,7 @@ void aj_AddHwnd(HWND hwnd, AjListW *list_w)
             AjWindow current_win;
             current_win.hWnd = hwnd;
             current_win.title = buffer;
-            current_win.pname = ajGetPName(ajGetPid(hwnd));
+            current_win.pname = aj_getPPath(aj_getPid(hwnd));
             current_win.verify = 1; //always new windows are verified
 //                current_win.title = thread_w->cleanTitle(current_win.title);
 
@@ -158,7 +158,7 @@ void aj_InsertWindow(AjListW *thread_w, AjWindow win)
 
 }
 
-long ajGetPid(HWND hWnd)
+long aj_getPid(HWND hWnd)
 {
     // get allegro pid of window handle
     DWORD dwProcessId;
@@ -171,7 +171,7 @@ long ajGetPid(HWND hWnd)
     return dwProcessId;
 }
 
-QString ajGetPName(long pid)
+QString aj_getPPath(long pid)
 {
     HANDLE processHandle = NULL;
 //    processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
@@ -186,10 +186,17 @@ QString ajGetPName(long pid)
     char filename[MAX_PATH];
     if(GetProcessImageFileNameA(processHandle, filename, MAX_PATH) == 0)
     {
-        qDebug() << "Error" << GetLastError() << " : Fail to get Pname of " << pid;
+//        qDebug() << "Error" << GetLastError() << " : Fail to get Pname of " << pid;
         return "";
     }
     return QString(filename);
+}
+
+QString aj_getPName(long pid)
+{
+    QString name = aj_getPPath(pid);
+    QFileInfo fi(name);
+    return fi.fileName();
 }
 
 void aj_getType(AjWindow *win)
@@ -305,8 +312,8 @@ bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
 
         if((hwnd!=shell_window) && (width>100) ) //&& (rc.bottom>0)
         {
-            long pid = ajGetPid(hwnd);
-            QString pname = ajGetPName(pid);
+            long pid = aj_getPid(hwnd);
+            QString pname = aj_getPPath(pid);
             QFileInfo fi(pname);
             pname = fi.completeBaseName();
             if( exe_name==pname )

@@ -41,8 +41,9 @@ typedef struct AjListW
 }AjThreadW;
 
 void aj_AddHwnd(HWND hwnd, AjListW *thread_w);
-long ajGetPid(HWND hWnd);
-QString ajGetPName(long pid);
+long aj_getPid(HWND hWnd);
+QString aj_getPName(long pid);
+QString aj_getPPath(long pid);
 void aj_InsertWindow(AjListW *thread_w, AjWindow win);
 void aj_getType(AjWindow *win);
 void aj_setActiveWindow(HWND hWnd);
