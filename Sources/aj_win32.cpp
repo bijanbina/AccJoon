@@ -178,7 +178,6 @@ QString aj_getPPath(long pid)
     processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
     if(processHandle == NULL)
     {
-        qDebug() << "Warning: couldn't get process handle from pid" << pid;
         return "";
     }
 

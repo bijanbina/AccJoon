@@ -101,34 +101,28 @@ int AjWin::doAction(AjCommand cmd)
 int AjWin::doKey(AjCommand cmd)
 {
     AjKeyboard *keyboard = new AjKeyboard();
-    qDebug("doKey: ");
 
     if( cmd.alt_key )
     {
         keyboard->pressKey(KEY_LEFTALT);
-        qDebug("Alt+");
     }
     if( cmd.ctrl_key )
     {
         QThread::msleep(20);
         keyboard->pressKey(KEY_LEFTCTRL);
-        qDebug("Ctrl+");
     }
     if( cmd.shift_key )
     {
         QThread::msleep(20);
         keyboard->pressKey(KEY_LEFTSHIFT);
-        qDebug("Shift+");
     }
     if( cmd.meta_key )
     {
         QThread::msleep(20);
         keyboard->pressKey(KEY_META);
-        qDebug("Super+");
     }
     QThread::msleep(1000);
     keyboard->sendKey(cmd.key);
-    qDebug() << cmd.key;
     if( cmd.alt_key )
     {
         QThread::msleep(20);
@@ -155,7 +149,6 @@ int AjWin::doKey(AjCommand cmd)
 
 int AjWin::doAcc(AjCommand cmd)
 {
-    qDebug("doAcc: ");
     IAccessible *win_pAcc, *acc;
 
     path = cmd.acc_path.split('.');

@@ -39,7 +39,6 @@ void AjKeyboard::pressKey(int key_val)
     }
 
     UINT ret = SendInput(1, &input, sizeof(INPUT));
-    qDebug() << "SendInput" << ret;
 }
 
 void AjKeyboard::releaseKey(int key_val)

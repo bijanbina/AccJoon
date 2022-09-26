@@ -1,4 +1,10 @@
-shortcut=Qt 5.14.2\Qt Creator 4.11.1 (Community)
-open=0 delay=5000
-key=Ctrl+1 delay=1000
-path=4.1.3.3.1.7 name=Headers cmd=D delay=1000 ox=0 oy=0 oid=1
+shortcut=Qt 5.12.12\Qt Creator 5.0.2 (Community)
+open=1 check=mom.exe delay=2000
+path=4.1.3.3.1.7 cmd=L name=Mom delay=200
+key=F5 delay=2000
+key=Ctrl+1 delay=200
+path=4.1.3.3.1.7 cmd=L name=Chess delay=200
+key=F5 delay=2000
+key=Ctrl+1 delay=200
+path=4.1.3.3.1.7 cmd=L name=Rebound delay=200
+key=F5 delay=2000

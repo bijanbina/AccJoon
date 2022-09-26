@@ -11,7 +11,6 @@ AjClient::AjClient(QString data, QObject *parent) : QObject(parent)
     connect(&tcpClient, SIGNAL(disconnected()), this, SLOT(disconnected()));
     connect(&tcpClient, SIGNAL(error(QAbstractSocket::SocketError)),
             this, SLOT(displayError(QAbstractSocket::SocketError)));
-    start();
 }
 
 AjClient::~AjClient()

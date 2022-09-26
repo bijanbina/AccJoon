@@ -33,7 +33,7 @@ public:
 signals:
     void errorConnection();
 
-private slots:
+public slots:
     void connected();
     void start();
     void displayError(QAbstractSocket::SocketError socketError);

@@ -121,13 +121,13 @@ IAccessible* aj_getChild(IAccessible *acc, int index)
 
     VARIANT vtChild  = pArray[index];
 
-    QString msg = "Get Child:" + QString::number(index+1);
-    msg += " childCount:" + QString::number(childCount) + " " +
-            aj_getAccName(acc, CHILDID_SELF) + " " + QString::number(returnCount);
-    logMessage(msg);
+//    QString msg = "Get Child:" + QString::number(index+1);
+//    msg += " childCount:" + QString::number(childCount) + " " +
+//            aj_getAccName(acc, CHILDID_SELF) + " " + QString::number(returnCount);
+//    logMessage(msg);
 
     // return if path is not correct
-    if(index > childCount)
+    if( index>childCount )
     {
         QString msg = "path is not correct, index greater than child";
         qDebug() << msg;
@@ -152,7 +152,8 @@ IAccessible* aj_getChild(IAccessible *acc, int index)
     else
     {
         QString msg = "child is not an Acc, variable type: ";
-        msg += QString::number(vtChild.vt);
+        msg += QString::number(vtChild.vt) + ", index:";
+        msg += QString::number(index);
         logMessage(msg);
 
         return NULL;
