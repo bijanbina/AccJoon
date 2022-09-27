@@ -3,10 +3,11 @@
 #include "aj_dllgen.h"
 #include "aj_win_process.h"
 #include "aj_keyboard.h"
+#include <QDir>
 
 AjExecuter::AjExecuter(QString conf_path)
 {
-    readConfFile(conf_path);
+    parseConf(conf_path);
 //    printConf();
 }
 
@@ -37,8 +38,10 @@ void AjExecuter::run()
     {
         req_win = aj_findAppByName(exe_name);
     }
+
     AjWin *aj_win;
     aj_win = new AjWin(req_win->hWnd);
+
     for( int i=0; i<commands.size(); i++ )
     {
         if( aj_win->doAction(commands[i])!=0 )
@@ -50,13 +53,15 @@ void AjExecuter::run()
     delete aj_win;
 }
 
-void AjExecuter::readConfFile(QString conf_path)
+void AjExecuter::parseConf(QString conf_path)
 {
     conf_file = new QFile(conf_path);
+    qDebug() << "Working dir is" << QDir::current().path();
     if( !conf_file->open(QIODevice::ReadOnly |
                         QIODevice::Text) )
     {
         qDebug() << "Error: cannot open conf file" << conf_path;
+        qDebug() << "Working dir is" << QDir::current().path();
         return;
     }
 

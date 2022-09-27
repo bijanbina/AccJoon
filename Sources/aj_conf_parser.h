@@ -24,7 +24,7 @@ public:
     void run();
 
 private:
-    void readConfFile(QString conf_path);
+    void parseConf(QString conf_path);
     QByteArray readLine();
     bool setAppConf(QByteArray data);
     bool setOpenState(QByteArray data);

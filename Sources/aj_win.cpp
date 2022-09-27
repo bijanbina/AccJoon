@@ -60,14 +60,15 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
     qDebug() <<"####### Exit getChildren: " + path;
 }
 
-IAccessible *AjWin::getHwndAcc(HWND hWindow)
+IAccessible *AjWin::getParnetAcc(HWND hWindow)
 {
     char buffer[256];
     IAccessible *acc;
 
     if( hWindow==NULL )
     {
-        hWindow = GetForegroundWindow();
+//        hWindow = GetForegroundWindow();
+        qDebug() << "Switching to active window";
         if( hWindow==NULL )
         {
             qDebug() << "Error: cannot get foreground window handler";
@@ -84,6 +85,8 @@ IAccessible *AjWin::getHwndAcc(HWND hWindow)
 
 int AjWin::doAction(AjCommand cmd)
 {
+    SetForegroundWindow(hwnd);
+    QThread::msleep(10);
     if( cmd.key>0 )
     {
         return doKey(cmd);
@@ -164,10 +167,11 @@ int AjWin::doAcc(AjCommand cmd)
         return -1;
     }
 
-    win_pAcc = getHwndAcc(hwnd);
+    win_pAcc = getParnetAcc(hwnd);
+//    qDebug() << "HWND" << win_pAcc->get_accName(0);
     if( win_pAcc==NULL )
     {
-        qDebug() << "Error: cannot get acc of active window (" << window_title << ")";
+        qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
         return -1;
     }
 //    listChildren(win_pAcc, QString(""));
@@ -184,7 +188,7 @@ int AjWin::doAcc(AjCommand cmd)
     acc = aj_getAcc(path, win_pAcc);
     if( acc==NULL )
     {
-        qDebug() << "Error: cannot get parent acc in window (" << window_title << ")";
+        qDebug() << "Error: cannot get acc in window (" << window_title << ")";
         return -1;
     }
 

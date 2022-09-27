@@ -13,6 +13,7 @@
 #include <tchar.h> // to get application file path
 
 #include "backend.h"
+#include "aj_win32.h"
 #include "aj_acc.h"
 
 #define AJ_MOUSE_DELAY   20
@@ -44,7 +45,7 @@ public:
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
-    IAccessible *getHwndAcc(HWND hWindow);
+    IAccessible *getParnetAcc(HWND hWindow);
     int setObjLocation(IAccessible *acc, int childID);
     void doClick(int cmd);
     int doAcc(AjCommand cmd);
