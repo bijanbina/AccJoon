@@ -6,17 +6,17 @@ void aj_dllGen()
 {
     QString project_path = QDir::currentPath();
     project_path.replace("/", "\\");
-#ifdef QT_DEBUG
-    project_path += "\\debug";
-#else
-    project_path += "\\release";
-#endif
+//#ifdef QT_DEBUG
+//    project_path += "\\debug";
+//#else
+//    project_path += "\\release";
+//#endif
 
     QDir directory(project_path);
     QStringList dll_files = directory.entryList(QStringList() << "*.dll", QDir::Files);
     if( dll_files.size()>0 )
     {
-        qDebug() << "Info: DLLs are already generated";
+        // DLLs are already generated
         return;
     }
 
@@ -25,7 +25,7 @@ void aj_dllGen()
     if( !bat_file->open(QIODevice::WriteOnly |
                         QIODevice::Text) )
     {
-        qDebug() << "Error: cannot open conf file" << bat_file;
+        qDebug() << "Error: cannot open dll_gen file" << bat_file;
         return;
     }
     aj_fillBatFile(bat_file);
@@ -44,16 +44,16 @@ void aj_fillBatFile(QFile *bat_file)
     bat_file->write("set PATH=%PATH%;");
     bat_file->write(qt_compiler_path.toStdString().c_str());
     bat_file->write("\nwindeployqt ");
-    QString project_path = QDir::currentPath();
-    project_path.replace("/", "\\");
+    QString bin_path = QDir::currentPath();
+    bin_path.replace("/", "\\");
 //    bat_file->write(project_path.toStdString().c_str());
 //    bat_file->write("\\Sources ");
-#ifdef QT_DEBUG
-    project_path += "\\debug";
-#else
-    project_path += "\\release";
-#endif
-    bat_file->write(project_path.toStdString().c_str());
+//#ifdef QT_DEBUG
+//    project_path += "\\debug";
+//#else
+//    bin_path += "\\release";
+//#endif
+    bat_file->write(bin_path.toStdString().c_str());
 
     QString tools_path = aj_makeToolsPath();
     if( tools_path.isEmpty() )
@@ -71,7 +71,7 @@ void aj_fillBatFile(QFile *bat_file)
         bat_file->write(tools_path.toStdString().c_str());
         bat_file->write(libs[i].toStdString().c_str());
         bat_file->write("\" ");
-        bat_file->write(project_path.toStdString().c_str());
+        bat_file->write(bin_path.toStdString().c_str());
     }
 }
 

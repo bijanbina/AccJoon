@@ -2,6 +2,7 @@
 #include <objbase.h>
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QDir>
 #include "aj_win.h"
 #include "aj_client.h"
 #include "aj_conf_parser.h"
@@ -15,46 +16,56 @@ using namespace std;
 
 AjCmdOptions* parseClOptions(QCoreApplication *app);
 
+void setCurrentDir()
+{
+    QString exe_dir = QCoreApplication::applicationDirPath();
+
+    QDir::setCurrent(exe_dir);
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     CoInitialize(NULL);
 
     aj_dllGen();
+    setCurrentDir();
 
-    AjCmdOptions *parser = parseClOptions(&app);
+    AjCmdOptions *opt = parseClOptions(&app);
 
-    if( !parser->conf_path.isEmpty() )
+    if( !opt->conf_path.isEmpty() )
     {
-        AjExecuter *conf = new AjExecuter(parser->conf_path); // value stored in parser
+        AjExecuter *conf = new AjExecuter(opt->conf_path); // value stored in parser
         conf->run();
+        return app.exec();
     }
-    else if( parser->is_remote )
+    else if( opt->is_remote )
     {
 //        QThread::msleep(DEBUG_SLEEP);
         QString command = "";//"AccJoon ";
-        AjCommand acc_conf = parser->cmd;
+        AjCommand acc_conf = opt->cmd;
         command += acc_conf.action[1] + " ";
         command += acc_conf.acc_path + " 0 0 ";
         command += acc_conf.acc_name;
 
         qDebug() << "Admin Mode";
-        AjClient *client = new AjClient(command);
+        AjClient client(command);
+        client.start();
+        return app.exec();
     }
     else // execute on local computer
     {
         AjWin *aj_win = new AjWin();
 
-        AjCommand acc_conf = parser->cmd;
+        AjCommand acc_conf = opt->cmd;
         if( aj_win->doAction(acc_conf)!=0 )
         {
             QThread::msleep(DEBUG_SLEEP);
             return -1;
         }
-        return 0;
     }
 
-    return app.exec();
+    return 0;
 }
 
 AjCmdOptions* parseClOptions(QCoreApplication *app)
