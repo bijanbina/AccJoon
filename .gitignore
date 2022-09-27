@@ -20,3 +20,5 @@ release/
 *.autosave
 
 *.log
+
+Setup/*.exe
