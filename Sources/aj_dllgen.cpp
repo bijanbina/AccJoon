@@ -248,3 +248,50 @@ QString aj_getFirstDir(QString path)
     QFileInfoList dir_list = menu_dir.entryInfoList();
     return dir_list[0].fileName();
 }
+
+QStringList aj_getConfList()
+{
+    QStringList ret;
+
+    QString project_path = QDir::currentPath();
+    // D:\Work\bijan\AccJoon\release
+    project_path.replace("/", "\\");
+    project_path += "\\Conf";
+    // D:\Work\bijan\AccJoon\conf
+
+    QFileInfoList conf_list = aj_searchDir(project_path, ".acc$",
+                 QDir::Files | QDir::NoSymLinks |
+                 QDir::NoDot | QDir::NoDotDot);
+    for( int i=0; i<conf_list.size(); i++ )
+    {
+        ret.push_back(conf_list[i].absoluteFilePath().replace("/", "\\"));
+    }
+    return ret;
+}
+
+QFileInfoList aj_searchDir(QString path, QString pattern,
+                           QDir::Filters filter)
+{
+    QFileInfoList ret;
+    QDir directory(path);
+    QRegExp Qt_reg(pattern);
+
+    if( directory.exists() )
+    {
+        directory.setFilter(filter);
+        QFileInfoList file_list = directory.entryInfoList();
+
+        for( int i=0 ; i<file_list.size() ; i++ )
+        {
+            if( file_list[i].fileName().contains(Qt_reg) )
+            {
+                ret.push_back(file_list[i]);
+            }
+        }
+    }
+    else
+    {
+        qDebug() << "Error: Directory doesnt exist.";
+    }
+    return ret;
+}

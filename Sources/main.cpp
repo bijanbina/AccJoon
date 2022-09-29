@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     CoInitialize(NULL);
 
-    aj_dllGen();
     setCurrentDir();
+    aj_dllGen();
 
     AjCmdOptions *opt = parseClOptions(&app);
 
@@ -39,7 +39,16 @@ int main(int argc, char *argv[])
         conf->run();
         return app.exec();
     }
-    else if( opt->is_remote )
+    else
+    {
+        QStringList conf_list = aj_getConfList();
+        for( int i=0; i<conf_list.size(); i++)
+        {
+            AjExecuter conf(conf_list[i]);
+//            conf.run();
+        }
+    }
+    /*else if( opt->is_remote )
     {
 //        QThread::msleep(DEBUG_SLEEP);
         QString command = "";//"AccJoon ";
@@ -63,7 +72,7 @@ int main(int argc, char *argv[])
             QThread::msleep(DEBUG_SLEEP);
             return -1;
         }
-    }
+    }*/
 
     return 0;
 }
