@@ -1,17 +1,10 @@
 #include "aj_dllgen.h"
-#include <QDir>
 #include <QDebug>
 
 void aj_dllGen()
 {
     QString project_path = QDir::currentPath();
     project_path.replace("/", "\\");
-//#ifdef QT_DEBUG
-//    project_path += "\\debug";
-//#else
-//    project_path += "\\release";
-//#endif
-
     QDir directory(project_path);
     QStringList dll_files = directory.entryList(QStringList() << "*.dll", QDir::Files);
     if( dll_files.size()>0 )
@@ -30,7 +23,7 @@ void aj_dllGen()
     }
     aj_fillBatFile(bat_file);
     bat_file->close();
-    qDebug() << "ending" << project_path;
+//    qDebug() << "ending" << project_path;
 }
 
 void aj_fillBatFile(QFile *bat_file)
@@ -48,11 +41,6 @@ void aj_fillBatFile(QFile *bat_file)
     bin_path.replace("/", "\\");
 //    bat_file->write(project_path.toStdString().c_str());
 //    bat_file->write("\\Sources ");
-//#ifdef QT_DEBUG
-//    project_path += "\\debug";
-//#else
-//    bin_path += "\\release";
-//#endif
     bat_file->write(bin_path.toStdString().c_str());
 
     QString tools_path = aj_makeToolsPath();
@@ -63,8 +51,8 @@ void aj_fillBatFile(QFile *bat_file)
         return;
     }
     QStringList libs;
-    libs << "libgcc_s_dw2-1.dll" << "libstdc++-6.dll"
-         << "libwinpthread-1.dll";
+    libs << "libstdc++-6.dll" << "libwinpthread-1.dll";
+    libs += aj_listGccCompilers(tools_path);
     for( int i=0 ; i<libs.size() ; i++ )
     {
         bat_file->write("\ncopy \"");
@@ -181,6 +169,20 @@ QString aj_getQtCreator()
     return creator_path;
 }
 
+QStringList aj_listGccCompilers(QString tools_path)
+{
+    QStringList compilers;
+    QFileInfoList file_list = aj_searchDir(tools_path, "^libgcc_",
+                                   QDir::Files | QDir::NoSymLinks |
+                                   QDir::NoDot | QDir::NoDotDot);
+
+    for( int i=0 ; i<file_list.size() ; i++ )
+    {
+        compilers.push_back(file_list[i].fileName());
+    }
+    return compilers;
+}
+
 QString aj_findCompiler(QString pattern, QString dirname)
 {
     QDir dir(dirname);
@@ -221,7 +223,6 @@ QString aj_findQtShortcut(QString dirname)
     {
         if( dir_list[i].fileName().contains(Qt_reg) )
         {
-//            qDebug() << "find qt" << dir_list[i].fileName();
             QDir qt_dir(dirname + "\\" + dir_list[i].fileName());
             QRegExp creator_reg("^Qt Creator");
             QFileInfoList qt_dir_list = qt_dir.entryInfoList();
@@ -229,7 +230,6 @@ QString aj_findQtShortcut(QString dirname)
             {
                 if( qt_dir_list[j].fileName().contains(creator_reg) )
                 {
-//                    qDebug() << "find creator" << qt_dir_list[i].completeBaseName();
                     QString ret = dir_list[i].fileName() + "\\" +
                                   qt_dir_list[j].completeBaseName();
                     return ret;
