@@ -1,69 +1,18 @@
-#include "aj_conf_parser.h"
+#include "aj_parser.h"
 #include "aj_win32.h"
 #include "aj_dllgen.h"
 #include "aj_win_process.h"
 #include "aj_keyboard.h"
 #include <QDir>
 
-AjExecuter::AjExecuter(QString path)
+AjParser::AjParser(QString path)
 {
     conf_path = path;
     parseConf();
 //    printConf();
 }
 
-void AjExecuter::run()
-{
-    for( int i=0; i<apps.size(); i++ )
-    {
-        runApp(i);
-    }
-}
-
-void AjExecuter::runApp(int i)
-{
-    if( apps[i].pcheck.length() )
-    {
-        if( aj_isProcOpen(apps[i].pcheck) )
-        {
-            return;
-        }
-    }
-    AjWindow *req_win;
-    AjWin32Launcher *win_launcher = new AjWin32Launcher(
-                apps[i].app_name);
-    QString exe_name = win_launcher->getExeName();
-    QThread::msleep(apps[i].start_delay);
-    if( exe_name=="" )
-    {
-        qDebug() << "Error: exe file not found"
-                 << apps[i].app_name;
-        return;
-    }
-    if( apps[i].is_open )
-    {
-        DWORD pid = win_launcher->launchApp();
-        req_win = aj_findAppByPid(pid);
-        QThread::msleep(apps[i].open_delay);
-    }
-    else
-    {
-        req_win = aj_findAppByName(exe_name);
-    }
-
-    AjWin aj_win(req_win->hWnd);
-
-    for( int j=0; j<apps[i].commands.size(); j++ )
-    {
-        if( aj_win.doAction(apps[i].commands[j])!=0 )
-        {
-            return;
-        }
-        QThread::msleep(apps[i].commands[j].delay);
-    }
-}
-
-void AjExecuter::parseConf()
+void AjParser::parseConf()
 {
     conf_file = new QFile(conf_path);
     qDebug() << "Working dir is" << QDir::current().path();
@@ -83,7 +32,7 @@ void AjExecuter::parseConf()
     conf_file->close();
 }
 
-void AjExecuter::addAppSpec()
+void AjParser::addAppSpec()
 {
     QByteArray line = readLine();
     if( line!="" && !end_of_app )
@@ -149,7 +98,7 @@ void AjExecuter::addAppSpec()
     appendApp();
 }
 
-bool AjExecuter::addCmd(QByteArray data)
+bool AjParser::addCmd(QByteArray data)
 {
     QByteArrayList data_list = data.split(' ');
     if( data_list.size()<1 )
@@ -168,7 +117,7 @@ bool AjExecuter::addCmd(QByteArray data)
     return true;
 }
 
-bool AjExecuter::addKey(QByteArrayList data_list)
+bool AjParser::addKey(QByteArrayList data_list)
 {
     QString key = "";
     int key_int = -1;
@@ -238,7 +187,7 @@ bool AjExecuter::addKey(QByteArrayList data_list)
     return true;
 }
 
-bool AjExecuter::addAcc(QByteArrayList data_list)
+bool AjParser::addAcc(QByteArrayList data_list)
 {
     QString acc_path, cmd="L", acc_name="";
     int delay=0, offset_x=0, offset_y=0, offset_id=0;
@@ -292,7 +241,7 @@ bool AjExecuter::addAcc(QByteArrayList data_list)
     return true;
 }
 
-bool AjExecuter::setAppConf(QByteArray data)
+bool AjParser::setAppConf(QByteArray data)
 {
     QByteArrayList data_list = data.split('=');
     if( data_list.size()<2 )
@@ -315,7 +264,7 @@ bool AjExecuter::setAppConf(QByteArray data)
     }
 }
 
-bool AjExecuter::setOpenState(QByteArray data)
+bool AjParser::setOpenState(QByteArray data)
 {
     is_open = 0;
     open_delay = 0;
@@ -359,7 +308,7 @@ bool AjExecuter::setOpenState(QByteArray data)
     return true;
 }
 
-void AjExecuter::appendApp()
+void AjParser::appendApp()
 {
     AjAppOptions app;
     app.app_name = app_name;
@@ -382,7 +331,7 @@ void AjExecuter::appendApp()
     open_delay = 0;
 }
 
-QByteArray AjExecuter::readLine()
+QByteArray AjParser::readLine()
 {
     delay_line = 0;
     end_of_app = false;
@@ -423,7 +372,7 @@ QByteArray AjExecuter::readLine()
     return "";
 }
 
-bool AjExecuter::checkParam(QByteArray data, QString match, char sep)
+bool AjParser::checkParam(QByteArray data, QString match, char sep)
 {
     QByteArrayList data_list = data.split(sep);
     if(data_list.size()<2)
@@ -437,7 +386,7 @@ bool AjExecuter::checkParam(QByteArray data, QString match, char sep)
     return true;
 }
 
-void AjExecuter::printConf()
+void AjParser::printConf()
 {
     for( int j=0; j<apps.size(); j++ )
     {

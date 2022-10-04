@@ -1,5 +1,5 @@
-#ifndef AJCONFPARSER_H
-#define AJCONFPARSER_H
+#ifndef AJ_CONFPARSER_H
+#define AJ_CONFPARSER_H
 
 #include <QFile>
 #include <QTextStream>
@@ -17,27 +17,16 @@ typedef struct AjCmdOptions
     AjCommand cmd;
 }AjCmdOptions;
 
-typedef struct AjAppOptions{
-    QString app_name;
-    QString app_func;
-    QString pcheck; // process check
-    int workspace;
-    int is_open;
-    int open_delay;
-    int start_delay;
-    QVector<AjCommand> commands;
-}AjAppOptions;
-
-class AjExecuter
+class AjParser
 {
 public:
-    AjExecuter(QString conf_path);
-    void run();
+    AjParser(QString conf_path);
+
+    QVector<AjAppOptions> apps;
 
 private:
     void parseConf();
     void addAppSpec();
-    void runApp(int i);
     QByteArray readLine();
     bool setAppConf(QByteArray data);
     bool setOpenState(QByteArray data);
@@ -62,7 +51,6 @@ private:
     int delay_line;
     bool end_of_app; // end of app specification in conf
     bool end_of_file;
-    QVector<AjAppOptions> apps;
 };
 
 #endif // AJCONFPARSER_H

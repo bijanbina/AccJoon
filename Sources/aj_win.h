@@ -37,6 +37,17 @@ typedef struct AjCommand
     int offset_id;
 }AjCommand;
 
+typedef struct AjAppOptions{
+    QString app_name;
+    QString app_func;
+    QString pcheck; // process check
+    int workspace;
+    int is_open;
+    int open_delay;
+    int start_delay;
+    QVector<AjCommand> commands;
+}AjAppOptions;
+
 class AjWin
 {
 public:
