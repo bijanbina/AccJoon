@@ -367,7 +367,7 @@ AjWindow* aj_findAppByPid(DWORD pid)
         QThread::msleep(50);
         if( cntr%100==0 )
         {
-            qDebug() << "Info: searching for HWND with pid:" << pid;
+//            qDebug() << "Info: searching for HWND with pid:" << pid;
             cntr = 0;
         }
     }

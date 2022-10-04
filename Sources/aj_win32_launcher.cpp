@@ -5,10 +5,10 @@
 
 AjWin32Launcher::AjWin32Launcher(QString app_name)
 {
-    app_name += ".lnk";
     link_path = getLinkPath(app_name);
     char buffer[200];
-    GetLongPathNameA(link_path.toStdString().c_str(), buffer, 200);
+    GetLongPathNameA(link_path.toStdString().c_str(),
+                     buffer, 200);
     link_path = buffer;
 }
 
@@ -46,23 +46,23 @@ DWORD AjWin32Launcher::launchApp(QString arg)
     return ProcessInfo.dwProcessId;
 }
 
-QString AjWin32Launcher::getLinkPath(QString path)
+QString AjWin32Launcher::getLinkPath(QString name)
 {
-    QString ret = getLinkPathA(path);
+    QString ret = getLinkPathA(name);
     if( ret.isEmpty() )
     {
-        ret = getLinkPathB(path);
+        ret = getLinkPathB(name);
     }
     return ret;
 }
 
-QString AjWin32Launcher::getLinkPathA(QString path)
+QString AjWin32Launcher::getLinkPathA(QString name)
 {
     char target[MAX_PATH];
 
     QString lnk = getenv("APPDATA");
     lnk += "\\Microsoft\\Windows\\Start Menu\\Programs\\";
-    lnk += path;
+    lnk = findAppPath(lnk, name);
 
     resolveIt(lnk.toStdString().c_str(), target);
 
@@ -70,17 +70,58 @@ QString AjWin32Launcher::getLinkPathA(QString path)
 }
 
 //retreive link from ProgramData instead of user account
-QString AjWin32Launcher::getLinkPathB(QString path)
+QString AjWin32Launcher::getLinkPathB(QString name)
 {
     char target[MAX_PATH];
 
     QString lnk = getenv("PROGRAMDATA");
     lnk += "\\Microsoft\\Windows\\Start Menu\\Programs\\";
-    lnk += path;
+    lnk = findAppPath(lnk, name);
 
     resolveIt(lnk.toStdString().c_str(), target);
 
     return target;
+}
+
+QString AjWin32Launcher::findAppPath(QString path, QString pattern)
+{
+    QDir directory(path);
+    directory.setFilter(QDir::Files | QDir::NoDot | QDir::NoDotDot);
+    QRegExp pattern_reg("^" + pattern.toLower());
+    QRegExp lnk_reg(".lnk$");
+
+    if( directory.exists() )
+    {
+        QFileInfoList file_list = directory.entryInfoList();
+
+        for( int i=0 ; i<file_list.size() ; i++ )
+        {
+            if( file_list[i].fileName().toLower().contains(pattern_reg) &&
+                file_list[i].fileName().contains(lnk_reg))
+            {
+                return file_list[i].absoluteFilePath().replace("/", "\\");
+            }
+        }
+        directory.setFilter(QDir::Dirs | QDir::NoSymLinks |
+                            QDir::NoDot | QDir::NoDotDot);
+
+        QFileInfoList dir_list = directory.entryInfoList();
+
+        for( int i=0 ; i<dir_list.size() ; i++ )
+        {
+            if( dir_list[i].fileName().toLower().contains(pattern_reg) )
+            {
+                return findAppPath(dir_list[i].absoluteFilePath()
+                                   .replace("/", "\\"),  pattern);
+            }
+        }
+        return "";
+    }
+    else
+    {
+        qDebug() << "Error: Directory doesnt exist.";
+        return "";
+    }
 }
 
 HRESULT AjWin32Launcher::resolveIt(LPCSTR lnk_path, char *target)

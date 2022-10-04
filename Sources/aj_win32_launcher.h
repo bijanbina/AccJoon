@@ -2,6 +2,7 @@
 #define AJWIN32LAUNCHER_H
 
 #include <Windows.h>
+#include <QDir>
 #include <QDebug>
 
 class AjWin32Launcher
@@ -14,9 +15,10 @@ public:
     QString link_path;
 
 private:
-    QString getLinkPath(QString path);
-    QString getLinkPathA(QString path);
-    QString getLinkPathB(QString path);
+    QString getLinkPath(QString name);
+    QString getLinkPathA(QString name);
+    QString getLinkPathB(QString name);
+    QString findAppPath(QString path, QString pattern);
     HRESULT resolveIt(LPCSTR lnk_path, char *target);
 };
 

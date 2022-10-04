@@ -31,7 +31,6 @@ void aj_fillBatFile(QFile *bat_file)
     QString qt_compiler_path = aj_getQtCompiler();
     if( qt_compiler_path.isEmpty() )
     {
-        qDebug() << "Error: Cannot retreive compiler path";
         return;
     }
     bat_file->write("set PATH=%PATH%;");
@@ -152,6 +151,7 @@ QString aj_getQtShortCut()
         start_menu += "\\Microsoft\\Windows\\Start Menu\\Programs\\";
         qt_shortcut = aj_findQtShortcut(start_menu);
     }
+
     return qt_shortcut;
 }
 
@@ -159,12 +159,12 @@ QString aj_getQtCreator()
 {
     QString qt_path;
     // get qt creator path
-    qt_path = aj_getQtShortCut();
-    if( qt_path.isEmpty() )
-    {
-        return "";
-    }
-    AjWin32Launcher *win_launcher = new AjWin32Launcher(qt_path);
+//    qt_path = aj_getQtShortCut();
+//    if( qt_path.isEmpty() )
+//    {
+//        return "";
+//    }
+    AjWin32Launcher *win_launcher = new AjWin32Launcher("qt");
     QString creator_path = win_launcher->link_path;
     return creator_path;
 }
@@ -275,10 +275,10 @@ QFileInfoList aj_searchDir(QString path, QString pattern,
     QFileInfoList ret;
     QDir directory(path);
     QRegExp Qt_reg(pattern);
+    directory.setFilter(filter);
 
     if( directory.exists() )
     {
-        directory.setFilter(filter);
         QFileInfoList file_list = directory.entryInfoList();
 
         for( int i=0 ; i<file_list.size() ; i++ )

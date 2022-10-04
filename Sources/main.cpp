@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         for( int i=0; i<conf_list.size(); i++)
         {
             AjExecuter conf(conf_list[i]);
-//            conf.run();
+            conf.run();
         }
     }
     /*else if( opt->is_remote )

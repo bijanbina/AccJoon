@@ -9,7 +9,7 @@ AjExecuter::AjExecuter(QString path)
 {
     conf_path = path;
     parseConf();
-    printConf();
+//    printConf();
 }
 
 void AjExecuter::run()
@@ -51,18 +51,16 @@ void AjExecuter::runApp(int i)
         req_win = aj_findAppByName(exe_name);
     }
 
-    AjWin *aj_win;
-    aj_win = new AjWin(req_win->hWnd);
+    AjWin aj_win(req_win->hWnd);
 
     for( int j=0; j<apps[i].commands.size(); j++ )
     {
-        if( aj_win->doAction(apps[i].commands[j])!=0 )
+        if( aj_win.doAction(apps[i].commands[j])!=0 )
         {
             return;
         }
         QThread::msleep(apps[i].commands[j].delay);
     }
-    delete aj_win;
 }
 
 void AjExecuter::parseConf()
