@@ -5,8 +5,9 @@
 #include <QDir>
 #include "aj_win.h"
 #include "aj_client.h"
-#include "aj_conf_parser.h"
+#include "aj_parser.h"
 #include "aj_dllgen.h"
+#include "aj_executer.h"
 
 #define DEBUG_SLEEP 5000
 //set PATH=%PATH%;C:\Qt\Qt5.12.10\5.12.10\mingw73_32\bin
@@ -33,20 +34,23 @@ int main(int argc, char *argv[])
 
     AjCmdOptions *opt = parseClOptions(&app);
 
-    if( !opt->conf_path.isEmpty() )
+    if( opt->conf_path.length() )
     {
-        AjExecuter *conf = new AjExecuter(opt->conf_path); // value stored in parser
-        conf->run();
+        AjParser conf(opt->conf_path); // value stored in parser
+        aj_execute(conf.apps);
         return app.exec();
     }
     else
     {
         QStringList conf_list = aj_getConfList();
+        qDebug() << conf_list;
         for( int i=0; i<conf_list.size(); i++)
         {
-            AjExecuter conf(conf_list[i]);
-            conf.run();
+            AjParser conf(conf_list[i]);
+            qDebug() << "AjParser";
+            aj_execute(conf.apps);
         }
+        return app.exec();
     }
     /*else if( opt->is_remote )
     {

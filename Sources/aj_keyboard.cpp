@@ -88,6 +88,22 @@ int aj_keyCode(QString key)
             return -1;
         }
     }
+    else if( key=="up" )
+    {
+        return KEY_UP;
+    }
+    else if( key=="down" )
+    {
+        return KEY_DOWN;
+    }
+    else if( key=="left" )
+    {
+        return KEY_LEFT;
+    }
+    else if( key=="right" )
+    {
+        return KEY_RIGHT;
+    }
     qDebug() << "Error: Wrong key code entered";
     return -1;
 }
