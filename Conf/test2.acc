@@ -1,0 +1,23 @@
+delay=100
+-- shirtut
+delay=500
+shortcut=Qt
+{
+	delay=500
+	open=1 check=Mom.exe delay=5000
+	delay=500
+	path=4.1.3.3.1.7 name=Mom delay=5000
+	delay=500
+	key=F5 delay=1000
+}
+delay=500
+delay=500
+delay=500
+shortcut=telegram
+{
+	delay=500
+	open=1 check=Rebound.exe delay=5000
+	delay=500
+	key=Ctrl+1 delay=1000
+	-- inja ha delay nazar ke tahe karaye ye barnamas skip mishe
+}
