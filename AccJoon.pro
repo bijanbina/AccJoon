@@ -12,6 +12,9 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 #CONFIG -= qt
 
+DISTFILES += \
+    AccJoon.exe.manifest
+
 win32:LIBS += -lKernel32 \
               -lUser32 \
               -lole32 \
@@ -27,10 +30,10 @@ SOURCES += \
         Sources/aj_dllgen.cpp \
         Sources/aj_executer.cpp \
         Sources/aj_keyboard.cpp \
+        Sources/aj_launcher.cpp \
         Sources/aj_parser.cpp \
         Sources/aj_win.cpp \
         Sources/aj_win32.cpp \
-        Sources/aj_win32_launcher.cpp \
         Sources/aj_win_process.cpp \
         Sources/backend.cpp \
         Sources/main.cpp
@@ -41,9 +44,9 @@ HEADERS += \
     Sources/aj_dllgen.h \
     Sources/aj_executer.h \
     Sources/aj_keyboard.h \
+    Sources/aj_launcher.h \
     Sources/aj_parser.h \
     Sources/aj_win.h \
     Sources/aj_win32.h \
-    Sources/aj_win32_launcher.h \
     Sources/aj_win_process.h \
     Sources/backend.h

@@ -5,10 +5,10 @@
 #include <QDir>
 #include <QDebug>
 
-class AjWin32Launcher
+class AjLauncher
 {
 public:
-    AjWin32Launcher(QString app_name);
+    AjLauncher(QString app_name);
     DWORD launchApp(QString arg="");
     QString getExeName();
 

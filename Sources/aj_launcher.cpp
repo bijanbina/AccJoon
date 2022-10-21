@@ -1,24 +1,30 @@
-#include "aj_win32_launcher.h"
+#include "aj_launcher.h"
 #include <shobjidl.h>
 #include <shlguid.h>
 #include <QFileInfo>
 
-AjWin32Launcher::AjWin32Launcher(QString app_name)
+AjLauncher::AjLauncher(QString app_name)
 {
     link_path = getLinkPath(app_name);
+    if( link_path=="" )
+    {
+        qDebug() << "Error: get link path failed"
+                 << app_name;
+        return;
+    }
     char buffer[200];
     GetLongPathNameA(link_path.toStdString().c_str(),
                      buffer, 200);
     link_path = buffer;
 }
 
-QString AjWin32Launcher::getExeName()
+QString AjLauncher::getExeName()
 {
     QFileInfo fi(link_path);
     return fi.completeBaseName();
 }
 
-DWORD AjWin32Launcher::launchApp(QString arg)
+DWORD AjLauncher::launchApp(QString arg)
 {
     QString path = link_path + " " + arg;
 
@@ -46,7 +52,7 @@ DWORD AjWin32Launcher::launchApp(QString arg)
     return ProcessInfo.dwProcessId;
 }
 
-QString AjWin32Launcher::getLinkPath(QString name)
+QString AjLauncher::getLinkPath(QString name)
 {
     QString ret = getLinkPathA(name);
     if( ret.isEmpty() )
@@ -56,7 +62,7 @@ QString AjWin32Launcher::getLinkPath(QString name)
     return ret;
 }
 
-QString AjWin32Launcher::getLinkPathA(QString name)
+QString AjLauncher::getLinkPathA(QString name)
 {
     char target[MAX_PATH];
 
@@ -70,7 +76,7 @@ QString AjWin32Launcher::getLinkPathA(QString name)
 }
 
 //retreive link from ProgramData instead of user account
-QString AjWin32Launcher::getLinkPathB(QString name)
+QString AjLauncher::getLinkPathB(QString name)
 {
     char target[MAX_PATH];
 
@@ -83,7 +89,7 @@ QString AjWin32Launcher::getLinkPathB(QString name)
     return target;
 }
 
-QString AjWin32Launcher::findAppPath(QString path, QString pattern)
+QString AjLauncher::findAppPath(QString path, QString pattern)
 {
     QDir directory(path);
     directory.setFilter(QDir::Files | QDir::NoDot | QDir::NoDotDot);
@@ -124,7 +130,7 @@ QString AjWin32Launcher::findAppPath(QString path, QString pattern)
     }
 }
 
-HRESULT AjWin32Launcher::resolveIt(LPCSTR lnk_path, char *target)
+HRESULT AjLauncher::resolveIt(LPCSTR lnk_path, char *target)
 {
     HRESULT hres;
     IShellLink* psl;
@@ -137,7 +143,7 @@ HRESULT AjWin32Launcher::resolveIt(LPCSTR lnk_path, char *target)
     // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
     // has already been called.
     hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
-    if (SUCCEEDED(hres))
+    if( SUCCEEDED(hres) )
     {
         IPersistFile* ppf;
 
