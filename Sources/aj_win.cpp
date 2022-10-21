@@ -35,8 +35,8 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
                 QString child_name = aj_getAccName(pAcc, i);
                 long child_count = aj_getChildCount(pChild);
                 qDebug() << "acc[" + QString::number(i) + "/" + QString::number(returnCount-1)
-                            + "], name:" + child_name +
-                            " | child:" + QString::number(child_count)
+                            + "] name:" + child_name +
+                            " child:" + QString::number(child_count)
                             + " path:" + path + QString::number(i+1);
                 if(child_count>0)
                 {
@@ -97,6 +97,7 @@ int AjWin::doAction(AjCommand cmd)
     }
     else
     {
+        qDebug() << "Error: doAction failed";
         return -1;
     }
 }
@@ -208,25 +209,35 @@ int AjWin::doAcc(AjCommand cmd)
         }
     }
 
-    obj_center = getAccLocation(acc,child_id);
+    POINT obj_center;
+    obj_center = getAccLocation(acc, child_id);
     if( obj_center.x==0 && obj_center.y==0 )
     {
         qDebug() << "Error: cannot get location in window (" << window_title << ")";
         return -1;
     }
+    qDebug() << "child_id" << child_id
+             << "obj_center" << obj_center.x
+             << obj_center.y << ")";
 
-    doClick(cmd_type);
+    doClick(obj_center, cmd_type);
 
     return 0;
 }
 
-void AjWin::doClick(int cmd)
+void AjWin::doClick(POINT obj_center, int cmd)
 {
     GetCursorPos(&cursor_last);
-
+//    RECT rect;
+//    GetWindowRect(hwnd, &rect);
+//    offset_x -= rect.left;
+//    offset_y -= rect.top;
     SetCursorPos(obj_center.x + offset_x, obj_center.y + offset_y);
+//    aj_setMouse(obj_center.x + offset_x, obj_center.y + offset_y);
 
     QThread::msleep(AJ_MOUSE_DELAY);
+    qDebug() << "doClick offset_x" << offset_x << "offset_y"
+             << offset_y;
 
     if( cmd==AJ_CMD_LMB )
     {
@@ -259,5 +270,5 @@ void AjWin::doClick(int cmd)
 
     QThread::msleep(AJ_MOUSE_DELAY);
 
-    SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
+//    SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
 }

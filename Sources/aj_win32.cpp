@@ -1,5 +1,7 @@
 #include "aj_win32.h"
 #include <QFileInfo>
+#include <QGuiApplication>
+#include <QScreen>
 
 int win_debug = 0;
 int win_offset = 0;
@@ -373,4 +375,27 @@ AjWindow* aj_findAppByPid(DWORD pid)
     }
 
     return req_win;
+}
+
+void aj_setMouse(int x, int y)
+{
+    INPUT input;
+    ZeroMemory(&input, sizeof(input));
+    input.type = INPUT_MOUSE;
+
+    //convert to abs cords(required for send input)
+    QScreen *p_screen = QGuiApplication::primaryScreen();
+    QRect screen = p_screen->geometry();
+    long abs_x = x*65536;
+    long abs_y = y*65536;
+    abs_x /= screen.width();
+    abs_y /= screen.width();
+
+    input.mi.dx = abs_x;
+    input.mi.dy = abs_y;
+
+    // set move cursor directly
+    input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+
+    SendInput(1, &input, sizeof(INPUT));
 }

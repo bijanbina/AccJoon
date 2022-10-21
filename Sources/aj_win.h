@@ -57,14 +57,13 @@ public:
 private:
     void listChildren(IAccessible *pAcc, QString path);
     IAccessible *getParnetAcc(HWND hWindow);
-    int setObjLocation(IAccessible *acc, int childID);
-    void doClick(int cmd);
-    int doAcc(AjCommand cmd);
-    int doKey(AjCommand cmd);
+    int  setObjLocation(IAccessible *acc, int childID);
+    void doClick(POINT obj_center, int cmd);
+    int  doAcc(AjCommand cmd);
+    int  doKey(AjCommand cmd);
 
     QString window_title;
     QStringList path;
-    POINT obj_center;
     HWND hwnd;
 
     int offset_x;

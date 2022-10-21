@@ -2,6 +2,7 @@
 #include <objbase.h>
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QGuiApplication>
 #include <QDir>
 #include "aj_win.h"
 #include "aj_client.h"
@@ -26,7 +27,9 @@ void setCurrentDir()
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication app(argc, argv);
+    // this cannot change to core application as
+    // QGuiApplication::primaryScreen() will stop working
+    QGuiApplication app(argc, argv);
     CoInitialize(NULL);
 
     setCurrentDir();
@@ -47,7 +50,6 @@ int main(int argc, char *argv[])
         for( int i=0; i<conf_list.size(); i++)
         {
             AjParser conf(conf_list[i]);
-            qDebug() << "AjParser";
             aj_execute(conf.apps);
         }
         return app.exec();
