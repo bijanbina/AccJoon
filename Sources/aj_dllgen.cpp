@@ -164,7 +164,7 @@ QString aj_getQtCreator()
 //    {
 //        return "";
 //    }
-    AjWin32Launcher *win_launcher = new AjWin32Launcher("qt");
+    AjLauncher *win_launcher = new AjLauncher("qt");
     QString creator_path = win_launcher->link_path;
     return creator_path;
 }

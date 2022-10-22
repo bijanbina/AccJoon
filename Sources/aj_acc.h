@@ -23,6 +23,6 @@ IAccessible* aj_getChild(IAccessible *acc, int index);
 
 IAccessible* aj_getWinPAcc(HWND window);
 IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
-int aj_getChildId(QString name, IAccessible *pAcc);
+int aj_getChildId(QString name, IAccessible *acc);
 
 #endif // AJACC_H

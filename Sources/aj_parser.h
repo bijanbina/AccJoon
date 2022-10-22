@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
-#include "aj_win32_launcher.h"
+#include "aj_launcher.h"
 #include "aj_win.h"
 
 typedef struct AjCmdOptions

@@ -15,20 +15,19 @@ QString aj_getAccName(IAccessible *acc, long childId)
 {
     long childCount = aj_getChildCount(acc);
     long returnCount;
-    VARIANT* pArray = new VARIANT[childCount];
+    VARIANT *pArray = new VARIANT[childCount];
     AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
 
-    VARIANT vtChild  = pArray[childId];
+    VARIANT vtChild = pArray[childId];
 
-    // return if path is not correct
-    if(childId > childCount)
+    if( childId>childCount )
     {
         return "";
     }
     else if( vtChild.vt==VT_DISPATCH )
     {
-        IDispatch* pDisp = vtChild.pdispVal;
-        IAccessible* pChild = NULL;
+        IDispatch   *pDisp  = vtChild.pdispVal;
+        IAccessible *pChild = NULL;
         pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
         return aj_getAccNameI4(pChild, CHILDID_SELF);
     }
@@ -55,8 +54,12 @@ POINT getAccLocationI4(IAccessible *acc, int childID)
     acc->accLocation(&obj_x, &obj_y, &obj_w, &obj_h, varChild);
     if( obj_x==0 || obj_y==0 || obj_h<0 || obj_w<0 )
     {
+        qDebug() << "getAccLocationI4 Failed x y h w" << obj_x
+                 << obj_y << obj_h << obj_w;
         return ret;
     }
+    qDebug() << "getAccLocationI4 x y w h" << obj_x
+             << obj_y << obj_w << obj_h;
 
     ret.x = obj_x + obj_w/2;
     ret.y = obj_y + obj_h/2;
@@ -72,25 +75,26 @@ POINT getAccLocation(IAccessible *acc, int childID)
     VARIANT* pArray = new VARIANT[childCount];
     AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
 
-    // return if path is not correct
-    if(childID < childCount)
+    if( childID<childCount )
     {
         VARIANT vtChild  = pArray[childID];
         if( vtChild.vt==VT_DISPATCH )
         {
-            IDispatch* pDisp = vtChild.pdispVal;
-            IAccessible* pChild = NULL;
+            IDispatch   *pDisp = vtChild.pdispVal;
+            IAccessible *pChild = NULL;
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             return getAccLocationI4(pChild, CHILDID_SELF);
         }
         else if( vtChild.vt==VT_I4 ) //An element object
         {
-            return getAccLocationI4(acc, childID+1);
+            qDebug() << "getAccLocation element";
+            return getAccLocationI4(acc, childID);
         }
     }
     else
     {
-        qDebug() << "ChildID exceed, id"<< childID << "count" << childCount;
+        qDebug() << "ChildID exceed, id" << childID << "count"
+                 << childCount;
     }
 
     return ret;
@@ -184,13 +188,13 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     }
 }
 
-int aj_getChildId(QString name, IAccessible *pAcc)
+int aj_getChildId(QString name, IAccessible *acc)
 {
-    long childCount = aj_getChildCount(pAcc);
+    long childCount = aj_getChildCount(acc);
 
     for( int i=0 ; i<childCount ; i++ )
     {
-        QString child_name = aj_getAccName(pAcc, i);
+        QString child_name = aj_getAccName(acc, i);
 //        QString msg = "Get ChildID:" + QString::number(i);
 //        msg += " childCount:" + QString::number(childCount) + " " +
 //                child_name;

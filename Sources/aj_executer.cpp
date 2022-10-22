@@ -1,6 +1,6 @@
 #include "aj_executer.h"
 #include "aj_win_process.h"
-#include "aj_win32_launcher.h"
+#include "aj_launcher.h"
 
 void aj_execute(QVector<AjAppOptions> apps)
 {
@@ -20,14 +20,14 @@ void aj_executeApp(AjAppOptions app)
         }
     }
     AjWindow *req_win;
-    AjWin32Launcher *win_launcher = new AjWin32Launcher(
+    AjLauncher *win_launcher = new AjLauncher(
                 app.app_name);
     QString exe_name = win_launcher->getExeName();
     QThread::msleep(app.start_delay);
     if( exe_name=="" )
     {
         qDebug() << "Error: exe file not found"
-                 << app.app_name;
+                 << win_launcher->link_path;
         return;
     }
     if( app.is_open )
