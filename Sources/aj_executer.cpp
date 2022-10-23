@@ -1,7 +1,9 @@
 #include "aj_executer.h"
 #include "aj_win_process.h"
 #include "aj_launcher.h"
+#include "aj_virt.h"
 
+AjVirt vi;
 void aj_execute(QVector<AjAppOptions> apps)
 {
     for( int i=0; i<apps.size(); i++ )
@@ -19,6 +21,12 @@ void aj_executeApp(AjAppOptions app)
             return;
         }
     }
+
+    if( app.workspace )
+    {
+        vi.setDesktop(app.workspace-1);
+    }
+
     AjWindow *req_win;
     AjLauncher *win_launcher = new AjLauncher(
                 app.app_name);
