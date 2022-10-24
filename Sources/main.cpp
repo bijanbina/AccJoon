@@ -41,7 +41,6 @@ int main(int argc, char *argv[])
     {
         AjParser conf(opt->conf_path); // value stored in parser
         aj_execute(conf.apps);
-        return app.exec();
     }
     else
     {
@@ -52,7 +51,6 @@ int main(int argc, char *argv[])
             AjParser conf(conf_list[i]);
             aj_execute(conf.apps);
         }
-        return app.exec();
     }
     /*else if( opt->is_remote )
     {

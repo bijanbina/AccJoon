@@ -43,4 +43,4 @@ Source: "..\release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 
 [Run]
-Filename: "SCHTASKS"; Parameters: "/Create /TN ""Mom Auto Start Task setup"" /F /SC ONLOGON /TR ""{app}\{#MyAppExeName} -c mom.acc"" /RL HIGHEST";
+Filename: "SCHTASKS"; Parameters: "/Create /TN ""Mom Auto Start Task setup"" /F /SC ONLOGON /TR ""{app}\{#MyAppExeName}"" /RL HIGHEST";
