@@ -4,6 +4,7 @@
 #include "aj_virt.h"
 
 AjVirt vi;
+
 void aj_execute(QVector<AjAppOptions> apps)
 {
     for( int i=0; i<apps.size(); i++ )
@@ -28,21 +29,24 @@ void aj_executeApp(AjAppOptions app)
     }
 
     AjWindow *req_win;
-    AjLauncher *win_launcher = new AjLauncher(
-                app.app_name);
-    QString exe_name = win_launcher->getExeName();
+    AjLauncher win_launcher(app.app_name);
+    AjLua lua;
+
+    QString exe_name = win_launcher.getExeName();
+    lua.run(app.start_scripts);
     QThread::msleep(app.start_delay);
     if( exe_name=="" )
     {
         qDebug() << "Error: exe file not found"
-                 << win_launcher->link_path;
+             << win_launcher.link_path;
         return;
     }
     if( app.is_open )
     {
-        DWORD pid = win_launcher->launchApp();
+        DWORD pid = win_launcher.launchApp(app.args);
         req_win = aj_findAppByPid(pid);
         QThread::msleep(app.open_delay);
+        lua.run(app.open_scripts);
     }
     else
     {
@@ -53,10 +57,11 @@ void aj_executeApp(AjAppOptions app)
 
     for( int j=0; j<app.commands.size(); j++ )
     {
+        lua.run(app.commands[j].scripts);
+        QThread::msleep(app.commands[j].delay);
         if( aj_win.doAction(app.commands[j])!=0 )
         {
             return;
         }
-        QThread::msleep(app.commands[j].delay);
     }
 }

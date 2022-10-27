@@ -15,12 +15,14 @@
 #include "backend.h"
 #include "aj_win32.h"
 #include "aj_acc.h"
+#include "aj_lua.h"
 
 #define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3
 
 typedef struct AjCommand
 {
+    QList<AjLuaInfo> scripts;
     int delay;
     // key section
     int key;
@@ -41,10 +43,13 @@ typedef struct AjAppOptions{
     QString app_name;
     QString app_func;
     QString pcheck; // process check
+    QString args;
     int workspace;
     int is_open;
-    int open_delay;
     int start_delay;
+    int open_delay;
+    QList<AjLuaInfo> start_scripts;
+    QList<AjLuaInfo> open_scripts;
     QVector<AjCommand> commands;
 }AjAppOptions;
 

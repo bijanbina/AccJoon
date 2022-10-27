@@ -15,7 +15,7 @@ AjParser::AjParser(QString path)
 void AjParser::parseConf()
 {
     conf_file = new QFile(conf_path);
-    qDebug() << "Working dir is" << QDir::current().path();
+//    qDebug() << "Working dir is" << QDir::current().path();
     if( !conf_file->open(QIODevice::ReadOnly |
                         QIODevice::Text) )
     {
@@ -39,14 +39,16 @@ void AjParser::addAppSpec()
     {
         if( !setAppConf(line) )
         {
-            qDebug() << "Error: cannot parse 1st line" << conf_path;
+            qDebug() << "Error: cannot parse app[" << apps.size()
+                     << "] line 1" << conf_path;
             return;
         }
     }
     else
     {
         qDebug() << "Error: incomplete conf file"
-                 << "- (app name) - app[" << apps.size() << "]" << conf_path;
+                 << "- (app name) - app[" << apps.size()
+                 << "]" << conf_path;
         return;
     }
 
@@ -55,41 +57,27 @@ void AjParser::addAppSpec()
     {
         if( !setOpenState(line) )
         {
-            qDebug() << "Error: cannot parse 2nd line" << conf_path;
+            qDebug() << "Error: cannot parse app[" << apps.size()
+                     << "] line 2" << conf_path;
             return;
         }
     }
     else
     {
         qDebug() << "Error: incomplete conf file"
-                 << "- (open state) - app[" << apps.size() << "]" << conf_path;
+                 << "- (open state) - app[" << apps.size()
+                 << "]" << conf_path;
         return;
     }
 
-    line = readLine();
-    if( line!="" && !end_of_app )
-    {
-        if( !addCmd(line) )
-        {
-            qDebug() << "Error: cannot parse 3rd line" << conf_path;
-            return;
-        }
-    }
-    else
-    {
-        qDebug() << "Error: incomplete conf file"
-                 << "- (commands) - app[" << apps.size() << "]" << conf_path;
-        return;
-    }
-
-    int line_cnt = 4;
+    int line_cnt = 3;
     line = readLine();
     while( line!="" && !end_of_app )
     {
         if( !addCmd(line) )
         {
-            qDebug() << "Error: cannot parse" << line_cnt
-                     << "th line" << conf_path;
+            qDebug() << "Error: cannot parse app[" << apps.size()
+                     << "] line" << line_cnt << conf_path;
             return;
         }
         line = readLine();
@@ -176,14 +164,15 @@ bool AjParser::addKey(QByteArrayList data_list)
         }
     }
 
-    AjCommand acc_conf;
-    acc_conf.key = key_int;
-    acc_conf.delay = delay + delay_line;
-    acc_conf.alt_key = alt_key;
-    acc_conf.ctrl_key = ctrl_key;
-    acc_conf.shift_key = shift_key;
-    acc_conf.meta_key = meta_key;
-    commands.push_back(acc_conf);
+    AjCommand key_conf;
+    key_conf.key = key_int;
+    key_conf.delay = delay + delay_line;
+    key_conf.alt_key = alt_key;
+    key_conf.ctrl_key = ctrl_key;
+    key_conf.shift_key = shift_key;
+    key_conf.meta_key = meta_key;
+    key_conf.scripts.append(scripts_line);
+    commands.push_back(key_conf);
     return true;
 }
 
@@ -232,7 +221,8 @@ bool AjParser::addAcc(QByteArrayList data_list)
     acc_conf.acc_path = acc_path;
     acc_conf.acc_name = acc_name;
     acc_conf.action = cmd;
-    acc_conf.delay = delay;
+    acc_conf.delay = delay + delay_line;
+    acc_conf.scripts.append(scripts_line);
     acc_conf.offset_x = offset_x;
     acc_conf.offset_y = offset_y;
     acc_conf.offset_id = offset_id;
@@ -256,6 +246,7 @@ bool AjParser::setAppConf(QByteArray data)
         app_func = data_list[0].trimmed();
         app_name = data_list[1].trimmed();
         start_delay = delay_line;
+        start_scripts = scripts_line;
         return true;
     }
     else
@@ -269,9 +260,29 @@ bool AjParser::setOpenState(QByteArray data)
     is_open = 0;
     open_delay = 0;
     workspace = 0;
+    open_scripts.clear();
     pcheck = "";
+    args = "";
+
+    // args with cotation
+    if( data.contains("args") )
+    {
+        if( data.contains("\"") )
+        {
+            int first_cot = data.indexOf('\"');
+            int last_cot = data.lastIndexOf('\"');
+            if( first_cot>0 && last_cot>first_cot )
+            {
+                args = data.mid(first_cot+1,
+                                last_cot-first_cot-1);
+                int arg_index = data.indexOf("args");
+                data.remove(arg_index, last_cot-arg_index+1);
+            }
+        }
+    }
 
     QByteArrayList data_list = data.split(' ');
+    data_list.removeAll("");
     if( data_list.size()<1 )
     {
         return false;
@@ -299,11 +310,18 @@ bool AjParser::setOpenState(QByteArray data)
             QByteArray value = data_list[i].split('=')[1];
             pcheck = value.trimmed();
         }
+        // args without cotation
+        else if( checkParam(data_list[i], "args") )
+        {
+            QByteArray value = data_list[i].split('=')[1];
+            args = value.trimmed();
+        }
         else
         {
             return false;
         }
     }
+    open_scripts = scripts_line;
     open_delay += delay_line;
     return true;
 }
@@ -316,15 +334,20 @@ void AjParser::appendApp()
     app.is_open = is_open;
     app.start_delay = start_delay;
     app.open_delay = open_delay;
+    app.start_scripts = start_scripts;
+    app.open_scripts = open_scripts;
     app.commands = commands;
     app.pcheck = pcheck;
     app.workspace = workspace;
+    app.args = args;
     apps.push_back(app);
 
     commands.clear();
     app_name.clear();
     app_func.clear();
     pcheck.clear();
+    start_scripts.clear();
+    open_scripts.clear();
     workspace = 0;
     is_open = 0;
     start_delay = 0;
@@ -334,6 +357,7 @@ void AjParser::appendApp()
 QByteArray AjParser::readLine()
 {
     delay_line = 0;
+    scripts_line.clear();
     end_of_app = false;
     while( !conf_file->atEnd() )
     {
@@ -348,6 +372,53 @@ QByteArray AjParser::readLine()
             if( words.size()>1 )
             {
                 delay_line += words[1].trimmed().toInt();
+            }
+            continue;
+        }
+        else if( line.startsWith("lua") )
+        {
+            QByteArrayList words = line.split(' ');
+            int delay = 0;
+            bool correct_flag = true;
+            QString lua_path;
+            for( int i=0; i<words.size(); i++)
+            {
+                if( words[i].contains("lua") )
+                {
+                    QByteArrayList word_list = line.split('=');
+                    if( word_list.size()>1 )
+                    {
+                        lua_path = word_list[1].trimmed();
+                    }
+                    else
+                    {
+                        correct_flag = false;
+                    }
+                }
+                else if( words[i].contains("delay") )
+                {
+                    QByteArrayList word_list = line.split('=');
+                    if( word_list.size()>1 )
+                    {
+                        delay = word_list[1].trimmed().toInt();
+                    }
+                    else
+                    {
+                        correct_flag = false;
+                    }
+                }
+                else
+                {
+                    correct_flag = false;
+                }
+            }
+            if( correct_flag )
+            {
+                AjLuaInfo lua_info;
+                lua_info.delay = delay_line + delay;
+                lua_info.path = lua_path;
+                scripts_line.append(lua_info);
+                delay_line = 0;
             }
             continue;
         }
@@ -396,7 +467,21 @@ void AjParser::printConf()
                  << "check:" << apps[j].pcheck
                  << "workspace:" << apps[j].workspace
                  << "start-delay:" << apps[j].start_delay
-                 << "open-delay:" << apps[j].open_delay;
+                 << "open-delay:" << apps[j].open_delay
+                 << "args:" << apps[j].args;
+        for( int i=0; i<apps[j].start_scripts.size(); i++ )
+        {
+            qDebug() << "start_lua:"
+                     << apps[j].start_scripts[i].path
+                     << apps[j].start_scripts[i].delay;
+        }
+        for( int i=0; i<apps[j].open_scripts.size(); i++ )
+        {
+            qDebug() << "open_lua:"
+                     << apps[j].open_scripts[i].path
+                     << apps[j].open_scripts[i].path;
+        }
+
         for( int i=0; i<apps[j].commands.size(); i++ )
         {
             AjCommand acc_conf = apps[j].commands[i];
@@ -413,6 +498,12 @@ void AjParser::printConf()
                          << acc_conf.acc_name << acc_conf.action
                          << acc_conf.offset_x << acc_conf.offset_y
                          << acc_conf.offset_id << acc_conf.delay;
+            }
+            for( int k=0; k<acc_conf.scripts.size(); k++ )
+            {
+                qDebug() << "start_lua:"
+                         << acc_conf.scripts[k].path
+                         << acc_conf.scripts[k].delay;
             }
         }
     }

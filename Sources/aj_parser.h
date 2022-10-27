@@ -40,15 +40,19 @@ private:
     QString app_name;
     QString app_func;
     QString pcheck; // process check
+    QString args;
     int workspace;
     int is_open;
-    int start_delay; // before opening application
-    int open_delay; // after opening application
+    int start_delay; // before opening app
+    int open_delay; // after opening app
+    QList<AjLuaInfo> start_scripts; // scripts run before opening app
+    QList<AjLuaInfo> open_scripts; // scripts run after opening app
     QVector<AjCommand> commands;
 
     QFile *conf_file;
     QString conf_path;
     int delay_line;
+    QList<AjLuaInfo> scripts_line;
     bool end_of_app; // end of app specification in conf
     bool end_of_file;
 };
