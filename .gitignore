@@ -22,3 +22,5 @@ release/
 *.log
 
 Setup/*.exe
+
+Conf/test.acc
