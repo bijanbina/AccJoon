@@ -27,95 +27,145 @@ void AjParser::parseConf()
     end_of_file = false;
     while( !end_of_file )
     {
-        addAppSpec();
+        AjAppOptions new_app;
+        parseApp(new_app);
     }
     conf_file->close();
 }
 
-void AjParser::addAppSpec()
+void AjParser::parseApp(AjAppOptions app)
 {
-    QByteArray line = readLine();
-    if( line!="" && !end_of_app )
+    QString line = readLine();
+    while( line.length() && !end_of_app )
     {
-        if( !setAppConf(line) )
+        int type = getType(line);
+        if( type==AJ_CMD_DELAY )
         {
-            qDebug() << "Error: cannot parse app[" << apps.size()
-                     << "] line 1" << conf_path;
-            return;
+            parseDelayCmd(&app, line);
         }
-    }
-    else
-    {
-        qDebug() << "Error: incomplete conf file"
-                 << "- (app name) - app[" << apps.size()
-                 << "]" << conf_path;
-        return;
-    }
-
-    line = readLine();
-    if( line!="" && !end_of_app )
-    {
-        if( !setOpenState(line) )
+        else if( type==AJ_CMD_SCRIPT )
         {
-            qDebug() << "Error: cannot parse app[" << apps.size()
-                     << "] line 2" << conf_path;
-            return;
+            parseLuaCmd(&app, line);
         }
-    }
-    else
-    {
-        qDebug() << "Error: incomplete conf file"
-                 << "- (open state) - app[" << apps.size()
-                 << "]" << conf_path;
-        return;
-    }
-
-    int line_cnt = 3;
-    line = readLine();
-    while( line!="" && !end_of_app )
-    {
-        if( !addCmd(line) )
+        else if( type==AJ_CMD_KEY )
         {
-            qDebug() << "Error: cannot parse app[" << apps.size()
-                     << "] line" << line_cnt << conf_path;
+            parseKeyCmd(&app, line);
+        }
+        else if( type==AJ_CMD_ACC )
+        {
+            parseAccCmd(&app, line);
+        }
+        else if( type==AJ_CMD_OPEN )
+        {
+            parseOpenCmd(&app, line);
+        }
+        else if( type==AJ_CMD_APP )
+        {
+            if( app.app_name.length() ||
+                app.commands.size()>0 )
+            {
+                apps.append(app);
+            }
+            AjAppOptions new_app;
+            parseAppCmd(&new_app, line);
+            parseApp(new_app);
             return;
         }
         line = readLine();
-        line_cnt++;
     }
-    appendApp();
+    if( app.app_name.length() ||
+        app.commands.size()>0 )
+    {
+        apps.append(app);
+    }
 }
 
-bool AjParser::addCmd(QByteArray data)
+void AjParser::parseAppCmd(AjAppOptions *app, QString data)
 {
-    QByteArrayList data_list = data.split(' ');
-    if( data_list.size()<1 )
+    QStringList data_list = data.split('=');
+    if( data_list.size()<2 )
     {
-        return false;
+        return;
     }
-
-    if( data_list[0].contains("key") )
-    {
-        return addKey(data_list);
-    }
-    else if( data_list[0].contains("path") )
-    {
-        return addAcc(data_list);
-    }
-    return true;
+    app->app_func = data_list[0].trimmed();
+    app->app_name = data_list[1].trimmed();
 }
 
-bool AjParser::addKey(QByteArrayList data_list)
+void AjParser::parseDelayCmd(AjAppOptions *app, QString line)
+{
+    QStringList word_list = line.split("=", QString::SkipEmptyParts);
+    int delay;
+    if( word_list.size()>1 )
+    {
+        delay = word_list[1].trimmed().toInt();
+    }
+    else
+    {
+        return;
+    }
+    AjCommand cmd;
+    cmd.type = AJ_CMD_DELAY;
+    cmd.delay = delay;
+    app->commands.push_back(cmd);
+}
+
+void AjParser::parseLuaCmd(AjAppOptions *app, QString line)
+{
+    QStringList words = line.split(' ', QString::SkipEmptyParts);
+    int delay = 0;
+    QString lua_path;
+    for( int i=0; i<words.size(); i++)
+    {
+        if( words[i].contains("lua") )
+        {
+            QStringList word_list = line.split('=');
+            if( word_list.size()>1 )
+            {
+                lua_path = word_list[1].trimmed();
+            }
+            else
+            {
+                return;
+            }
+        }
+        else if( words[i].contains("delay") )
+        {
+            QStringList word_list = line.split('=');
+            if( word_list.size()>1 )
+            {
+                delay = word_list[1].trimmed().toInt();
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    AjCommand cmd;
+    cmd.type = AJ_CMD_SCRIPT;
+    cmd.delay = delay;
+    cmd.path = lua_path;
+    app->commands.push_back(cmd);
+}
+
+void AjParser::parseKeyCmd(AjAppOptions *app, QString line)
 {
     QString key = "";
     int key_int = -1;
     int delay=0, alt_key=0, ctrl_key=0, shift_key=0, meta_key=0;
 
-    for( int i=0; i<data_list.size(); i++)
+    QStringList word_list = line.trimmed().split(" ");
+
+    for( int i=0; i<word_list.size(); i++)
     {
-        if( checkParam(data_list[i], "key") )
+        if( checkParam(word_list[i], "key") )
         {
-            key = data_list[i].split('=')[1];
+            key = word_list[i].split('=')[1];
             key = key.toLower();
             QStringList key_list = key.split('+');
             for( int i=0; i<key_list.size(); i++ )
@@ -150,276 +200,202 @@ bool AjParser::addKey(QByteArrayList data_list)
                 }
                 else
                 {
-                    return false;
+                    return;
                 }
             }
         }
-        else if( checkParam(data_list[i], "delay") )
+        else if( checkParam(word_list[i], "delay") )
         {
-            delay = data_list[i].split('=')[1].toInt();
+            delay = word_list[i].split('=')[1].toInt();
         }
         else
         {
-            return false;
+            return;
         }
     }
 
     AjCommand key_conf;
+    key_conf.type = AJ_CMD_KEY;
     key_conf.key = key_int;
-    key_conf.delay = delay + delay_line;
+    key_conf.delay = delay;
     key_conf.alt_key = alt_key;
     key_conf.ctrl_key = ctrl_key;
     key_conf.shift_key = shift_key;
     key_conf.meta_key = meta_key;
-    key_conf.scripts.append(scripts_line);
-    commands.push_back(key_conf);
-    return true;
+    app->commands.push_back(key_conf);
+    return;
 }
 
-bool AjParser::addAcc(QByteArrayList data_list)
+void AjParser::parseAccCmd(AjAppOptions *app, QString line)
 {
     QString acc_path, cmd="L", acc_name="";
     int delay=0, offset_x=0, offset_y=0, offset_id=0;
 
-    for( int i=0; i<data_list.size(); i++ )
+    QStringList word_list = line.trimmed().split(" ");
+
+    for( int i=0; i<word_list.size(); i++ )
     {
-        if( checkParam(data_list[i], "path") )
+        if( checkParam(word_list[i], "path") )
         {
-            acc_path = data_list[i].split('=')[1];
+            acc_path = word_list[i].split('=')[1];
         }
-        else if( checkParam(data_list[i], "name") )
+        else if( checkParam(word_list[i], "name") )
         {
-            acc_name = data_list[i].split('=')[1];
+            acc_name = word_list[i].split('=')[1];
         }
-        else if( checkParam(data_list[i], "cmd") )
+        else if( checkParam(word_list[i], "cmd") )
         {
-            cmd = data_list[i].split('=')[1];
+            cmd = word_list[i].split('=')[1];
         }
-        else if( checkParam(data_list[i], "delay") )
+        else if( checkParam(word_list[i], "delay") )
         {
-            delay = data_list[i].split('=')[1].toInt();
+            delay = word_list[i].split('=')[1].toInt();
         }
-        else if( checkParam(data_list[i], "ox") )
+        else if( checkParam(word_list[i], "ox") )
         {
-            offset_x = data_list[i].split('=')[1].toInt();
+            offset_x = word_list[i].split('=')[1].toInt();
         }
-        else if( checkParam(data_list[i], "oy") )
+        else if( checkParam(word_list[i], "oy") )
         {
-            offset_y = data_list[i].split('=')[1].toInt();
+            offset_y = word_list[i].split('=')[1].toInt();
         }
-        else if( checkParam(data_list[i], "oid") )
+        else if( checkParam(word_list[i], "oid") )
         {
-            offset_id = data_list[i].split('=')[1].toInt();
+            offset_id = word_list[i].split('=')[1].toInt();
         }
         else
         {
-            return false;
+            return;
         }
     }
 
     AjCommand acc_conf;
+    acc_conf.type = AJ_CMD_ACC;
     acc_conf.acc_path = acc_path;
     acc_conf.acc_name = acc_name;
     acc_conf.action = cmd;
-    acc_conf.delay = delay + delay_line;
-    acc_conf.scripts.append(scripts_line);
+    acc_conf.delay = delay;
     acc_conf.offset_x = offset_x;
     acc_conf.offset_y = offset_y;
     acc_conf.offset_id = offset_id;
     acc_conf.key = -1;
-    commands.push_back(acc_conf);
-    return true;
+    app->commands.push_back(acc_conf);
+    return;
 }
 
-bool AjParser::setAppConf(QByteArray data)
+void AjParser::parseOpenCmd(AjAppOptions *app, QString line)
 {
-    QByteArrayList data_list = data.split('=');
-    if( data_list.size()<2 )
-    {
-        return false;
-    }
-    if( data_list[0].contains("shortcut") ||
-        data_list[0].contains("pid") ||
-        data_list[0].contains("pname") ||
-        data_list[0].contains("title") )
-    {
-        app_func = data_list[0].trimmed();
-        app_name = data_list[1].trimmed();
-        start_delay = delay_line;
-        start_scripts = scripts_line;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool AjParser::setOpenState(QByteArray data)
-{
-    is_open = 0;
-    open_delay = 0;
-    workspace = 0;
-    open_scripts.clear();
-    pcheck = "";
-    args = "";
+    int is_open = 0, open_delay = 0, workspace = 0;
+    QString pcheck, args;
 
     // args with cotation
-    if( data.contains("args") )
+    if( line.contains("args") )
     {
-        if( data.contains("\"") )
+        if( line.contains("\"") )
         {
-            int first_cot = data.indexOf('\"');
-            int last_cot = data.lastIndexOf('\"');
+            int first_cot = line.indexOf('\"');
+            int last_cot = line.lastIndexOf('\"');
             if( first_cot>0 && last_cot>first_cot )
             {
-                args = data.mid(first_cot+1,
+                args = line.mid(first_cot+1,
                                 last_cot-first_cot-1);
-                int arg_index = data.indexOf("args");
-                data.remove(arg_index, last_cot-arg_index+1);
+                int arg_index = line.indexOf("args");
+                line.remove(arg_index, last_cot-arg_index+1);
             }
         }
     }
 
-    QByteArrayList data_list = data.split(' ');
-    data_list.removeAll("");
-    if( data_list.size()<1 )
+    QStringList word_list = line.split(' ', QString::SkipEmptyParts);
+    if( word_list.size()<1 )
     {
-        return false;
+        return;
     }
 
-    for( int i=0 ; i<data_list.size() ; i++ )
+    for( int i=0 ; i<word_list.size() ; i++ )
     {
-        if( checkParam(data_list[i], "open") )
+        if( checkParam(word_list[i], "open") )
         {
-            QByteArray value = data_list[i].split('=')[1];
+            QString value = word_list[i].split('=')[1];
             is_open = value.trimmed().toInt();
         }
-        else if( checkParam(data_list[i], "delay") )
+        else if( checkParam(word_list[i], "delay") )
         {
-            QByteArray value = data_list[i].split('=')[1];
+            QString value = word_list[i].split('=')[1];
             open_delay = value.trimmed().toInt();
         }
-        else if( checkParam(data_list[i], "workspace") )
+        else if( checkParam(word_list[i], "workspace") )
         {
-            QByteArray value = data_list[i].split('=')[1];
+            QString value = word_list[i].split('=')[1];
             workspace = value.trimmed().toInt();
         }
-        else if( checkParam(data_list[i], "check") )
+        else if( checkParam(word_list[i], "check") )
         {
-            QByteArray value = data_list[i].split('=')[1];
+            QString value = word_list[i].split('=')[1];
             pcheck = value.trimmed();
         }
         // args without cotation
-        else if( checkParam(data_list[i], "args") )
+        else if( checkParam(word_list[i], "args") )
         {
-            QByteArray value = data_list[i].split('=')[1];
+            QString value = word_list[i].split('=')[1];
             args = value.trimmed();
         }
         else
         {
-            return false;
+            return;
         }
     }
-    open_scripts = scripts_line;
-    open_delay += delay_line;
-    return true;
+    app->args = args;
+    app->pcheck = pcheck;
+    app->workspace = workspace;
+    app->open_delay = open_delay;
+    app->is_open = is_open;
 }
 
-void AjParser::appendApp()
+// get command type from line
+int AjParser::getType(QString line)
 {
-    AjAppOptions app;
-    app.app_name = app_name;
-    app.app_func = app_func;
-    app.is_open = is_open;
-    app.start_delay = start_delay;
-    app.open_delay = open_delay;
-    app.start_scripts = start_scripts;
-    app.open_scripts = open_scripts;
-    app.commands = commands;
-    app.pcheck = pcheck;
-    app.workspace = workspace;
-    app.args = args;
-    apps.push_back(app);
-
-    commands.clear();
-    app_name.clear();
-    app_func.clear();
-    pcheck.clear();
-    start_scripts.clear();
-    open_scripts.clear();
-    workspace = 0;
-    is_open = 0;
-    start_delay = 0;
-    open_delay = 0;
+    line = line.toLower().trimmed();
+    if( line.startsWith("lua") )
+    {
+        return AJ_CMD_SCRIPT;
+    }
+    else if( line.startsWith("key") )
+    {
+        return AJ_CMD_KEY;
+    }
+    else if( line.startsWith("path") )
+    {
+        return AJ_CMD_ACC;
+    }
+    else if( line.startsWith("delay") )
+    {
+        return AJ_CMD_DELAY;
+    }
+    else if( line.startsWith("shortcut") ||
+             line.startsWith("pid") ||
+             line.startsWith("pname") ||
+             line.startsWith("title") )
+    {
+        return AJ_CMD_APP;
+    }
+    else if( line.startsWith("open") )
+    {
+        return AJ_CMD_OPEN;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
-QByteArray AjParser::readLine()
+QString AjParser::readLine()
 {
-    delay_line = 0;
-    scripts_line.clear();
     end_of_app = false;
     while( !conf_file->atEnd() )
     {
-        QByteArray line = conf_file->readLine().trimmed();
+        QString line = conf_file->readLine().trimmed();
         if( line.startsWith("--") )
         {
-            continue;
-        }
-        else if( line.startsWith("delay") )
-        {
-            QByteArrayList words = line.split('=');
-            if( words.size()>1 )
-            {
-                delay_line += words[1].trimmed().toInt();
-            }
-            continue;
-        }
-        else if( line.startsWith("lua") )
-        {
-            QByteArrayList words = line.split(' ');
-            int delay = 0;
-            bool correct_flag = true;
-            QString lua_path;
-            for( int i=0; i<words.size(); i++)
-            {
-                if( words[i].contains("lua") )
-                {
-                    QByteArrayList word_list = line.split('=');
-                    if( word_list.size()>1 )
-                    {
-                        lua_path = word_list[1].trimmed();
-                    }
-                    else
-                    {
-                        correct_flag = false;
-                    }
-                }
-                else if( words[i].contains("delay") )
-                {
-                    QByteArrayList word_list = line.split('=');
-                    if( word_list.size()>1 )
-                    {
-                        delay = word_list[1].trimmed().toInt();
-                    }
-                    else
-                    {
-                        correct_flag = false;
-                    }
-                }
-                else
-                {
-                    correct_flag = false;
-                }
-            }
-            if( correct_flag )
-            {
-                AjLuaInfo lua_info;
-                lua_info.delay = delay_line + delay;
-                lua_info.path = lua_path;
-                scripts_line.append(lua_info);
-                delay_line = 0;
-            }
             continue;
         }
         else if( line.startsWith("{") )
@@ -443,9 +419,9 @@ QByteArray AjParser::readLine()
     return "";
 }
 
-bool AjParser::checkParam(QByteArray data, QString match, char sep)
+bool AjParser::checkParam(QString data, QString match, char sep)
 {
-    QByteArrayList data_list = data.split(sep);
+    QStringList data_list = data.split(sep);
     if(data_list.size()<2)
     {
         return false;
@@ -466,44 +442,34 @@ void AjParser::printConf()
                  << "open:" << apps[j].is_open
                  << "check:" << apps[j].pcheck
                  << "workspace:" << apps[j].workspace
-                 << "start-delay:" << apps[j].start_delay
                  << "open-delay:" << apps[j].open_delay
-                 << "args:" << apps[j].args;
-        for( int i=0; i<apps[j].start_scripts.size(); i++ )
-        {
-            qDebug() << "start_lua:"
-                     << apps[j].start_scripts[i].path
-                     << apps[j].start_scripts[i].delay;
-        }
-        for( int i=0; i<apps[j].open_scripts.size(); i++ )
-        {
-            qDebug() << "open_lua:"
-                     << apps[j].open_scripts[i].path
-                     << apps[j].open_scripts[i].path;
-        }
+                 << "args:" << apps[j].args << apps[j].commands.size();
 
         for( int i=0; i<apps[j].commands.size(); i++ )
         {
-            AjCommand acc_conf = apps[j].commands[i];
-            if( acc_conf.key>0 )
+            AjCommand cmd_conf = apps[j].commands[i];
+            if( cmd_conf.type==AJ_CMD_KEY )
             {
-                qDebug() << i << ")" << acc_conf.key
-                         << acc_conf.alt_key << acc_conf.ctrl_key
-                         << acc_conf.shift_key << acc_conf.meta_key
-                         << acc_conf.delay;
+                qDebug() << i << ") KEY:" << cmd_conf.key
+                         << cmd_conf.alt_key << cmd_conf.ctrl_key
+                         << cmd_conf.shift_key << cmd_conf.meta_key
+                         << cmd_conf.delay;
             }
-            else if( acc_conf.action.length() )
+            else if( cmd_conf.type==AJ_CMD_ACC )
             {
-                qDebug() << i << ")" << acc_conf.acc_path
-                         << acc_conf.acc_name << acc_conf.action
-                         << acc_conf.offset_x << acc_conf.offset_y
-                         << acc_conf.offset_id << acc_conf.delay;
+                qDebug() << i << ") ACC:" << cmd_conf.acc_path
+                         << cmd_conf.acc_name << cmd_conf.action
+                         << cmd_conf.offset_x << cmd_conf.offset_y
+                         << cmd_conf.offset_id << cmd_conf.delay;
             }
-            for( int k=0; k<acc_conf.scripts.size(); k++ )
+            else if( cmd_conf.type==AJ_CMD_SCRIPT )
             {
-                qDebug() << "start_lua:"
-                         << acc_conf.scripts[k].path
-                         << acc_conf.scripts[k].delay;
+                qDebug() << i << ") LUA:" << cmd_conf.path
+                         << cmd_conf.delay;
+            }
+            else if( cmd_conf.type==AJ_CMD_DELAY )
+            {
+                qDebug() << i << ") DELAY:" << cmd_conf.delay;
             }
         }
     }

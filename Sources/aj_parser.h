@@ -26,33 +26,20 @@ public:
 
 private:
     void parseConf();
-    void addAppSpec();
-    QByteArray readLine();
-    bool setAppConf(QByteArray data);
-    bool setOpenState(QByteArray data);
-    bool addCmd(QByteArray data);
-    bool addAcc(QByteArrayList data_list);
-    bool addKey(QByteArrayList data_list);
-    bool checkParam(QByteArray data, QString match, char sep='=');
-    void appendApp();
+    void parseApp(AjAppOptions app);
+    QString readLine();
+    void parseAppCmd(AjAppOptions *app, QString data);
+    void parseOpenCmd(AjAppOptions *app, QString line);
+    void parseAccCmd(AjAppOptions *app, QString line);
+    void parseKeyCmd(AjAppOptions *app, QString line);
+    void parseDelayCmd(AjAppOptions *app, QString line);
+    void parseLuaCmd(AjAppOptions *app, QString line);
+    bool checkParam(QString data, QString match, char sep='=');
     void printConf();
-
-    QString app_name;
-    QString app_func;
-    QString pcheck; // process check
-    QString args;
-    int workspace;
-    int is_open;
-    int start_delay; // before opening app
-    int open_delay; // after opening app
-    QList<AjLuaInfo> start_scripts; // scripts run before opening app
-    QList<AjLuaInfo> open_scripts; // scripts run after opening app
-    QVector<AjCommand> commands;
+    int getType(QString line);
 
     QFile *conf_file;
     QString conf_path;
-    int delay_line;
-    QList<AjLuaInfo> scripts_line;
     bool end_of_app; // end of app specification in conf
     bool end_of_file;
 };
