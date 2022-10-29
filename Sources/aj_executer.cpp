@@ -9,17 +9,22 @@ void aj_execute(QVector<AjAppOptions> apps)
 {
     for( int i=0; i<apps.size(); i++ )
     {
-        aj_executeApp(apps[i]);
+        HWND hwnd = NULL;
+        if( apps[i].app_name.length() )
+        {
+            hwnd = aj_executeApp(apps[i]);
+        }
+        aj_executeCmds(apps[i], hwnd);
     }
 }
 
-void aj_executeApp(AjAppOptions app)
+HWND aj_executeApp(AjAppOptions app)
 {
     if( app.pcheck.length() )
     {
         if( aj_isProcOpen(app.pcheck) )
         {
-            return;
+            return NULL;
         }
     }
 
@@ -30,38 +35,45 @@ void aj_executeApp(AjAppOptions app)
 
     AjWindow *req_win;
     AjLauncher win_launcher(app.app_name);
-    AjLua lua;
-
     QString exe_name = win_launcher.getExeName();
-    lua.run(app.start_scripts);
-    QThread::msleep(app.start_delay);
     if( exe_name=="" )
     {
         qDebug() << "Error: exe file not found"
              << win_launcher.link_path;
-        return;
+        return NULL;
     }
     if( app.is_open )
     {
         DWORD pid = win_launcher.launchApp(app.args);
         req_win = aj_findAppByPid(pid);
         QThread::msleep(app.open_delay);
-        lua.run(app.open_scripts);
     }
     else
     {
         req_win = aj_findAppByName(exe_name);
     }
+    return req_win->hWnd;
+}
 
-    AjWin aj_win(req_win->hWnd);
+void aj_executeCmds(AjAppOptions app, HWND hwnd)
+{
+    AjLua lua;
+    AjWin aj_win(hwnd);
 
     for( int j=0; j<app.commands.size(); j++ )
     {
-        lua.run(app.commands[j].scripts);
-        QThread::msleep(app.commands[j].delay);
-        if( aj_win.doAction(app.commands[j])!=0 )
+        if( app.commands[j].type==AJ_CMD_SCRIPT )
         {
-            return;
+            lua.run(app.commands[j].path);
         }
+        else if( app.commands[j].type==AJ_CMD_KEY )
+        {
+            aj_win.doKey(app.commands[j]);
+        }
+        else if( app.commands[j].type==AJ_CMD_ACC )
+        {
+            aj_win.doAcc(app.commands[j]);
+        }
+        QThread::msleep(app.commands[j].delay);
     }
 }

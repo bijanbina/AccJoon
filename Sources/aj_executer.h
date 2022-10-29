@@ -4,6 +4,7 @@
 #include "aj_win.h"
 
 void aj_execute(QVector<AjAppOptions> apps);
-void aj_executeApp(AjAppOptions);
+HWND aj_executeApp(AjAppOptions);
+void aj_executeCmds(AjAppOptions app, HWND hwnd);
 
 #endif // AJ_EXECUTER_H
