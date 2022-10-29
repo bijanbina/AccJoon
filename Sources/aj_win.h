@@ -20,10 +20,19 @@
 #define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3
 
+#define AJ_CMD_DELAY    1
+#define AJ_CMD_SCRIPT   2
+#define AJ_CMD_KEY      3
+#define AJ_CMD_ACC      4
+#define AJ_CMD_APP      5
+#define AJ_CMD_OPEN     6
+
 typedef struct AjCommand
 {
-    QList<AjLuaInfo> scripts;
+    int type;
     int delay;
+    // lua section
+    QString path;
     // key section
     int key;
     int alt_key;
@@ -46,10 +55,7 @@ typedef struct AjAppOptions{
     QString args;
     int workspace;
     int is_open;
-    int start_delay;
     int open_delay;
-    QList<AjLuaInfo> start_scripts;
-    QList<AjLuaInfo> open_scripts;
     QVector<AjCommand> commands;
 }AjAppOptions;
 
@@ -57,15 +63,14 @@ class AjWin
 {
 public:
     AjWin(HWND hWindow=NULL);
-    int doAction(AjCommand acc_conf);
+    int  doAcc(AjCommand cmd);
+    int  doKey(AjCommand cmd);
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
     IAccessible *getParnetAcc(HWND hWindow);
     int  setObjLocation(IAccessible *acc, int childID);
     void doClick(POINT obj_center, int cmd);
-    int  doAcc(AjCommand cmd);
-    int  doKey(AjCommand cmd);
 
     QString window_title;
     QStringList path;

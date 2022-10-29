@@ -9,15 +9,6 @@ AjLua::AjLua()
     luaL_openlibs(lst);
 }
 
-void AjLua::run(QList<AjLuaInfo> lua_list)
-{
-    for( int i=0; i<lua_list.size(); i++ )
-    {
-        QThread::msleep(lua_list[i].delay);
-        this->run(lua_list[i].path);
-    }
-}
-
 void AjLua::run(QString path)
 {
     if(path.isEmpty())

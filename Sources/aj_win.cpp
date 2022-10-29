@@ -83,28 +83,14 @@ IAccessible *AjWin::getParnetAcc(HWND hWindow)
     return acc;
 }
 
-int AjWin::doAction(AjCommand cmd)
-{
-    SetForegroundWindow(hwnd);
-    QThread::msleep(10);
-    if( cmd.key>0 )
-    {
-        return doKey(cmd);
-    }
-    else if( cmd.action.length() )
-    {
-        return doAcc(cmd);
-    }
-    else
-    {
-        qDebug() << "Error: doAction failed";
-        return -1;
-    }
-}
-
 int AjWin::doKey(AjCommand cmd)
 {
     AjKeyboard *keyboard = new AjKeyboard();
+    if( hwnd!=NULL )
+    {
+        SetForegroundWindow(hwnd);
+    }
+    QThread::msleep(10);
 
     if( cmd.alt_key )
     {
@@ -154,6 +140,13 @@ int AjWin::doKey(AjCommand cmd)
 int AjWin::doAcc(AjCommand cmd)
 {
     IAccessible *win_pAcc, *acc;
+    if( hwnd==NULL )
+    {
+        qDebug() << "Error: HWND is not set";
+        return -1;
+    }
+    SetForegroundWindow(hwnd);
+    QThread::msleep(10);
 
     path = cmd.acc_path.split('.');
 

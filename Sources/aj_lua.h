@@ -10,17 +10,10 @@ extern "C"
 #include <lualib.h>
 }
 
-typedef struct AjLuaInfo
-{
-    QString path;
-    int delay;
-}AjLuaInfo;
-
 class AjLua
 {
 public:
     explicit AjLua();
-    void run(QList<AjLuaInfo> lua_list);
     void run(QString path);
     ~AjLua();
 
