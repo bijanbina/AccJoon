@@ -6,7 +6,6 @@
 #include <QDir>
 #include "aj_win.h"
 #include "aj_client.h"
-#include "aj_parser.h"
 #include "aj_dllgen.h"
 #include "aj_executer.h"
 
@@ -39,8 +38,7 @@ int main(int argc, char *argv[])
 
     if( opt->conf_path.length() )
     {
-        AjParser conf(opt->conf_path); // value stored in parser
-        aj_execute(conf.apps);
+        aj_execute(opt->conf_path);
     }
     else
     {
@@ -48,8 +46,7 @@ int main(int argc, char *argv[])
 //        qDebug() << conf_list;
         for( int i=0; i<conf_list.size(); i++)
         {
-            AjParser conf(conf_list[i]);
-            aj_execute(conf.apps);
+            aj_execute(conf_list[i]);
         }
     }
     /*else if( opt->is_remote )

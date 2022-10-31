@@ -21,27 +21,28 @@ class AjParser
 {
 public:
     AjParser(QString conf_path);
-
-    QVector<AjAppOptions> apps;
+    void parseLine(AjAppOptions *app);
+    bool atEnd(){ return end_of_file; }
 
 private:
-    void parseConf();
     void parseApp(AjAppOptions app);
     QString readLine();
-    void parseAppCmd(AjAppOptions *app, QString data);
-    void parseOpenCmd(AjAppOptions *app, QString line);
-    void parseAccCmd(AjAppOptions *app, QString line);
-    void parseKeyCmd(AjAppOptions *app, QString line);
-    void parseDelayCmd(AjAppOptions *app, QString line);
-    void parseLuaCmd(AjAppOptions *app, QString line);
+    void parseAppCmd(QString data);
+    void parseOpenCmd(QString line);
+    void parseAccCmd(QString line);
+    void parseKeyCmd(QString line);
+    void parseDelayCmd(QString line);
+    void parseLuaCmd(QString line);
     bool checkParam(QString data, QString match, char sep='=');
     void printConf();
+    void clearCurrentApp();
     int getType(QString line);
 
     QFile *conf_file;
     QString conf_path;
     bool end_of_app; // end of app specification in conf
     bool end_of_file;
+    AjAppOptions current_app;
 };
 
 #endif // AJCONFPARSER_H

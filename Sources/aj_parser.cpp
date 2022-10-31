@@ -8,12 +8,6 @@
 AjParser::AjParser(QString path)
 {
     conf_path = path;
-    parseConf();
-//    printConf();
-}
-
-void AjParser::parseConf()
-{
     conf_file = new QFile(conf_path);
 //    qDebug() << "Working dir is" << QDir::current().path();
     if( !conf_file->open(QIODevice::ReadOnly |
@@ -23,75 +17,69 @@ void AjParser::parseConf()
         qDebug() << "Working dir is" << QDir::current().path();
         return;
     }
-
-    end_of_file = false;
-    while( !end_of_file )
-    {
-        AjAppOptions new_app;
-        parseApp(new_app);
-    }
-    conf_file->close();
 }
 
-void AjParser::parseApp(AjAppOptions app)
+//void AjParser::parseLine()
+//{
+//    end_of_file = false;
+//    while( !end_of_file )
+//    {
+//        parseApp(new_app);
+//    }
+//    conf_file->close();
+//}
+
+void AjParser::parseLine(AjAppOptions *app)
 {
     QString line = readLine();
-    while( line.length() && !end_of_app )
+    if( line.length() )
     {
         int type = getType(line);
         if( type==AJ_CMD_DELAY )
         {
-            parseDelayCmd(&app, line);
+            parseDelayCmd(line);
         }
         else if( type==AJ_CMD_SCRIPT )
         {
-            parseLuaCmd(&app, line);
+            parseLuaCmd(line);
         }
         else if( type==AJ_CMD_KEY )
         {
-            parseKeyCmd(&app, line);
+            parseKeyCmd(line);
         }
         else if( type==AJ_CMD_ACC )
         {
-            parseAccCmd(&app, line);
+            parseAccCmd(line);
         }
         else if( type==AJ_CMD_OPEN )
         {
-            parseOpenCmd(&app, line);
+            parseOpenCmd(line);
         }
         else if( type==AJ_CMD_APP )
         {
-            if( app.app_name.length() ||
-                app.commands.size()>0 )
-            {
-                apps.append(app);
-            }
-            AjAppOptions new_app;
-            parseAppCmd(&new_app, line);
-            parseApp(new_app);
+            clearCurrentApp();
+            parseAppCmd(line);
             return;
         }
-        line = readLine();
-    }
-    if( app.app_name.length() ||
-        app.commands.size()>0 )
-    {
-        apps.append(app);
+        else if( type==AJ_CMD_END )
+        {
+
+        }
     }
 }
 
-void AjParser::parseAppCmd(AjAppOptions *app, QString data)
+void AjParser::parseAppCmd(QString data)
 {
     QStringList data_list = data.split('=');
     if( data_list.size()<2 )
     {
         return;
     }
-    app->app_func = data_list[0].trimmed();
-    app->app_name = data_list[1].trimmed();
+    current_app.app_func = data_list[0].trimmed();
+    current_app.app_name = data_list[1].trimmed();
 }
 
-void AjParser::parseDelayCmd(AjAppOptions *app, QString line)
+void AjParser::parseDelayCmd(QString line)
 {
     QStringList word_list = line.split("=", QString::SkipEmptyParts);
     int delay;
@@ -106,10 +94,10 @@ void AjParser::parseDelayCmd(AjAppOptions *app, QString line)
     AjCommand cmd;
     cmd.type = AJ_CMD_DELAY;
     cmd.delay = delay;
-    app->commands.push_back(cmd);
+    current_app.command.push_back(cmd);
 }
 
-void AjParser::parseLuaCmd(AjAppOptions *app, QString line)
+void AjParser::parseLuaCmd(QString line)
 {
     QStringList words = line.split(' ', QString::SkipEmptyParts);
     int delay = 0;
@@ -150,10 +138,10 @@ void AjParser::parseLuaCmd(AjAppOptions *app, QString line)
     cmd.type = AJ_CMD_SCRIPT;
     cmd.delay = delay;
     cmd.path = lua_path;
-    app->commands.push_back(cmd);
+    current_app.command.push_back(cmd);
 }
 
-void AjParser::parseKeyCmd(AjAppOptions *app, QString line)
+void AjParser::parseKeyCmd(QString line)
 {
     QString key = "";
     int key_int = -1;
@@ -222,13 +210,13 @@ void AjParser::parseKeyCmd(AjAppOptions *app, QString line)
     key_conf.ctrl_key = ctrl_key;
     key_conf.shift_key = shift_key;
     key_conf.meta_key = meta_key;
-    app->commands.push_back(key_conf);
+    current_app.command.push_back(key_conf);
     return;
 }
 
-void AjParser::parseAccCmd(AjAppOptions *app, QString line)
+void AjParser::parseAccCmd(QString line)
 {
-    QString acc_path, cmd="L", acc_name="";
+    QString acc_path, cmd="L", acc_name="", val_name="";
     int delay=0, offset_x=0, offset_y=0, offset_id=0;
 
     QStringList word_list = line.trimmed().split(" ");
@@ -246,6 +234,10 @@ void AjParser::parseAccCmd(AjAppOptions *app, QString line)
         else if( checkParam(word_list[i], "cmd") )
         {
             cmd = word_list[i].split('=')[1];
+        }
+        else if( checkParam(word_list[i], "value") )
+        {
+            val_name = word_list[i].split('=')[1];
         }
         else if( checkParam(word_list[i], "delay") )
         {
@@ -270,7 +262,18 @@ void AjParser::parseAccCmd(AjAppOptions *app, QString line)
     }
 
     AjCommand acc_conf;
-    acc_conf.type = AJ_CMD_ACC;
+    if( cmd=="RD" )
+    {
+        acc_conf.type = AJ_CMD_READ;
+    }
+    else if( cmd=="WR" )
+    {
+        acc_conf.type = AJ_CMD_WRITE;
+    }
+    else
+    {
+        acc_conf.type = AJ_CMD_ACC;
+    }
     acc_conf.acc_path = acc_path;
     acc_conf.acc_name = acc_name;
     acc_conf.action = cmd;
@@ -279,11 +282,12 @@ void AjParser::parseAccCmd(AjAppOptions *app, QString line)
     acc_conf.offset_y = offset_y;
     acc_conf.offset_id = offset_id;
     acc_conf.key = -1;
-    app->commands.push_back(acc_conf);
+    acc_conf.value_name = val_name;
+    current_app.command.push_back(acc_conf);
     return;
 }
 
-void AjParser::parseOpenCmd(AjAppOptions *app, QString line)
+void AjParser::parseOpenCmd(QString line)
 {
     int is_open = 0, open_delay = 0, workspace = 0;
     QString pcheck, args;
@@ -344,11 +348,23 @@ void AjParser::parseOpenCmd(AjAppOptions *app, QString line)
             return;
         }
     }
-    app->args = args;
-    app->pcheck = pcheck;
-    app->workspace = workspace;
-    app->open_delay = open_delay;
-    app->is_open = is_open;
+    current_app.args = args;
+    current_app.pcheck = pcheck;
+    current_app.workspace = workspace;
+    current_app.open_delay = open_delay;
+    current_app.is_open = is_open;
+}
+
+void AjParser::clearCurrentApp()
+{
+    current_app.app_name = "";
+    current_app.app_func = "";
+    current_app.pcheck = "";
+    current_app.args = "";
+    current_app.workspace = 0;
+    current_app.is_open = 0;
+    current_app.open_delay = 0;
+    current_app.command = AjCommand();
 }
 
 // get command type from line
@@ -381,6 +397,10 @@ int AjParser::getType(QString line)
     else if( line.startsWith("open") )
     {
         return AJ_CMD_OPEN;
+    }
+    else if( line.startsWith("}") )
+    {
+        return AJ_CMD_END;
     }
     else
     {
@@ -455,7 +475,9 @@ void AjParser::printConf()
                          << cmd_conf.shift_key << cmd_conf.meta_key
                          << cmd_conf.delay;
             }
-            else if( cmd_conf.type==AJ_CMD_ACC )
+            else if( cmd_conf.type==AJ_CMD_ACC ||
+                     cmd_conf.type==AJ_CMD_READ ||
+                     cmd_conf.type==AJ_CMD_WRITE )
             {
                 qDebug() << i << ") ACC:" << cmd_conf.acc_path
                          << cmd_conf.acc_name << cmd_conf.action
