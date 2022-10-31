@@ -5,17 +5,25 @@
 
 AjVirt vi;
 
-void aj_execute(QVector<AjAppOptions> apps)
+void aj_execute(QString conf_path)
 {
-    for( int i=0; i<apps.size(); i++ )
+    AjAppOptions current_app;
+    AjParser parser(conf_path); // value stored in parser
+
+    while( !parser.atEnd() )
     {
-        HWND hwnd = NULL;
-        if( apps[i].app_name.length() )
-        {
-            hwnd = aj_executeApp(apps[i]);
-        }
-        aj_executeCmds(apps[i], hwnd);
+        parser.parseLine(&current_app);
     }
+
+
+    script_vars.clear();
+
+    HWND hwnd = NULL;
+    if( apps[i].app_name.length() )
+    {
+        hwnd = aj_executeApp(apps[i]);
+    }
+    aj_executeCmds(apps[i], hwnd);
 }
 
 HWND aj_executeApp(AjAppOptions app)
@@ -59,21 +67,39 @@ void aj_executeCmds(AjAppOptions app, HWND hwnd)
 {
     AjLua lua;
     AjWin aj_win(hwnd);
+    AjVar var_list;
 
-    for( int j=0; j<app.commands.size(); j++ )
+    for( int j=0; j<app.command.size(); j++ )
     {
-        if( app.commands[j].type==AJ_CMD_SCRIPT )
+        if( app.command[j].type==AJ_CMD_SCRIPT )
         {
-            lua.run(app.commands[j].path);
+            lua.run(app.command[j].path);
         }
-        else if( app.commands[j].type==AJ_CMD_KEY )
+        else if( app.command[j].type==AJ_CMD_KEY )
         {
-            aj_win.doKey(app.commands[j]);
+            aj_win.doKey(app.command[j]);
         }
-        else if( app.commands[j].type==AJ_CMD_ACC )
+        else if( app.command[j].type==AJ_CMD_ACC )
         {
-            aj_win.doAcc(app.commands[j]);
+            aj_win.doAcc(app.command[j]);
         }
-        QThread::msleep(app.commands[j].delay);
+        else if( app.command[j].type==AJ_CMD_READ )
+        {
+            QString ret = aj_win.readAcc(app.command[j]);
+            if( ret.length() )
+            {
+                aj_addVar(app.command[j].value_name, ret);
+            }
+        }
+        else if( app.command[j].type==AJ_CMD_WRITE )
+        {
+            QString ret = var_list.getVal(app.command[j].value_name);
+            if( ret.length() )
+            {
+                app.command[j].value = ret;
+                aj_win.writeAcc(app.command[j]);
+            }
+        }
+        QThread::msleep(app.command[j].delay);
     }
 }
