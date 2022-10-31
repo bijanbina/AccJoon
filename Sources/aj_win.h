@@ -24,11 +24,32 @@
 #define AJ_CMD_SCRIPT   2
 #define AJ_CMD_KEY      3
 #define AJ_CMD_ACC      4
-#define AJ_CMD_APP      5
-#define AJ_CMD_OPEN     6
+#define AJ_CMD_WRITE    5 // Write Value to Acc
+#define AJ_CMD_READ     6 // Read Value of Acc
+#define AJ_CMD_APP      7
+#define AJ_CMD_OPEN     8
+#define AJ_CMD_END      9
+
+class AjVar
+{
+public:
+    void addVar(QString name, QString value);
+    QString getVal(QString name);
+private:
+    QStringList vars_name;
+    QStringList vars_value;
+};
 
 typedef struct AjCommand
 {
+    QString app_name;
+    QString app_func;
+    QString pcheck; // process check
+    QString args;
+    int workspace;
+    int is_open;
+    int open_delay;
+
     int type;
     int delay;
     // lua section
@@ -43,21 +64,12 @@ typedef struct AjCommand
     QString acc_path;
     QString action;
     QString acc_name;
+    QString value;
+    QString value_name;
     int offset_x;
     int offset_y;
     int offset_id;
 }AjCommand;
-
-typedef struct AjAppOptions{
-    QString app_name;
-    QString app_func;
-    QString pcheck; // process check
-    QString args;
-    int workspace;
-    int is_open;
-    int open_delay;
-    QVector<AjCommand> commands;
-}AjAppOptions;
 
 class AjWin
 {
@@ -65,6 +77,8 @@ public:
     AjWin(HWND hWindow=NULL);
     int  doAcc(AjCommand cmd);
     int  doKey(AjCommand cmd);
+    QString readAcc(AjCommand cmd);
+    int writeAcc(AjCommand cmd);
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
@@ -81,5 +95,8 @@ private:
     int offset_id;
     POINT cursor_last;
 };
+
+QString aj_toQString(BSTR input);
+BSTR aj_toBSTR(QString input);
 
 #endif // AJWIN_H

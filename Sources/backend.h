@@ -7,7 +7,7 @@
 #include <QTextStream>
 #include <QDebug>
 
-#define AJ_CMD_LMB     0 //Left Mouse Button
+#define AJ_CMD_LMB     0 // Left Mouse Button
 #define AJ_CMD_RMB     1
 #define AJ_CMD_MMB     2
 #define AJ_CMD_DCLICK  3 // Double Click

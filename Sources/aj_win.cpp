@@ -218,6 +218,105 @@ int AjWin::doAcc(AjCommand cmd)
     return 0;
 }
 
+QString AjWin::readAcc(AjCommand cmd)
+{
+    IAccessible *win_pAcc, *acc;
+    if( hwnd==NULL )
+    {
+        qDebug() << "Error: HWND is not set";
+        return "";
+    }
+    SetForegroundWindow(hwnd);
+    QThread::msleep(10);
+
+    path = cmd.acc_path.split('.');
+
+    win_pAcc = getParnetAcc(hwnd);
+    if( win_pAcc==NULL )
+    {
+        qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
+        return "";
+    }
+
+    // presume acc_name is empty
+    int child_id;
+    child_id = path.last().toInt()-1;
+    path.removeLast();
+//    qDebug() << "child id is" << child_id;
+
+    acc = aj_getAcc(path, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get acc in window (" << window_title << ")";
+        return "";
+    }
+
+    BSTR value;
+    VARIANT varChild;
+    varChild.vt = VT_I4;
+    varChild.lVal = child_id; //CHILDID_SELF?
+    HRESULT hr = acc->get_accValue(varChild, &value);
+
+    if( hr!=S_OK )
+    {
+        qDebug() << "Error: cannot get value of acc (" << cmd.acc_path << ")";
+        return "";
+    }
+
+    return aj_toQString(value);
+}
+
+int AjWin::writeAcc(AjCommand cmd)
+{
+    IAccessible *win_pAcc, *acc;
+    if( hwnd==NULL )
+    {
+        qDebug() << "Error: HWND is not set";
+        return -1;
+    }
+    SetForegroundWindow(hwnd);
+    QThread::msleep(10);
+
+    path = cmd.acc_path.split('.');
+
+    win_pAcc = getParnetAcc(hwnd);
+    if( win_pAcc==NULL )
+    {
+        qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
+        return -1;
+    }
+
+    // presume acc_name is empty
+    int child_id;
+    child_id = path.last().toInt()-1;
+    path.removeLast();
+//    qDebug() << "child id is" << child_id;
+
+    acc = aj_getAcc(path, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get acc in window (" << window_title << ")";
+        return -1;
+    }
+
+    BSTR value = SysAllocString(L"");
+    VARIANT varChild;
+    varChild.vt = VT_I4;
+    varChild.lVal = child_id;
+
+    value = aj_toBSTR(cmd.value);
+
+    HRESULT hr = acc->put_accValue(varChild, value);
+
+    if( hr!=S_OK )
+    {
+        qDebug() << "Error: cannot set value of acc (" << cmd.acc_path << ")";
+        return -1;
+    }
+
+    return 0;
+}
+
 void AjWin::doClick(POINT obj_center, int cmd)
 {
     GetCursorPos(&cursor_last);
@@ -264,4 +363,44 @@ void AjWin::doClick(POINT obj_center, int cmd)
     QThread::msleep(AJ_MOUSE_DELAY);
 
 //    SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
+}
+
+BSTR aj_toBSTR(QString input)
+{
+    BSTR result= SysAllocStringLen(0, input.length());
+    input.toWCharArray(result);
+    return result;
+}
+
+QString aj_toQString(BSTR input)
+{
+    return QString::fromUtf16(reinterpret_cast<ushort*>(input));
+}
+
+void AjVar::addVar(QString name, QString value)
+{
+    int len = vars_name.size();
+    for( int i=0 ; i<len ; i++ )
+    {
+        if( vars_name[i]==name )
+        {
+            vars_value[i] = value;
+            return;
+        }
+    }
+    vars_name.push_back(name);
+    vars_value.push_back(value);
+}
+
+QString AjVar::getVal(QString name)
+{
+    int len = vars_name.size();
+    for( int i=0; i<len; i++ )
+    {
+        if( vars_name[i]==name )
+        {
+            return vars_value[i];
+        }
+    }
+    return "";
 }
