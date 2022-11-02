@@ -20,6 +20,7 @@
 #define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3
 
+#define AJ_CMD_EOF      0 // end of file
 #define AJ_CMD_DELAY    1
 #define AJ_CMD_SCRIPT   2
 #define AJ_CMD_KEY      3
@@ -40,27 +41,8 @@ private:
     QStringList vars_value;
 };
 
-typedef struct AjCommand
+typedef struct AjAcc
 {
-    QString app_name;
-    QString app_func;
-    QString pcheck; // process check
-    QString args;
-    int workspace;
-    int is_open;
-    int open_delay;
-
-    int type;
-    int delay;
-    // lua section
-    QString path;
-    // key section
-    int key;
-    int alt_key;
-    int ctrl_key;
-    int shift_key;
-    int meta_key;
-    // acc section
     QString acc_path;
     QString action;
     QString acc_name;
@@ -69,6 +51,24 @@ typedef struct AjCommand
     int offset_x;
     int offset_y;
     int offset_id;
+}AjAcc;
+
+typedef struct AjApp
+{
+    QString app_name;
+    QString app_func;
+    QString pcheck; // process check
+    QString args;
+    int workspace;
+    int is_open;
+    int open_delay;
+}AjApp;
+
+typedef struct AjCommand
+{
+    QString command;
+    QString output;
+    QStringList args;
 }AjCommand;
 
 class AjWin
@@ -87,7 +87,6 @@ private:
     void doClick(POINT obj_center, int cmd);
 
     QString window_title;
-    QStringList path;
     HWND hwnd;
 
     int offset_x;

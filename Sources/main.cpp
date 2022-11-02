@@ -141,12 +141,12 @@ AjCmdOptions* parseClOptions(QCoreApplication *app)
 
     ret_opt->conf_path = parser.value(conf_option);
     ret_opt->is_remote = parser.isSet(remote_option);
-    ret_opt->cmd.acc_path = parser.value(accpath_option);
-    ret_opt->cmd.action = parser.value(cmd_option);
-    ret_opt->cmd.acc_name = parser.value(accname_option);
-    ret_opt->cmd.offset_x = parser.value(offsetx_option).toInt();
-    ret_opt->cmd.offset_y = parser.value(offsety_option).toInt();
-    ret_opt->cmd.offset_id = parser.value(offsetid_option).toInt();
+    ret_opt->acc_path = parser.value(accpath_option);
+    ret_opt->action = parser.value(cmd_option);
+    ret_opt->acc_name = parser.value(accname_option);
+    ret_opt->offset_x = parser.value(offsetx_option).toInt();
+    ret_opt->offset_y = parser.value(offsety_option).toInt();
+    ret_opt->offset_id = parser.value(offsetid_option).toInt();
 
     return ret_opt;
 }
