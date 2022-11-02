@@ -1,28 +1,26 @@
 # AccJoon
-AccJoon is a little tool that exerts MSAA library to present a command line interface to interact with any software. If you know the `acc path` of a controller then AccJoon can find the controller for you and run an action on it. Currently, supported actions are listed below. Hope to extend AccJoon capabilities in the near future
+AccJoon is a little tool that exerts MSAA library to create a scripting language to interact with any software. If you know the acc path of a controller then AccJoon can find the controller for you and run an action on it, read/wirte it's value and even do conditional expression. Please checkout [AccScript](https://github.com/bijanbina/AccJoon/blob/main/AccScript.md) page to see what awesome features is inside this marvelous software.
 
-### Actions
+### Supported Actions
 - Left Click (L)
 - Double Click (D)
 - Middle Click (M)
 - Right Click (R)
 - Return Child ID (C)
-- Key Press (K)
 
 ### Usage
-`accjoon <action> <acc_path> <offset_x> <offset_y> <child_name> <child_offset>`
-* The last child id can be excluded from the path and pass as a string argument. AccJoon will match the input with the corresponding child
-* Click can have offset from the center of the acc object
-* Add A as a prefix to action and you will get a admin right with the help of rebound!
-* Child offset is the optional offset from child name
-* If using key press action, child name become key
+`accjoon -c <script_address>`
 
-### Key Codes
-Key codes are in match with AHK key code conventions. Some example are available below:
+Script address is the relative path of a .acc script
 
-Ctrl+R: ^R
+### Key
+Key codes are designed to be simple, Just type exact word you see on a key(on keyboard). Some example are available below:
 
-Ctrl+Alt+Del: ^!R
+Ctrl+R
+
+Ctrl+Alt+Delete
+
+Super+Left
 
 ### Acknowledgment
 Brought to you by only and only DR AKHAVAN! BTW I'm in love with him :)
