@@ -85,53 +85,55 @@ IAccessible *AjWin::getParnetAcc(HWND hWindow)
 
 int AjWin::doKey(AjCommand cmd)
 {
-    AjKeyboard *keyboard = new AjKeyboard();
+    AjKeyboard keyboard;
     if( hwnd!=NULL )
     {
         SetForegroundWindow(hwnd);
     }
     QThread::msleep(10);
 
-    if( cmd.alt_key )
+    AjKey key = aj_getKey(cmd.args[0]);
+
+    if( key.alt_key )
     {
-        keyboard->pressKey(KEY_LEFTALT);
+        keyboard.pressKey(KEY_LEFTALT);
     }
-    if( cmd.ctrl_key )
+    if( key.ctrl_key )
     {
         QThread::msleep(20);
-        keyboard->pressKey(KEY_LEFTCTRL);
+        keyboard.pressKey(KEY_LEFTCTRL);
     }
-    if( cmd.shift_key )
+    if( key.shift_key )
     {
         QThread::msleep(20);
-        keyboard->pressKey(KEY_LEFTSHIFT);
+        keyboard.pressKey(KEY_LEFTSHIFT);
     }
-    if( cmd.meta_key )
+    if( key.meta_key )
     {
         QThread::msleep(20);
-        keyboard->pressKey(KEY_META);
+        keyboard.pressKey(KEY_META);
     }
     QThread::msleep(1000);
-    keyboard->sendKey(cmd.key);
-    if( cmd.alt_key )
+    keyboard.sendKey(key.key);
+    if( key.alt_key )
     {
         QThread::msleep(20);
-        keyboard->releaseKey(KEY_LEFTALT);
+        keyboard.releaseKey(KEY_LEFTALT);
     }
-    if( cmd.ctrl_key )
+    if( key.ctrl_key )
     {
         QThread::msleep(20);
-        keyboard->releaseKey(KEY_LEFTCTRL);
+        keyboard.releaseKey(KEY_LEFTCTRL);
     }
-    if( cmd.shift_key )
+    if( key.shift_key )
     {
         QThread::msleep(20);
-        keyboard->releaseKey(KEY_LEFTSHIFT);
+        keyboard.releaseKey(KEY_LEFTSHIFT);
     }
-    if( cmd.meta_key )
+    if( key.meta_key )
     {
         QThread::msleep(20);
-        keyboard->releaseKey(KEY_META);
+        keyboard.releaseKey(KEY_META);
     }
 
     return 0;
@@ -148,16 +150,40 @@ int AjWin::doAcc(AjCommand cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    path = cmd.acc_path.split('.');
+    QString path_raw = cmd.args[0].remove("\"").trimmed();
+    QStringList path = path_raw.split('.', QString::SkipEmptyParts);
 
-    offset_x = cmd.offset_x;
-    offset_y = cmd.offset_y;
-    offset_id = cmd.offset_id;
+    offset_x = 0;
+    offset_y = 0;
+    offset_id = 0;
+    QString action = "L";
+    QString acc_name;
 
-    int cmd_type = aj_clickType(cmd.action);
+    if( cmd.args.size()>1 )
+    {
+        action = cmd.args[1];
+    }
+    if( cmd.args.size()>2 )
+    {
+        acc_name = cmd.args[2];
+    }
+    if( cmd.args.size()>3 )
+    {
+        offset_x = cmd.args[3].toInt();
+    }
+    if( cmd.args.size()>4 )
+    {
+        offset_y = cmd.args[4].toInt();
+    }
+    if( cmd.args.size()>5 )
+    {
+        offset_id = cmd.args[5].toInt();
+    }
+
+    int cmd_type = aj_clickType(action);
     if( cmd_type==-1 )
     {
-        qDebug() << "Error: click" << cmd.action << "is not acceptable";
+        qDebug() << "Error: click" << action << "is not acceptable";
         return -1;
     }
 
@@ -172,7 +198,7 @@ int AjWin::doAcc(AjCommand cmd)
 
     //get parent path
     int child_id;
-    if( cmd.acc_name.isEmpty() )
+    if( acc_name.isEmpty() )
     {
         child_id = path.last().toInt()-1;
         path.removeLast();
@@ -186,9 +212,9 @@ int AjWin::doAcc(AjCommand cmd)
         return -1;
     }
 
-    if( cmd.acc_name.length() )
+    if( acc_name.length() )
     {
-        child_id = aj_getChildId(cmd.acc_name, acc) + offset_id;
+        child_id = aj_getChildId(acc_name, acc) + offset_id;
         if( child_id==-1 )
         {
             qDebug() << "Failed to get child id";
@@ -229,7 +255,8 @@ QString AjWin::readAcc(AjCommand cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    path = cmd.acc_path.split('.');
+    QString path_raw = cmd.args[0].remove("\"").trimmed();
+    QStringList path = path_raw.split('.');
 
     win_pAcc = getParnetAcc(hwnd);
     if( win_pAcc==NULL )
@@ -259,7 +286,7 @@ QString AjWin::readAcc(AjCommand cmd)
 
     if( hr!=S_OK )
     {
-        qDebug() << "Error: cannot get value of acc (" << cmd.acc_path << ")";
+        qDebug() << "Error: cannot get value of acc (" << path_raw << ")";
         return "";
     }
 
@@ -277,7 +304,8 @@ int AjWin::writeAcc(AjCommand cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    path = cmd.acc_path.split('.');
+    QString path_raw = cmd.args[0].remove("\"").trimmed();
+    QStringList path = path_raw.split('.');
 
     win_pAcc = getParnetAcc(hwnd);
     if( win_pAcc==NULL )
@@ -304,13 +332,13 @@ int AjWin::writeAcc(AjCommand cmd)
     varChild.vt = VT_I4;
     varChild.lVal = child_id;
 
-    value = aj_toBSTR(cmd.value);
+    value = aj_toBSTR(cmd.args.last());
 
     HRESULT hr = acc->put_accValue(varChild, value);
 
     if( hr!=S_OK )
     {
-        qDebug() << "Error: cannot set value of acc (" << cmd.acc_path << ")";
+        qDebug() << "Error: cannot set value of acc (" << path_raw << ")";
         return -1;
     }
 
