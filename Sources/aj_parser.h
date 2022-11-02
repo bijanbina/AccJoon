@@ -11,38 +11,39 @@ typedef struct AjCmdOptions
 {
     bool is_remote;
     bool is_open;
+    int offset_x;
+    int offset_y;
+    int offset_id;
     QString conf_path;
     QString app_name;
     QString app_func;
-    AjCommand cmd;
+    QString acc_path;
+    QString acc_name;
+    QString action;
 }AjCmdOptions;
 
 class AjParser
 {
 public:
     AjParser(QString conf_path);
-    void parseLine(AjAppOptions *app);
+    AjCommand parseLine();
     bool atEnd(){ return end_of_file; }
 
+    AjVar vars;
+    int condition_flag;
+
 private:
-    void parseApp(AjAppOptions app);
     QString readLine();
-    void parseAppCmd(QString data);
-    void parseOpenCmd(QString line);
-    void parseAccCmd(QString line);
-    void parseKeyCmd(QString line);
-    void parseDelayCmd(QString line);
-    void parseLuaCmd(QString line);
-    bool checkParam(QString data, QString match, char sep='=');
-    void printConf();
-    void clearCurrentApp();
-    int getType(QString line);
+    void parseCondition(QString line, AjCommand *cmd);
+    void parseAssignment(QString line, AjCommand *cmd);
+    void parseFunction(QString line, AjCommand *cmd);
+    void printCmd(AjCommand *cmd);
+    QString getArguments(QString line);
+    QString getVarValue(QString word);
 
     QFile *conf_file;
     QString conf_path;
-    bool end_of_app; // end of app specification in conf
     bool end_of_file;
-    AjAppOptions current_app;
 };
 
 #endif // AJCONFPARSER_H
