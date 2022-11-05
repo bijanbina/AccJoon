@@ -107,3 +107,53 @@ int aj_keyCode(QString key)
     qDebug() << "Error: Wrong key code entered";
     return -1;
 }
+
+AjKey aj_getKey(QString key)
+{
+    int key_int = -1, alt_key=0, ctrl_key=0, shift_key=0, meta_key=0;
+    key = key.toLower();
+    QStringList key_list = key.split('+');
+    for( int i=0; i<key_list.size(); i++ )
+    {
+        if( i==key_list.size()-1 )
+        {
+            key = key_list[i];
+            if( key.size()>1 )
+            {
+                key_int = aj_keyCode(key);
+            }
+            else
+            {
+                key_int = key.toUpper().toStdString()[0];
+            }
+        }
+        else if( key_list[i].contains("alt") )
+        {
+            alt_key = 1;
+        }
+        else if( key_list[i].contains("ctrl") )
+        {
+            ctrl_key = 1;
+        }
+        else if( key_list[i].contains("shift") )
+        {
+            shift_key = 1;
+        }
+        else if( key_list[i].contains("super") )
+        {
+            meta_key = 1;
+        }
+        else
+        {
+            qDebug() << "Error: Unrecognised key";
+            exit(0);
+        }
+    }
+    AjKey ret;
+    ret.key = key_int;
+    ret.alt_key = alt_key;
+    ret.ctrl_key = ctrl_key;
+    ret.meta_key = meta_key;
+    ret.shift_key = shift_key;
+    return ret;
+}

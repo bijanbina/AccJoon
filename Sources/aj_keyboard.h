@@ -55,6 +55,15 @@
 #define AJ_KEY_FMIN    VK_F1    //0x6f
 #define AJ_KEY_FMAX    VK_F12+1 //0x7C
 
+typedef struct AjKey
+{
+    int key;
+    int alt_key;
+    int ctrl_key;
+    int shift_key;
+    int meta_key;
+}AjKey;
+
 class AjKeyboard
 {
 public:
@@ -72,6 +81,7 @@ private:
     int uinput_f;
 };
 
+AjKey aj_getKey(QString key);
 int aj_keyCode(QString key);
 
 #endif // AJKEYBOARD_H
