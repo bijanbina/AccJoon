@@ -4,12 +4,20 @@
 #include "aj_win.h"
 #include "aj_parser.h"
 
-void aj_execute(QString conf_path);
-HWND aj_executeApp(AjAppOptions);
-void aj_executeCmds(AjAppOptions app, HWND hwnd);
-void aj_addVar(QString name, QString value);
-AjVar aj_findVar(QString name);
+typedef struct AjApplication
+{
+    QString app_name;
+    QString exe_name;
+    DWORD pid;
+    AjWindow *req_win;
+    AjLauncher *win_launcher;
+    HWND hwnd;
+}AjApplication;
 
-QVector<AjVar> script_vars;
+void aj_execute(QString conf_path);
+void aj_executeLine(AjParser *parser, AjApplication *app);
+void aj_executeOpen(AjApplication *app, AjCommand *cmd);
+void aj_clearApp(AjApplication *app);
+HWND aj_getHwnd(AjApplication *app);
 
 #endif // AJ_EXECUTER_H

@@ -7,99 +7,160 @@ AjVirt vi;
 
 void aj_execute(QString conf_path)
 {
-    AjAppOptions current_app;
     AjParser parser(conf_path); // value stored in parser
+    AjApplication app;
+    aj_clearApp(&app);
 
-    while( !parser.atEnd() )
+    while( parser.atEnd() )
     {
-        parser.parseLine(&current_app);
+        aj_executeLine(&parser, &app);
     }
-
-
-    script_vars.clear();
-
-    HWND hwnd = NULL;
-    if( apps[i].app_name.length() )
-    {
-        hwnd = aj_executeApp(apps[i]);
-    }
-    aj_executeCmds(apps[i], hwnd);
 }
 
-HWND aj_executeApp(AjAppOptions app)
+void aj_executeLine(AjParser *parser, AjApplication *app)
 {
-    if( app.pcheck.length() )
+    AjCommand cmd = parser->parseLine();
+    QString command = cmd.command.toLower();
+
+    if( command=="read" && parser->condition_flag>=0 )
     {
-        if( aj_isProcOpen(app.pcheck) )
+        AjWin aj_win(aj_getHwnd(app));
+        QString ret = aj_win.readAcc(cmd);
+        if( ret.length() )
         {
-            return NULL;
+            parser->vars.addVar(cmd.output, ret);
         }
     }
-
-    if( app.workspace )
+    else if( command=="write" && parser->condition_flag>=0 )
     {
-        vi.setDesktop(app.workspace-1);
+        AjWin aj_win(aj_getHwnd(app));
+        aj_win.writeAcc(cmd);
     }
-
-    AjWindow *req_win;
-    AjLauncher win_launcher(app.app_name);
-    QString exe_name = win_launcher.getExeName();
-    if( exe_name=="" )
+    else if( command=="click" && parser->condition_flag>=0 )
     {
-        qDebug() << "Error: exe file not found"
-             << win_launcher.link_path;
-        return NULL;
+        AjWin aj_win(aj_getHwnd(app));
+        aj_win.doAcc(cmd);
     }
-    if( app.is_open )
+    else if( command=="key" && parser->condition_flag>=0 )
     {
-        DWORD pid = win_launcher.launchApp(app.args);
-        req_win = aj_findAppByPid(pid);
-        QThread::msleep(app.open_delay);
+        AjWin aj_win(aj_getHwnd(app));
+        aj_win.doKey(cmd);
     }
-    else
+    else if( command=="open" && parser->condition_flag>=0 )
     {
-        req_win = aj_findAppByName(exe_name);
+        aj_executeOpen(app, &cmd);
     }
-    return req_win->hWnd;
+    else if( command=="delay" && parser->condition_flag>=0 )
+    {
+        bool conversion_ok;
+        int delay = cmd.args[0].toInt(&conversion_ok);
+        if( conversion_ok && delay>0 )
+        {
+            QThread::msleep(delay);
+        }
+        else
+        {
+            qDebug() << "Error: delay value is wrong";
+        }
+    }
+    else if( command=="lua" && parser->condition_flag>=0 )
+    {
+        AjLua lua;
+        QString path = cmd.args[0].remove("\"");
+        lua.run(path);
+    }
+    else if( command=="shortcut" )
+    {
+        app->app_name = cmd.args[0].remove("\"").trimmed();
+        app->win_launcher = new AjLauncher(app->app_name);
+        app->app_name = app->win_launcher->getExeName();
+        if( app->app_name=="" )
+        {
+            qDebug() << "Error: exe file not found"
+                 << app->win_launcher->link_path;
+            exit(0);
+        }
+    }
+    else if( command=="if" )
+    {
+        if( cmd.args[0] == cmd.args[1] )
+        {
+            parser->condition_flag = 1;
+        }
+        else
+        {
+            parser->condition_flag = -1;
+        }
+    }
+    else if( command=="EOF" )
+    {
+        ;
+    }
+    else if( command=="EOA" )
+    {
+        if( parser->condition_flag )
+        {
+            parser->condition_flag = 0;
+        }
+        else
+        {
+            aj_clearApp(app);
+        }
+    }
 }
 
-void aj_executeCmds(AjAppOptions app, HWND hwnd)
+void aj_executeOpen(AjApplication *app, AjCommand *cmd)
 {
-    AjLua lua;
-    AjWin aj_win(hwnd);
-    AjVar var_list;
-
-    for( int j=0; j<app.command.size(); j++ )
+    QString args;
+    if( cmd->args.size()>0 )
     {
-        if( app.command[j].type==AJ_CMD_SCRIPT )
+        QString pcheck = cmd->args[0].remove("\"").trimmed();
+        if( pcheck.length() )
         {
-            lua.run(app.command[j].path);
-        }
-        else if( app.command[j].type==AJ_CMD_KEY )
-        {
-            aj_win.doKey(app.command[j]);
-        }
-        else if( app.command[j].type==AJ_CMD_ACC )
-        {
-            aj_win.doAcc(app.command[j]);
-        }
-        else if( app.command[j].type==AJ_CMD_READ )
-        {
-            QString ret = aj_win.readAcc(app.command[j]);
-            if( ret.length() )
+            if( aj_isProcOpen(pcheck) )
             {
-                aj_addVar(app.command[j].value_name, ret);
+                return;
             }
         }
-        else if( app.command[j].type==AJ_CMD_WRITE )
-        {
-            QString ret = var_list.getVal(app.command[j].value_name);
-            if( ret.length() )
-            {
-                app.command[j].value = ret;
-                aj_win.writeAcc(app.command[j]);
-            }
-        }
-        QThread::msleep(app.command[j].delay);
     }
+    if( cmd->args.size()>1 )
+    {
+        args = cmd->args[1].remove("\"").trimmed();
+    }
+    if( cmd->args.size()>2 )
+    {
+        bool conversion_ok;
+        int workspace = cmd->args[2].trimmed().toInt(&conversion_ok);
+        if( conversion_ok && workspace>0 )
+        {
+            vi.setDesktop(workspace-1);
+        }
+        else
+        {
+            qDebug() << "Error: workspace value is wrong";
+        }
+    }
+    DWORD pid = app->win_launcher->launchApp(args);
+    app->req_win = aj_findAppByPid(pid);
+}
+
+void aj_clearApp(AjApplication *app)
+{
+    app->app_name = "";
+    app->exe_name = "";
+    app->pid = 0;
+    if( app->req_win )
+    {
+        delete app->req_win;
+    }
+    app->req_win = NULL;
+}
+
+HWND aj_getHwnd(AjApplication *app)
+{
+    if( app->req_win==NULL )
+    {
+        app->req_win = aj_findAppByName(app->exe_name);
+    }
+    return app->req_win->hWnd;
 }
