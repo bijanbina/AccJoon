@@ -38,15 +38,15 @@ int main(int argc, char *argv[])
 
     if( opt->conf_path.length() )
     {
-        aj_execute(opt->conf_path);
+        AjExecuter exec(opt->conf_path);
     }
     else
     {
         QStringList conf_list = aj_getConfList();
-//        qDebug() << conf_list;
+        qDebug() << conf_list;
         for( int i=0; i<conf_list.size(); i++)
         {
-            aj_execute(conf_list[i]);
+            AjExecuter exec(conf_list[i]);
         }
     }
     /*else if( opt->is_remote )

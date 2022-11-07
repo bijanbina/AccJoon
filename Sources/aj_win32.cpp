@@ -6,7 +6,8 @@
 int win_debug = 0;
 int win_offset = 0;
 int win_current = 0;
-AjWindow *req_win = NULL;
+DWORD   pid_g;
+QString exe_name_g;
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
@@ -28,7 +29,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
-BOOL CALLBACK EnumWindowsFind(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK EnumWindowsName(HWND hwnd, LPARAM lParam)
 {
     char buffer[128];
     int written = GetWindowTextA(hwnd, buffer, 128);
@@ -37,10 +38,11 @@ BOOL CALLBACK EnumWindowsFind(HWND hwnd, LPARAM lParam)
         QString buff_s = buffer;
         long pid = aj_getPid(hwnd);
         QString pname = aj_getPPath(pid);
-        QString exe_name = *(QString *)lParam;
-        if( pname.contains(exe_name) )
+
+        if( pname.contains(exe_name_g) )
         {
-            if( aj_fillWinSpec(hwnd, buff_s, exe_name) )
+            AjWindow *window = (AjWindow *)lParam;
+            if( aj_fillWinSpec(hwnd, buff_s, window) )
             {
                 return FALSE;
             }
@@ -52,18 +54,18 @@ BOOL CALLBACK EnumWindowsFind(HWND hwnd, LPARAM lParam)
 
 BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
 {
-    DWORD enum_pid, pid;
-    pid = *(DWORD *)lParam;
+    DWORD enum_pid;
+    AjWindow *req_win = (AjWindow *)lParam;
     GetWindowThreadProcessId(hwnd,&enum_pid);
-    if( pid==enum_pid )
+    if( pid_g==enum_pid )
     {
-        qDebug() << "found one!" << pid;
+        qDebug() << "found one!" << pid_g;
         char buffer[128];
         GetWindowTextA(hwnd, buffer, 128);
         req_win = new AjWindow;
         req_win->hWnd = hwnd;
-        req_win->pid = pid;
-        req_win->pname = aj_getPPath(pid);
+        req_win->pid = pid_g;
+        req_win->pname = aj_getPPath(pid_g);
         req_win->title = buffer;
         return FALSE;
     }
@@ -301,7 +303,7 @@ void aj_setActiveWindow(HWND hWnd)
     AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
 }
 
-bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
+bool aj_fillWinSpec(HWND hwnd, QString title, AjWindow *win)
 {
     RECT rc;
 
@@ -317,14 +319,13 @@ bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
             QString pname = aj_getPPath(pid);
             QFileInfo fi(pname);
             pname = fi.completeBaseName();
-            if( exe_name==pname )
+            if( exe_name_g==pname )
             {
-                qDebug() << "title" << title << "|" << exe_name << "|" << pname;
-                req_win = new AjWindow;
-                req_win->hWnd = hwnd;
-                req_win->title = title;
-                req_win->pname = pname;
-                req_win->pid = pid;
+                qDebug() << "title" << title << "|" << exe_name_g << "|" << pname;
+                win->hWnd = hwnd;
+                win->title = title;
+                win->pname = pname;
+                win->pid = pid;
                 return true;
             }
         }
@@ -342,30 +343,21 @@ bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name)
     return false;
 }
 
-AjWindow* aj_findAppByName(QString exe_name)
+void aj_findAppByName(QString exe_name, AjWindow *window)
 {
-    if( req_win!=NULL )
-    {
-        delete req_win;
-        req_win = NULL;
-    }
-    EnumWindows(EnumWindowsFind, (LPARAM) &exe_name);
-
-    return req_win;
+    exe_name_g = exe_name;
+    EnumWindows(EnumWindowsName, (LPARAM) window);
 }
 
-AjWindow* aj_findAppByPid(DWORD pid)
+void aj_findWindowByPid(DWORD pid, AjWindow *window)
 {
-    if( req_win!=NULL )
-    {
-        delete req_win;
-        req_win = NULL;
-    }
     int cntr=0;
-    while( req_win==NULL )
+    pid_g = pid;
+    window->hWnd = NULL;
+    while( window->hWnd )
     {
         cntr++;
-        EnumWindows(EnumWindowsPid, (LPARAM) &pid);
+        EnumWindows(EnumWindowsPid, (LPARAM) window);
         QThread::msleep(50);
         if( cntr%100==0 )
         {
@@ -373,8 +365,6 @@ AjWindow* aj_findAppByPid(DWORD pid)
             cntr = 0;
         }
     }
-
-    return req_win;
 }
 
 void aj_setMouse(int x, int y)

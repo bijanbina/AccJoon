@@ -31,7 +31,7 @@ typedef struct AjWindow
     long pid;
     QString title;
     QString pname;
-    HWND hWnd;
+    HWND hWnd = NULL;
 }AjWindow;
 
 typedef struct AjListW
@@ -48,9 +48,9 @@ void aj_InsertWindow(AjListW *thread_w, AjWindow win);
 void aj_getType(AjWindow *win);
 void aj_setActiveWindow(HWND hWnd);
 void aj_setActiveWindow(QString win_name);
-bool aj_fillWinSpec(HWND hwnd, QString title, QString exe_name);
-AjWindow* aj_findAppByName(QString exe_name);
-AjWindow* aj_findAppByPid(DWORD pid);
+bool aj_fillWinSpec(HWND hwnd, QString title, AjWindow *win);
+void aj_findAppByName(QString exe_name, AjWindow *window);
+void aj_findWindowByPid(DWORD pid, AjWindow *window);
 void aj_setMouse(int x, int y);
 
 #endif // AJWIN_H
