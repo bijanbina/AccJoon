@@ -83,7 +83,7 @@ IAccessible *AjWin::getParnetAcc(HWND hWindow)
     return acc;
 }
 
-int AjWin::doKey(AjCommand cmd)
+int AjWin::doKey(AjCommand *cmd)
 {
     AjKeyboard keyboard;
     if( hwnd!=NULL )
@@ -92,7 +92,7 @@ int AjWin::doKey(AjCommand cmd)
     }
     QThread::msleep(10);
 
-    AjKey key = aj_getKey(cmd.args[0]);
+    AjKey key = aj_getKey(cmd->args[0]);
 
     if( key.alt_key )
     {
@@ -139,7 +139,7 @@ int AjWin::doKey(AjCommand cmd)
     return 0;
 }
 
-int AjWin::doAcc(AjCommand cmd)
+int AjWin::doAcc(AjCommand *cmd)
 {
     IAccessible *win_pAcc, *acc;
     if( hwnd==NULL )
@@ -150,7 +150,7 @@ int AjWin::doAcc(AjCommand cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    QString path_raw = cmd.args[0].remove("\"").trimmed();
+    QString path_raw = cmd->args[0].remove("\"").trimmed();
     QStringList path = path_raw.split('.', QString::SkipEmptyParts);
 
     offset_x = 0;
@@ -159,25 +159,25 @@ int AjWin::doAcc(AjCommand cmd)
     QString action = "L";
     QString acc_name;
 
-    if( cmd.args.size()>1 )
+    if( cmd->args.size()>1 )
     {
-        action = cmd.args[1];
+        action = cmd->args[1];
     }
-    if( cmd.args.size()>2 )
+    if( cmd->args.size()>2 )
     {
-        acc_name = cmd.args[2];
+        acc_name = cmd->args[2];
     }
-    if( cmd.args.size()>3 )
+    if( cmd->args.size()>3 )
     {
-        offset_x = cmd.args[3].toInt();
+        offset_x = cmd->args[3].toInt();
     }
-    if( cmd.args.size()>4 )
+    if( cmd->args.size()>4 )
     {
-        offset_y = cmd.args[4].toInt();
+        offset_y = cmd->args[4].toInt();
     }
-    if( cmd.args.size()>5 )
+    if( cmd->args.size()>5 )
     {
-        offset_id = cmd.args[5].toInt();
+        offset_id = cmd->args[5].toInt();
     }
 
     int cmd_type = aj_clickType(action);
@@ -191,7 +191,8 @@ int AjWin::doAcc(AjCommand cmd)
 //    qDebug() << "HWND" << win_pAcc->get_accName(0);
     if( win_pAcc==NULL )
     {
-        qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
+        qDebug() << "Error [doAcc]: cannot get parent acc of window ("
+                 << window_title << ") HWND" << hwnd;
         return -1;
     }
 //    listChildren(win_pAcc, QString(""));
@@ -244,7 +245,7 @@ int AjWin::doAcc(AjCommand cmd)
     return 0;
 }
 
-QString AjWin::readAcc(AjCommand cmd)
+QString AjWin::readAcc(AjCommand *cmd)
 {
     IAccessible *win_pAcc, *acc;
     if( hwnd==NULL )
@@ -255,7 +256,7 @@ QString AjWin::readAcc(AjCommand cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    QString path_raw = cmd.args[0].remove("\"").trimmed();
+    QString path_raw = cmd->args[0].remove("\"").trimmed();
     QStringList path = path_raw.split('.');
 
     win_pAcc = getParnetAcc(hwnd);
@@ -293,7 +294,7 @@ QString AjWin::readAcc(AjCommand cmd)
     return aj_toQString(value);
 }
 
-int AjWin::writeAcc(AjCommand cmd)
+int AjWin::writeAcc(AjCommand *cmd)
 {
     IAccessible *win_pAcc, *acc;
     if( hwnd==NULL )
@@ -304,7 +305,7 @@ int AjWin::writeAcc(AjCommand cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    QString path_raw = cmd.args[0].remove("\"").trimmed();
+    QString path_raw = cmd->args[0].remove("\"").trimmed();
     QStringList path = path_raw.split('.');
 
     win_pAcc = getParnetAcc(hwnd);
@@ -332,7 +333,7 @@ int AjWin::writeAcc(AjCommand cmd)
     varChild.vt = VT_I4;
     varChild.lVal = child_id;
 
-    value = aj_toBSTR(cmd.args.last());
+    value = aj_toBSTR(cmd->args.last());
 
     HRESULT hr = acc->put_accValue(varChild, value);
 

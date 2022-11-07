@@ -25,11 +25,12 @@ typedef struct AjCmdOptions
 class AjParser
 {
 public:
-    AjParser(QString conf_path);
+    AjParser();
+    void openFile(QString path);
     AjCommand parseLine();
-    bool atEnd(){ return end_of_file; }
 
     AjVar vars;
+    int eof; //End of file
     int condition_flag;
 
 private:
@@ -43,7 +44,6 @@ private:
 
     QFile *conf_file;
     QString conf_path;
-    bool end_of_file;
 };
 
 #endif // AJCONFPARSER_H

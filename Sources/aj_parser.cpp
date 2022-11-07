@@ -5,11 +5,15 @@
 #include "aj_keyboard.h"
 #include <QDir>
 
-AjParser::AjParser(QString path)
+AjParser::AjParser()
+{
+    eof = 0;
+}
+
+void AjParser::openFile(QString path)
 {
     conf_path = path;
-    condition_flag = 0;
-    end_of_file = false;
+    eof = false;
     conf_file = new QFile(conf_path);
 //    qDebug() << "Working dir is" << QDir::current().path();
     if( !conf_file->open(QIODevice::ReadOnly |
@@ -45,7 +49,7 @@ AjCommand AjParser::parseLine()
             parseFunction(line, &ret);
         }
     }
-    else if( end_of_file )
+    else if( eof )
     {
         ret.command = "EOF";
     }
@@ -114,7 +118,7 @@ void AjParser::parseFunction(QString line, AjCommand *cmd)
     QStringList word_list = line.split("(", QString::SkipEmptyParts);
     if( word_list.size()!=2 )
     {
-        qDebug() << "Error: Unexpected statement"
+        qDebug() << "Error: Expect one ("
                  << ", in:" << line;
         exit(0);
     }
@@ -149,10 +153,9 @@ QString AjParser::getArguments(QString line)
     line.remove(line.lastIndexOf(")"), 1);
 
     QStringList wordlist = line.split("(");
-    if( wordlist.size() )
+    if( wordlist.length()<2 )
     {
-        qDebug() << "Error: Unexpected statement,"
-                 << "missing '(' in:" << line;
+        qDebug() << "Error: missing '(' in:" << line;
         exit(0);
     }
     return wordlist[1];
@@ -160,7 +163,7 @@ QString AjParser::getArguments(QString line)
 
 QString AjParser::readLine()
 {
-    end_of_file = false;
+    eof = false;
     while( !conf_file->atEnd() )
     {
         QString line = conf_file->readLine().trimmed();
@@ -180,7 +183,7 @@ QString AjParser::readLine()
     }
     if( conf_file->atEnd() )
     {
-        end_of_file = true;
+        eof = true;
     }
     return "";
 }

@@ -75,10 +75,10 @@ class AjWin
 {
 public:
     AjWin(HWND hWindow=NULL);
-    int  doAcc(AjCommand cmd);
-    int  doKey(AjCommand cmd);
-    QString readAcc(AjCommand cmd);
-    int writeAcc(AjCommand cmd);
+    int  doAcc(AjCommand *cmd);
+    int  doKey(AjCommand *cmd);
+    QString readAcc(AjCommand *cmd);
+    int writeAcc(AjCommand *cmd);
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
