@@ -36,6 +36,7 @@ SOURCES += \
         Sources/aj_keyboard.cpp \
         Sources/aj_launcher.cpp \
         Sources/aj_lua.cpp \
+        Sources/aj_mouse.cpp \
         Sources/aj_parser.cpp \
         Sources/aj_virt.cpp \
         Sources/aj_win.cpp \
@@ -52,6 +53,7 @@ HEADERS += \
     Sources/aj_keyboard.h \
     Sources/aj_launcher.h \
     Sources/aj_lua.h \
+    Sources/aj_mouse.h \
     Sources/aj_parser.h \
     Sources/aj_virt.h \
     Sources/aj_win.h \
