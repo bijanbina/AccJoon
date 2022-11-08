@@ -60,10 +60,9 @@ void AjWin::listChildren(IAccessible *pAcc, QString path)
     qDebug() <<"####### Exit getChildren: " + path;
 }
 
-IAccessible *AjWin::getParnetAcc(HWND hWindow)
+void AjWin::setFocus(HWND hWindow)
 {
     char buffer[256];
-    IAccessible *acc;
 
     if( hWindow==NULL )
     {
@@ -72,15 +71,12 @@ IAccessible *AjWin::getParnetAcc(HWND hWindow)
         if( hWindow==NULL )
         {
             qDebug() << "Error: cannot get foreground window handler";
-            return NULL;
+            return;
         }
     }
 
     GetWindowTextA(hWindow, buffer, 256);
     window_title = QString(buffer);
-
-    acc = aj_getWinPAcc(hWindow);
-    return acc;
 }
 
 int AjWin::doKey(AjCommand *cmd)
@@ -93,55 +89,14 @@ int AjWin::doKey(AjCommand *cmd)
     QThread::msleep(10);
 
     AjKey key = aj_getKey(cmd->args[0]);
-
-    if( key.alt_key )
-    {
-        keyboard.pressKey(KEY_LEFTALT);
-    }
-    if( key.ctrl_key )
-    {
-        QThread::msleep(20);
-        keyboard.pressKey(KEY_LEFTCTRL);
-    }
-    if( key.shift_key )
-    {
-        QThread::msleep(20);
-        keyboard.pressKey(KEY_LEFTSHIFT);
-    }
-    if( key.meta_key )
-    {
-        QThread::msleep(20);
-        keyboard.pressKey(KEY_META);
-    }
-    QThread::msleep(1000);
-    keyboard.sendKey(key.key);
-    if( key.alt_key )
-    {
-        QThread::msleep(20);
-        keyboard.releaseKey(KEY_LEFTALT);
-    }
-    if( key.ctrl_key )
-    {
-        QThread::msleep(20);
-        keyboard.releaseKey(KEY_LEFTCTRL);
-    }
-    if( key.shift_key )
-    {
-        QThread::msleep(20);
-        keyboard.releaseKey(KEY_LEFTSHIFT);
-    }
-    if( key.meta_key )
-    {
-        QThread::msleep(20);
-        keyboard.releaseKey(KEY_META);
-    }
+    keyboard.execKey(&key);
 
     return 0;
 }
 
 int AjWin::doAcc(AjCommand *cmd)
 {
-    IAccessible *win_pAcc, *acc;
+    AjAccCmd acc_cmd;
     if( hwnd==NULL )
     {
         qDebug() << "Error: HWND is not set";
@@ -150,97 +105,42 @@ int AjWin::doAcc(AjCommand *cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    QString path_raw = cmd->args[0].remove("\"").trimmed();
-    QStringList path = path_raw.split('.', QString::SkipEmptyParts);
-
-    offset_x = 0;
-    offset_y = 0;
-    offset_id = 0;
-    QString action = "L";
-    QString acc_name;
+    QString path = cmd->args[0].remove("\"").trimmed();
 
     if( cmd->args.size()>1 )
     {
-        action = cmd->args[1];
+        acc_cmd.action = cmd->args[1];
     }
     if( cmd->args.size()>2 )
     {
-        acc_name = cmd->args[2];
+       acc_cmd.acc_name = cmd->args[2];
     }
     if( cmd->args.size()>3 )
     {
-        offset_x = cmd->args[3].toInt();
+       acc_cmd.offset_x = cmd->args[3].toInt();
     }
     if( cmd->args.size()>4 )
     {
-        offset_y = cmd->args[4].toInt();
+        acc_cmd.offset_y = cmd->args[4].toInt();
     }
     if( cmd->args.size()>5 )
     {
-        offset_id = cmd->args[5].toInt();
+        acc_cmd.offset_id = cmd->args[5].toInt();
     }
 
-    int cmd_type = aj_clickType(action);
-    if( cmd_type==-1 )
-    {
-        qDebug() << "Error: click" << action << "is not acceptable";
-        return -1;
-    }
-
-    win_pAcc = getParnetAcc(hwnd);
-//    qDebug() << "HWND" << win_pAcc->get_accName(0);
-    if( win_pAcc==NULL )
-    {
-        qDebug() << "Error [doAcc]: cannot get parent acc of window ("
-                 << window_title << ") HWND" << hwnd;
-        return -1;
-    }
-//    listChildren(win_pAcc, QString(""));
-
-    //get parent path
-    int child_id;
-    if( acc_name.isEmpty() )
-    {
-        child_id = path.last().toInt()-1;
-        path.removeLast();
-        qDebug() << "child id is" << child_id;
-    }
-
-    acc = aj_getAcc(path, win_pAcc);
-    if( acc==NULL )
-    {
-        qDebug() << "Error: cannot get acc in window (" << window_title << ")";
-        return -1;
-    }
-
-    if( acc_name.length() )
-    {
-        child_id = aj_getChildId(acc_name, acc) + offset_id;
-        if( child_id==-1 )
-        {
-            qDebug() << "Failed to get child id";
-            return -1;
-        }
-
-        if( cmd_type==AJ_CMD_CHILDID )
-        {
-            qDebug() << child_id;
-            return 0;
-        }
-    }
-
+    setFocus(hwnd);
     POINT obj_center;
-    obj_center = getAccLocation(acc, child_id);
+    obj_center = getAccLocation(acc_cmd, hwnd, path);
+
     if( obj_center.x==0 && obj_center.y==0 )
     {
         qDebug() << "Error: cannot get location in window (" << window_title << ")";
         return -1;
     }
-    qDebug() << "child_id" << child_id
-             << "obj_center" << obj_center.x
+    qDebug() << "obj_center" << obj_center.x
              << obj_center.y << ")";
 
-    doClick(obj_center, cmd_type);
+    aj_mouseClick(obj_center, acc_cmd);
 
     return 0;
 }
@@ -259,12 +159,7 @@ QString AjWin::readAcc(AjCommand *cmd)
     QString path_raw = cmd->args[0].remove("\"").trimmed();
     QStringList path = path_raw.split('.');
 
-    win_pAcc = getParnetAcc(hwnd);
-    if( win_pAcc==NULL )
-    {
-        qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
-        return "";
-    }
+    setFocus(hwnd);
 
     // presume acc_name is empty
     int child_id;
@@ -308,7 +203,7 @@ int AjWin::writeAcc(AjCommand *cmd)
     QString path_raw = cmd->args[0].remove("\"").trimmed();
     QStringList path = path_raw.split('.');
 
-    win_pAcc = getParnetAcc(hwnd);
+    win_pAcc = setFocus(hwnd);
     if( win_pAcc==NULL )
     {
         qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
@@ -346,65 +241,7 @@ int AjWin::writeAcc(AjCommand *cmd)
     return 0;
 }
 
-void AjWin::doClick(POINT obj_center, int cmd)
-{
-    GetCursorPos(&cursor_last);
-//    RECT rect;
-//    GetWindowRect(hwnd, &rect);
-//    offset_x -= rect.left;
-//    offset_y -= rect.top;
-    SetCursorPos(obj_center.x + offset_x, obj_center.y + offset_y);
-//    aj_setMouse(obj_center.x + offset_x, obj_center.y + offset_y);
 
-    QThread::msleep(AJ_MOUSE_DELAY);
-    qDebug() << "doClick offset_x" << offset_x << "offset_y"
-             << offset_y;
-
-    if( cmd==AJ_CMD_LMB )
-    {
-        mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-    }
-    else if( cmd==AJ_CMD_RMB )
-    {
-        mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-        mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-    }
-    else if( cmd==AJ_CMD_MMB )
-    {
-        mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-        mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-    }
-    else if( cmd==AJ_CMD_DCLICK )
-    {
-        mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-        QThread::msleep(AJ_DOUBLE_DELAY);
-        mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-    }
-    else
-    {
-        qDebug() << "click type problem! fuck this shit, code shouldn't reach here";
-        return;
-    }
-
-    QThread::msleep(AJ_MOUSE_DELAY);
-
-//    SetCursorPos(cursor_last.x, cursor_last.y);  //any value other than main window
-}
-
-BSTR aj_toBSTR(QString input)
-{
-    BSTR result= SysAllocStringLen(0, input.length());
-    input.toWCharArray(result);
-    return result;
-}
-
-QString aj_toQString(BSTR input)
-{
-    return QString::fromUtf16(reinterpret_cast<ushort*>(input));
-}
 
 void AjVar::addVar(QString name, QString value)
 {

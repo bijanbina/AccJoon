@@ -16,9 +16,7 @@
 #include "aj_win32.h"
 #include "aj_acc.h"
 #include "aj_lua.h"
-
-#define AJ_MOUSE_DELAY   20
-#define AJ_DOUBLE_DELAY  3
+#include "aj_mouse.h"
 
 #define AJ_CMD_EOF      0 // end of file
 #define AJ_CMD_DELAY    1
@@ -40,18 +38,6 @@ private:
     QStringList vars_name;
     QStringList vars_value;
 };
-
-typedef struct AjAcc
-{
-    QString acc_path;
-    QString action;
-    QString acc_name;
-    QString value;
-    QString value_name;
-    int offset_x;
-    int offset_y;
-    int offset_id;
-}AjAcc;
 
 typedef struct AjApp
 {
@@ -82,20 +68,13 @@ public:
 
 private:
     void listChildren(IAccessible *pAcc, QString path);
-    IAccessible *getParnetAcc(HWND hWindow);
+    void setFocus(HWND hWindow);
     int  setObjLocation(IAccessible *acc, int childID);
-    void doClick(POINT obj_center, int cmd);
+    void doClick(POINT obj_center, AjAccCmd cmd);
 
     QString window_title;
     HWND hwnd;
 
-    int offset_x;
-    int offset_y;
-    int offset_id;
-    POINT cursor_last;
 };
-
-QString aj_toQString(BSTR input);
-BSTR aj_toBSTR(QString input);
 
 #endif // AJWIN_H
