@@ -1,5 +1,5 @@
-#ifndef AJKEYBOARD_H
-#define AJKEYBOARD_H
+#ifndef AJ_KEYBOARD_H
+#define AJ_KEYBOARD_H
 
 #include <stdio.h>
 #include <Windows.h>
@@ -73,6 +73,7 @@ public:
     void sendKey(int key_val);
     void pressKey(int key_val);
     void releaseKey(int key_val);
+    void execKey(AjKey *key);
 
 private:
     bool isExtended(int key_val);
@@ -84,4 +85,4 @@ private:
 AjKey aj_getKey(QString key);
 int aj_keyCode(QString key);
 
-#endif // AJKEYBOARD_H
+#endif // AJ_KEYBOARD_H

@@ -1,5 +1,6 @@
 #include "aj_keyboard.h"
 #include <QDebug>
+#include <QThread>
 
 AjKeyboard::AjKeyboard()
 {
@@ -156,4 +157,50 @@ AjKey aj_getKey(QString key)
     ret.meta_key = meta_key;
     ret.shift_key = shift_key;
     return ret;
+}
+
+void AjKeyboard::execKey(AjKey *key)
+{
+    if( key->alt_key )
+    {
+        pressKey(KEY_LEFTALT);
+    }
+    if( key->ctrl_key )
+    {
+        QThread::msleep(20);
+        pressKey(KEY_LEFTCTRL);
+    }
+    if( key->shift_key )
+    {
+        QThread::msleep(20);
+        pressKey(KEY_LEFTSHIFT);
+    }
+    if( key->meta_key )
+    {
+        QThread::msleep(20);
+        pressKey(KEY_META);
+    }
+    QThread::msleep(1000);
+    sendKey(key->key);
+    if( key->alt_key )
+    {
+        QThread::msleep(20);
+        releaseKey(KEY_LEFTALT);
+    }
+    if( key->ctrl_key )
+    {
+        QThread::msleep(20);
+        releaseKey(KEY_LEFTCTRL);
+    }
+    if( key->shift_key )
+    {
+        QThread::msleep(20);
+        releaseKey(KEY_LEFTSHIFT);
+    }
+    if( key->meta_key )
+    {
+        QThread::msleep(20);
+        releaseKey(KEY_META);
+    }
+
 }
