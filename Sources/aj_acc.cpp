@@ -208,3 +208,71 @@ int aj_getChildId(QString name, IAccessible *acc)
 
     return -1;
 }
+
+BSTR aj_toBSTR(QString input)
+{
+    BSTR result= SysAllocStringLen(0, input.length());
+    input.toWCharArray(result);
+    return result;
+}
+
+QString aj_toQString(BSTR input)
+{
+    return QString::fromUtf16(reinterpret_cast<ushort*>(input));
+}
+
+POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
+{
+    POINT obj_center;
+    IAccessible *win_pAcc, *acc;
+    QStringList path_split = path.split('.', QString::SkipEmptyParts);
+
+    obj_center.x = -1;
+    obj_center.y = -1;
+
+    win_pAcc = aj_getWinPAcc(hwnd);;
+//    qDebug() << "HWND" << win_pAcc->get_accName(0);
+    if( win_pAcc==NULL )
+    {
+        qDebug() << "Error [doAcc]: cannot get parent acc of HWND ("
+                 << hwnd;
+        return obj_center;
+    }
+//    listChildren(win_pAcc, QString(""));
+
+    //get parent path
+    int child_id;
+    if( cmd.acc_name.isEmpty() )
+    {
+        child_id = path_split.last().toInt()-1;
+        path_split.removeLast();
+        qDebug() << "child id is" << child_id;
+    }
+
+    acc = aj_getAcc(path_split, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get acc in HWND (" << hwnd << ")";
+        return obj_center;
+    }
+
+    if( cmd.acc_name.length() )
+    {
+        child_id = aj_getChildId(cmd.acc_name, acc) + cmd.offset_id;
+        if( child_id==-1 )
+        {
+            qDebug() << "Failed to get child id";
+            return obj_center;
+        }
+
+        if( cmd.action==AJ_CMD_CHILDID )
+        {
+            qDebug() << child_id;
+            return obj_center;
+        }
+    }
+
+
+    obj_center = getAccLocation(acc, child_id);
+
+}

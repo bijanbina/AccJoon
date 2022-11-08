@@ -13,10 +13,23 @@
 
 #include "backend.h"
 
+typedef struct AjAccCmd
+{
+    QString acc_path;
+    QString action = "L";
+    QString acc_name;
+    QString value;
+    QString value_name;
+    int offset_x = 0;
+    int offset_y = 0;
+    int offset_id = 0;
+}AjAccCmd;
+
 QString aj_getAccNameI4(IAccessible *acc, long childId);
 QString aj_getAccName(IAccessible *acc, long childId);
 POINT getAccLocationI4(IAccessible *acc, int childID);
 POINT getAccLocation(IAccessible *acc, int childID);
+POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);
 
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);
@@ -25,4 +38,8 @@ IAccessible* aj_getWinPAcc(HWND window);
 IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
 int aj_getChildId(QString name, IAccessible *acc);
 
+QString aj_toQString(BSTR input);
+BSTR aj_toBSTR(QString input);
+
+void aj_execAcc(AjAccCmd cmd);
 #endif // AJACC_H
