@@ -147,7 +147,6 @@ int AjWin::doAcc(AjCommand *cmd)
 
 QString AjWin::readAcc(AjCommand *cmd)
 {
-    IAccessible *win_pAcc, *acc;
     if( hwnd==NULL )
     {
         qDebug() << "Error: HWND is not set";
@@ -156,92 +155,30 @@ QString AjWin::readAcc(AjCommand *cmd)
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    QString path_raw = cmd->args[0].remove("\"").trimmed();
-    QStringList path = path_raw.split('.');
+    QString path = cmd->args[0].remove("\"").trimmed();
 
     setFocus(hwnd);
 
-    // presume acc_name is empty
-    int child_id;
-    child_id = path.last().toInt()-1;
-    path.removeLast();
-//    qDebug() << "child id is" << child_id;
+    QString ret = getAccValue(hwnd, path);
 
-    acc = aj_getAcc(path, win_pAcc);
-    if( acc==NULL )
-    {
-        qDebug() << "Error: cannot get acc in window (" << window_title << ")";
-        return "";
-    }
-
-    BSTR value;
-    VARIANT varChild;
-    varChild.vt = VT_I4;
-    varChild.lVal = child_id; //CHILDID_SELF?
-    HRESULT hr = acc->get_accValue(varChild, &value);
-
-    if( hr!=S_OK )
-    {
-        qDebug() << "Error: cannot get value of acc (" << path_raw << ")";
-        return "";
-    }
-
-    return aj_toQString(value);
+    return ret;
 }
 
-int AjWin::writeAcc(AjCommand *cmd)
+void AjWin::writeAcc(AjCommand *cmd)
 {
-    IAccessible *win_pAcc, *acc;
     if( hwnd==NULL )
     {
         qDebug() << "Error: HWND is not set";
-        return -1;
+        return;
     }
     SetForegroundWindow(hwnd);
     QThread::msleep(10);
 
-    QString path_raw = cmd->args[0].remove("\"").trimmed();
-    QStringList path = path_raw.split('.');
+    QString path = cmd->args[0].remove("\"").trimmed();
 
-    win_pAcc = setFocus(hwnd);
-    if( win_pAcc==NULL )
-    {
-        qDebug() << "Error: cannot get parent acc of window (" << window_title << ")";
-        return -1;
-    }
-
-    // presume acc_name is empty
-    int child_id;
-    child_id = path.last().toInt()-1;
-    path.removeLast();
-//    qDebug() << "child id is" << child_id;
-
-    acc = aj_getAcc(path, win_pAcc);
-    if( acc==NULL )
-    {
-        qDebug() << "Error: cannot get acc in window (" << window_title << ")";
-        return -1;
-    }
-
-    BSTR value = SysAllocString(L"");
-    VARIANT varChild;
-    varChild.vt = VT_I4;
-    varChild.lVal = child_id;
-
-    value = aj_toBSTR(cmd->args.last());
-
-    HRESULT hr = acc->put_accValue(varChild, value);
-
-    if( hr!=S_OK )
-    {
-        qDebug() << "Error: cannot set value of acc (" << path_raw << ")";
-        return -1;
-    }
-
-    return 0;
+    setFocus(hwnd);
+    setAccValue(hwnd, path, cmd->args.last());
 }
-
-
 
 void AjVar::addVar(QString name, QString value)
 {

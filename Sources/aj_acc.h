@@ -27,9 +27,11 @@ typedef struct AjAccCmd
 
 QString aj_getAccNameI4(IAccessible *acc, long childId);
 QString aj_getAccName(IAccessible *acc, long childId);
-POINT getAccLocationI4(IAccessible *acc, int childID);
-POINT getAccLocation(IAccessible *acc, int childID);
-POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);
+POINT   getAccLocationI4(IAccessible *acc, int childID);
+POINT   getAccLocation(IAccessible *acc, int childID);
+POINT   getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);
+QString getAccValue(HWND hwnd, QString path);
+void    setAccValue(HWND hwnd, QString path, QString val);
 
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);

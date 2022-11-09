@@ -64,7 +64,7 @@ public:
     int  doAcc(AjCommand *cmd);
     int  doKey(AjCommand *cmd);
     QString readAcc(AjCommand *cmd);
-    int writeAcc(AjCommand *cmd);
+    void writeAcc(AjCommand *cmd);
 
 private:
     void listChildren(IAccessible *pAcc, QString path);

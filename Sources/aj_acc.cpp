@@ -230,7 +230,7 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
     obj_center.x = -1;
     obj_center.y = -1;
 
-    win_pAcc = aj_getWinPAcc(hwnd);;
+    win_pAcc = aj_getWinPAcc(hwnd);
 //    qDebug() << "HWND" << win_pAcc->get_accName(0);
     if( win_pAcc==NULL )
     {
@@ -274,5 +274,71 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
 
 
     obj_center = getAccLocation(acc, child_id);
-
+    return  obj_center;
 }
+
+QString getAccValue(HWND hwnd, QString path)
+{
+    IAccessible *acc;
+    QStringList path_split = path.split('.', QString::SkipEmptyParts);
+    // presume acc_name is empty
+    int child_id;
+    child_id = path_split.last().toInt()-1;
+    path_split.removeLast();
+
+    IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
+    acc = aj_getAcc(path_split, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get acc in window ("
+                 << hwnd << ")";
+        return "";
+    }
+
+    BSTR value;
+    VARIANT varChild;
+    varChild.vt = VT_I4;
+    varChild.lVal = child_id; //CHILDID_SELF?
+    HRESULT hr = acc->get_accValue(varChild, &value);
+
+    if( hr!=S_OK )
+    {
+        qDebug() << "Error: cannot get value of acc ("
+                 << path << ")";
+        return "";
+    }
+
+    return aj_toQString(value);
+}
+
+void setAccValue(HWND hwnd, QString path, QString val)
+{
+    QStringList path_split = path.split('.', QString::SkipEmptyParts);
+    // presume acc_name is empty
+    int child_id;
+    child_id = path_split.last().toInt()-1;
+    path_split.removeLast();
+
+    IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
+//    qDebug() << "child id is" << child_id;
+
+    IAccessible *acc = aj_getAcc(path_split, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get acc in HWND (" << hwnd << ")";
+        return;
+    }
+
+    BSTR val_bstr = aj_toBSTR(val);
+    VARIANT varChild;
+    varChild.vt = VT_I4;
+    varChild.lVal = child_id;
+
+    HRESULT hr = acc->put_accValue(varChild, val_bstr);
+
+    if( hr!=S_OK )
+    {
+        qDebug() << "Error: cannot set value of acc (" << path << ")";
+    }
+}
+
