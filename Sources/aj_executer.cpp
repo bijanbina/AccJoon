@@ -9,18 +9,18 @@ AjExecuter::AjExecuter(QString conf_path)
     {
         aj_findAppByName(app.exe_name, &(app.window));
         AjCommand cmd = parser.parseLine();
-        executeLine(&cmd);
+        exec(&cmd);
     }
 }
 
-void AjExecuter::executeLine(AjCommand *cmd)
+void AjExecuter::exec(AjCommand *cmd)
 {
     QString command = cmd->command.toLower();
+    AjWin aj_win(app.hwnd);
 
     if( command=="read" && condition_flag>=0 )
     {
-        AjWin aj_win(app.hwnd);
-        QString ret = aj_win.readAcc(cmd);
+        QString ret = aj_win.execRead(cmd);
         if( ret.length() )
         {
             parser.vars.addVar(cmd->output, ret);
@@ -28,22 +28,19 @@ void AjExecuter::executeLine(AjCommand *cmd)
     }
     else if( command=="write" && condition_flag>=0 )
     {
-        AjWin aj_win(app.hwnd);
-        aj_win.writeAcc(cmd);
+        aj_win.execWrite(cmd);
     }
     else if( command=="click" && condition_flag>=0 )
     {
-        AjWin aj_win(app.hwnd);
-        aj_win.doAcc(cmd);
+        aj_win.execClick(cmd);
     }
     else if( command=="key" && condition_flag>=0 )
     {
-        AjWin aj_win(app.hwnd);
-        aj_win.doKey(cmd);
+        aj_win.execKey(cmd);
     }
     else if( command=="open" && condition_flag>=0 )
     {
-        executeOpen(cmd);
+        execOpen(cmd);
     }
     else if( command=="delay" && condition_flag>=0 )
     {
@@ -78,7 +75,7 @@ void AjExecuter::executeLine(AjCommand *cmd)
     }
     else if( command=="if" )
     {
-        if( cmd->args[0] == cmd->args[1] )
+        if( cmd->args[0]==cmd->args[1] )
         {
             condition_flag = 1;
         }
@@ -104,7 +101,7 @@ void AjExecuter::executeLine(AjCommand *cmd)
     }
 }
 
-void AjExecuter::executeOpen(AjCommand *cmd)
+int AjExecuter::execOpen(AjCommand *cmd)
 {
     QString args;
     if( cmd->args.size()>0 )
@@ -114,7 +111,7 @@ void AjExecuter::executeOpen(AjCommand *cmd)
         {
             if( aj_isProcOpen(pcheck) )
             {
-                return;
+                return AJ_CHECK_FAILED;
             }
         }
     }
@@ -137,4 +134,6 @@ void AjExecuter::executeOpen(AjCommand *cmd)
     }
     DWORD pid = app.win_launcher->launchApp(args);
     aj_findWindowByPid(pid, &(app.window));
+
+    return AJ_CHECK_SUCCESS;
 }

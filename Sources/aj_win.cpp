@@ -79,7 +79,7 @@ void AjWin::setFocus(HWND hWindow)
     window_title = QString(buffer);
 }
 
-int AjWin::doKey(AjCommand *cmd)
+int AjWin::execKey(AjCommand *cmd)
 {
     AjKeyboard keyboard;
     if( hwnd!=NULL )
@@ -94,7 +94,7 @@ int AjWin::doKey(AjCommand *cmd)
     return 0;
 }
 
-int AjWin::doAcc(AjCommand *cmd)
+int AjWin::execClick(AjCommand *cmd)
 {
     AjAccCmd acc_cmd;
     if( hwnd==NULL )
@@ -145,7 +145,7 @@ int AjWin::doAcc(AjCommand *cmd)
     return 0;
 }
 
-QString AjWin::readAcc(AjCommand *cmd)
+QString AjWin::execRead(AjCommand *cmd)
 {
     if( hwnd==NULL )
     {
@@ -164,7 +164,7 @@ QString AjWin::readAcc(AjCommand *cmd)
     return ret;
 }
 
-void AjWin::writeAcc(AjCommand *cmd)
+void AjWin::execWrite(AjCommand *cmd)
 {
     if( hwnd==NULL )
     {

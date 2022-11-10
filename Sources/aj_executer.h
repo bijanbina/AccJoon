@@ -5,6 +5,9 @@
 #include "aj_parser.h"
 #include "aj_virt.h"
 
+#define AJ_CHECK_FAILED  1
+#define AJ_CHECK_SUCCESS 2
+
 typedef struct AjApplication
 {
     QString app_name;
@@ -23,8 +26,8 @@ public:
     int condition_flag;
 
 private:
-    void executeLine(AjCommand *cmd);
-    void executeOpen(AjCommand *cmd);
+    void exec(AjCommand *cmd);
+    int execOpen(AjCommand *cmd);
 
     QString conf_path;
     AjApplication app;
