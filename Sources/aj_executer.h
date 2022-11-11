@@ -8,20 +8,11 @@
 #define AJ_CHECK_FAILED  1
 #define AJ_CHECK_SUCCESS 2
 
-typedef struct AjApplication
-{
-    QString app_name;
-    QString exe_name;
-    DWORD pid = 0;
-    AjWindow window;
-    AjLauncher *win_launcher;
-    HWND hwnd;
-}AjApplication;
 
 class AjExecuter
 {
 public:
-    AjExecuter(QString conf_path);
+    AjExecuter(QString script_path);
 
     int condition_flag;
 

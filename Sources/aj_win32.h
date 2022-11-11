@@ -47,7 +47,7 @@ QString aj_getPPath(long pid);
 void aj_InsertWindow(AjListW *thread_w, AjWindow win);
 void aj_getType(AjWindow *win);
 void aj_setActiveWindow(HWND hWnd);
-void aj_setActiveWindow(QString win_name);
+HWND aj_getHWND(QString exe_name);
 bool aj_fillWinSpec(HWND hwnd, QString title, AjWindow *win);
 void aj_findAppByName(QString exe_name, AjWindow *window);
 void aj_findWindowByPid(DWORD pid, AjWindow *window);

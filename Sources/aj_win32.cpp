@@ -8,22 +8,22 @@ int win_offset = 0;
 int win_current = 0;
 DWORD   pid_g;
 QString exe_name_g;
+HWND hwnd_g = NULL;
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
     char buffer[128];
-    char *win_name = (char *)lParam;
+    char *req_pname = (char *)lParam; // requested pname
     int written = GetWindowTextA(hwnd, buffer, 128);
     if( written && strlen(buffer)!=0 )
     {
         QString buff_s = buffer;
-        if( buff_s.contains(win_name) )
+        long pid = aj_getPid(hwnd);
+        QString pname = aj_getPName(pid);
+        if( pname == req_pname )
         {
-            win_current++;
-            if( win_offset>win_current )
-            {
-                aj_setActiveWindow(hwnd);
-            }
+            hwnd_g = hwnd;
+            return FALSE;
         }
     }
     return TRUE;
@@ -277,12 +277,13 @@ void aj_getType(AjWindow *win)
     }
 }
 
-void aj_setActiveWindow(QString win_name)
+HWND aj_getHWND(QString exe_name)
 {
-    char buffer[200];
-    strcpy(buffer, win_name.toStdString().c_str());
+    char exe_name_c[200];
+    strcpy(exe_name_c, exe_name.toStdString().c_str());
     win_current = 0;
-    EnumWindows(EnumWindowsProc, (LPARAM) buffer);
+    EnumWindows(EnumWindowsProc, (LPARAM) exe_name_c);
+    return hwnd_g;
 }
 
 void aj_setActiveWindow(HWND hWnd)

@@ -1,10 +1,10 @@
 #include "aj_executer.h"
 #include "aj_win_process.h"
-#include "aj_launcher.h"
+#include "aj_shortcut.h"
 
-AjExecuter::AjExecuter(QString conf_path)
+AjExecuter::AjExecuter(QString script_path)
 {
-    parser.openFile(conf_path);
+    parser.openFile(script_path);
     while( parser.eof==0 )
     {
         aj_findAppByName(app.exe_name, &(app.window));
@@ -63,13 +63,12 @@ void AjExecuter::exec(AjCommand *cmd)
     }
     else if( command=="shortcut" )
     {
-        app.app_name = cmd->args[0].remove("\"").trimmed();
-        app.win_launcher = new AjLauncher(app.app_name);
-        app.app_name = app.win_launcher->getExeName();
-        if( app.app_name=="" )
+        app.shortcut_name = cmd->args[0].remove("\"").trimmed();
+        app = getApplication(app.shortcut_name);
+        if( app.exe_name=="" )
         {
             qDebug() << "Error: exe file not found"
-                 << app.win_launcher->link_path;
+                 << app.exe_path;
             exit(0);
         }
     }
@@ -96,7 +95,7 @@ void AjExecuter::exec(AjCommand *cmd)
         }
         else
         {
-            app.app_name = ""; //fixme: all of them
+            app.shortcut_name = ""; //fixme: all of them
         }
     }
 }
@@ -132,8 +131,7 @@ int AjExecuter::execOpen(AjCommand *cmd)
             qDebug() << "Error: workspace value is wrong";
         }
     }
-    DWORD pid = app.win_launcher->launchApp(args);
-    aj_findWindowByPid(pid, &(app.window));
+    launchApp(&app, args);
 
     return AJ_CHECK_SUCCESS;
 }
