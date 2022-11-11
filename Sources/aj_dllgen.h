@@ -3,7 +3,7 @@
 
 #include <QFile>
 #include <QDir>
-#include "aj_launcher.h"
+#include "aj_shortcut.h"
 
 void aj_dllGen();
 void aj_fillBatFile(QFile *bat_file);

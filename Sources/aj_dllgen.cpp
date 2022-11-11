@@ -164,9 +164,8 @@ QString aj_getQtCreator()
 //    {
 //        return "";
 //    }
-    AjLauncher *win_launcher = new AjLauncher("qt");
-    QString creator_path = win_launcher->link_path;
-    return creator_path;
+    AjApplication app = getApplication("qt");
+    return app.exe_name;
 }
 
 QStringList aj_listGccCompilers(QString tools_path)

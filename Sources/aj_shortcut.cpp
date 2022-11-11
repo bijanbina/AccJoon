@@ -1,32 +1,37 @@
-#include "aj_launcher.h"
+#include "aj_shortcut.h"
 #include <shobjidl.h>
 #include <shlguid.h>
 #include <QFileInfo>
 
-AjLauncher::AjLauncher(QString app_name)
+QString getLinkLongPath(QString shortcut_name)
 {
-    link_path = getLinkPath(app_name);
+    QString link_path = getLinkPath(shortcut_name);
     if( link_path=="" )
     {
         qDebug() << "Error: get link path failed"
-                 << app_name;
-        return;
+                 << shortcut_name;
+        return "";
     }
     char buffer[200];
     GetLongPathNameA(link_path.toStdString().c_str(),
                      buffer, 200);
-    link_path = buffer;
+    return buffer;
 }
 
-QString AjLauncher::getExeName()
+AjApplication getApplication(QString shortcut_name)
 {
-    QFileInfo fi(link_path);
-    return fi.completeBaseName();
+    AjApplication app;
+    app.shortcut_name = shortcut_name;
+    app.exe_path = getLinkLongPath(shortcut_name);
+    QFileInfo fi(app.exe_path);
+    app.exe_name = fi.completeBaseName();
+    app.hwnd = aj_getHWND(app.exe_name);
+    return app;
 }
 
-DWORD AjLauncher::launchApp(QString arg)
+void launchApp(AjApplication *app, QString arg)
 {
-    QString path = link_path + " " + arg;
+    QString path = app->exe_path + " " + arg;
 
     PROCESS_INFORMATION ProcessInfo; //This is what we get as an [out] parameter
     STARTUPINFOA StartupInfo; //This is an [in] parameter
@@ -46,13 +51,13 @@ DWORD AjLauncher::launchApp(QString arg)
     {
         long last_error = GetLastError();
         qDebug() << "CreateProcess failed" << last_error;
-        return 0;
+        return;
     }
 
-    return ProcessInfo.dwProcessId;
+    app->pid = ProcessInfo.dwProcessId;
 }
 
-QString AjLauncher::getLinkPath(QString name)
+QString getLinkPath(QString name)
 {
     QString ret = getLinkPathA(name);
     if( ret.isEmpty() )
@@ -62,7 +67,7 @@ QString AjLauncher::getLinkPath(QString name)
     return ret;
 }
 
-QString AjLauncher::getLinkPathA(QString name)
+QString getLinkPathA(QString name)
 {
     char target[MAX_PATH];
 
@@ -76,7 +81,7 @@ QString AjLauncher::getLinkPathA(QString name)
 }
 
 //retreive link from ProgramData instead of user account
-QString AjLauncher::getLinkPathB(QString name)
+QString getLinkPathB(QString name)
 {
     char target[MAX_PATH];
 
@@ -89,7 +94,7 @@ QString AjLauncher::getLinkPathB(QString name)
     return target;
 }
 
-QString AjLauncher::findAppPath(QString path, QString pattern)
+QString findAppPath(QString path, QString pattern)
 {
     QDir directory(path);
     directory.setFilter(QDir::Files | QDir::NoDot | QDir::NoDotDot);
@@ -130,7 +135,7 @@ QString AjLauncher::findAppPath(QString path, QString pattern)
     }
 }
 
-HRESULT AjLauncher::resolveIt(LPCSTR lnk_path, char *target)
+HRESULT resolveIt(LPCSTR lnk_path, char *target)
 {
     HRESULT hres;
     IShellLink* psl;
