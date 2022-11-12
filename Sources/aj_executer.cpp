@@ -7,7 +7,6 @@ AjExecuter::AjExecuter(QString script_path)
     parser.openFile(script_path);
     while( parser.eof==0 )
     {
-        aj_findAppByName(app.exe_name, &(app.window));
         AjCommand cmd = parser.parseLine();
         exec(&cmd);
     }
@@ -15,34 +14,63 @@ AjExecuter::AjExecuter(QString script_path)
 
 void AjExecuter::exec(AjCommand *cmd)
 {
-    QString command = cmd->command.toLower();
-    AjWin aj_win(app.hwnd);
-
-    if( command=="read" && condition_flag>=0 )
+    if( inside_false_if )
     {
-        QString ret = aj_win.execRead(cmd);
-        if( ret.length() )
+        if( cmd->command=="EOB" )
         {
-            parser.vars.addVar(cmd->output, ret);
+            inside_false_if = 0;
         }
     }
-    else if( command=="write" && condition_flag>=0 )
+    else
     {
-        aj_win.execWrite(cmd);
+        if( cmd->command=="shortcut" )
+        {
+            app.shortcut_name = cmd->args[0].remove("\"").trimmed();
+            app = getApplication(app.shortcut_name);
+            if( app.exe_name=="" )
+            {
+                qDebug() << "Error: exe file not found"
+                     << app.exe_path;
+                exit(0);
+            }
+        }
+        else if( cmd->command=="if" )
+        {
+            if( cmd->args[0]==cmd->args[1] )
+            {
+                inside_false_if = 0;
+            }
+            else
+            {
+                inside_false_if = 1;
+            }
+        }
+        else if( cmd->command=="EOB" )
+        {
+            app.hwnd = NULL;
+        }
+        else
+        {
+            execNormal(cmd);
+        }
     }
-    else if( command=="click" && condition_flag>=0 )
+}
+
+void AjExecuter::execNormal(AjCommand *cmd)
+{
+    if( cmd->command=="click" )
     {
-        aj_win.execClick(cmd);
+        execClick(cmd);
     }
-    else if( command=="key" && condition_flag>=0 )
+    else if( cmd->command=="key" )
     {
-        aj_win.execKey(cmd);
+        execKey(cmd);
     }
-    else if( command=="open" && condition_flag>=0 )
+    else if( cmd->command=="open" )
     {
         execOpen(cmd);
     }
-    else if( command=="delay" && condition_flag>=0 )
+    else if( cmd->command=="delay" )
     {
         bool conversion_ok;
         int delay = cmd->args[0].toInt(&conversion_ok);
@@ -55,48 +83,23 @@ void AjExecuter::exec(AjCommand *cmd)
             qDebug() << "Error: delay value is wrong";
         }
     }
-    else if( command=="lua" && condition_flag>=0 )
+    else if( cmd->command=="lua" )
     {
         AjLua lua;
         QString path = cmd->args[0].remove("\"");
         lua.run(path);
     }
-    else if( command=="shortcut" )
+    else if( cmd->command=="read" )
     {
-        app.shortcut_name = cmd->args[0].remove("\"").trimmed();
-        app = getApplication(app.shortcut_name);
-        if( app.exe_name=="" )
+        QString ret = execRead(cmd);
+        if( ret.length() )
         {
-            qDebug() << "Error: exe file not found"
-                 << app.exe_path;
-            exit(0);
+            parser.vars.addVar(cmd->output, ret);
         }
     }
-    else if( command=="if" )
+    else if( cmd->command=="write" )
     {
-        if( cmd->args[0]==cmd->args[1] )
-        {
-            condition_flag = 1;
-        }
-        else
-        {
-            condition_flag = -1;
-        }
-    }
-    else if( command=="EOF" )
-    {
-        ;
-    }
-    else if( command=="EOA" )
-    {
-        if( condition_flag )
-        {
-            condition_flag = 0;
-        }
-        else
-        {
-            app.shortcut_name = ""; //fixme: all of them
-        }
+        execWrite(cmd);
     }
 }
 
@@ -134,4 +137,124 @@ int AjExecuter::execOpen(AjCommand *cmd)
     launchApp(&app, args);
 
     return AJ_CHECK_SUCCESS;
+}
+
+void AjExecuter::setFocus()
+{
+    if( app.hwnd==NULL )
+    {
+//        app->hwnd = GetForegroundWindow();
+        qDebug() << "Switching to active window";
+        if( app.hwnd==NULL )
+        {
+            qDebug() << "Error: cannot get foreground window handler";
+            return;
+        }
+    }
+
+    char buffer[256];
+    GetWindowTextA(app.hwnd, buffer, 256);
+    app.win_title = buffer;
+}
+
+int AjExecuter::execKey(AjCommand *cmd)
+{
+    AjKeyboard keyboard;
+    if( app.hwnd!=NULL )
+    {
+        SetForegroundWindow(app.hwnd);
+    }
+    QThread::msleep(10);
+
+    AjKey key = aj_getKey(cmd->args[0]);
+    keyboard.execKey(&key);
+
+    return 0;
+}
+
+int AjExecuter::execClick(AjCommand *cmd)
+{
+    AjAccCmd acc_cmd;
+    if( app.hwnd==NULL )
+    {
+        qDebug() << "Error: HWND is not set";
+        return -1;
+    }
+    SetForegroundWindow(app.hwnd);
+    QThread::msleep(10);
+
+    QString path = cmd->args[0].remove("\"").trimmed();
+
+    if( cmd->args.size()>1 )
+    {
+        acc_cmd.action = cmd->args[1];
+    }
+    if( cmd->args.size()>2 )
+    {
+       acc_cmd.acc_name = cmd->args[2];
+    }
+    if( cmd->args.size()>3 )
+    {
+       acc_cmd.offset_x = cmd->args[3].toInt();
+    }
+    if( cmd->args.size()>4 )
+    {
+        acc_cmd.offset_y = cmd->args[4].toInt();
+    }
+    if( cmd->args.size()>5 )
+    {
+        acc_cmd.offset_id = cmd->args[5].toInt();
+    }
+
+    setFocus();
+    POINT obj_center;
+    obj_center = getAccLocation(acc_cmd, app.hwnd, path);
+
+    if( obj_center.x==0 && obj_center.y==0 )
+    {
+        qDebug() << "Error: cannot get location in window ("
+                 << app.win_title << ")";
+        return -1;
+    }
+    qDebug() << "obj_center" << obj_center.x
+             << obj_center.y << ")";
+
+    aj_mouseClick(obj_center, acc_cmd);
+
+    return 0;
+}
+
+QString AjExecuter::execRead(AjCommand *cmd)
+{
+    if( app.hwnd==NULL )
+    {
+        qDebug() << "Error: HWND is not set";
+        return "";
+    }
+    SetForegroundWindow(app.hwnd);
+    QThread::msleep(10);
+
+    QString path = cmd->args[0].remove("\"").trimmed();
+
+    setFocus();
+
+    QString ret = getAccValue(app.hwnd, path);
+
+    return ret;
+}
+
+void AjExecuter::execWrite(AjCommand *cmd)
+{
+    if( app.hwnd==NULL )
+    {
+        qDebug() << "Error: HWND is not set";
+        return;
+    }
+    SetForegroundWindow(app.hwnd);
+    QThread::msleep(10);
+
+    QString path = cmd->args[0].remove("\"").trimmed();
+
+    setFocus();
+    setAccValue(app.hwnd, path, cmd->args.last());
 }

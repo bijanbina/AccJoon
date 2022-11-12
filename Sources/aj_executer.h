@@ -1,7 +1,7 @@
 #ifndef AJ_EXECUTER_H
 #define AJ_EXECUTER_H
 
-#include "aj_win.h"
+#include "aj_keyboard.h"
 #include "aj_parser.h"
 #include "aj_virt.h"
 
@@ -14,16 +14,24 @@ class AjExecuter
 public:
     AjExecuter(QString script_path);
 
-    int condition_flag;
+    int inside_false_if;
 
 private:
     void exec(AjCommand *cmd);
-    int execOpen(AjCommand *cmd);
+    void execNormal(AjCommand *cmd);
 
-    QString conf_path;
-    AjApplication app;
+    int  execOpen (AjCommand *cmd);
+    int  execClick(AjCommand *cmd);
+    int  execKey  (AjCommand *cmd);
+    void execWrite(AjCommand *cmd);
+    QString execRead(AjCommand *cmd);
+
+    void setFocus();
+
+    QString  conf_path;
     AjParser parser; // value stored in parser
-    AjVirt vi;
+    AjVirt   vi;
+    AjApplication app;
 };
 
 
