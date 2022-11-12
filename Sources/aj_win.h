@@ -17,6 +17,7 @@
 #include "aj_acc.h"
 #include "aj_lua.h"
 #include "aj_mouse.h"
+#include "aj_shortcut.h"
 
 #define AJ_CMD_EOF      0 // end of file
 #define AJ_CMD_DELAY    1
@@ -39,17 +40,6 @@ private:
     QStringList vars_value;
 };
 
-typedef struct AjApp
-{
-    QString app_name;
-    QString app_func;
-    QString pcheck; // process check
-    QString args;
-    int workspace;
-    int is_open;
-    int open_delay;
-}AjApp;
-
 typedef struct AjCommand
 {
     QString command;
@@ -57,24 +47,5 @@ typedef struct AjCommand
     QStringList args;
 }AjCommand;
 
-class AjWin
-{
-public:
-    AjWin(HWND hWindow=NULL);
-    int  execClick(AjCommand *cmd);
-    int  execKey(AjCommand *cmd);
-    QString execRead(AjCommand *cmd);
-    void execWrite(AjCommand *cmd);
-
-private:
-    void listChildren(IAccessible *pAcc, QString path);
-    void setFocus(HWND hWindow);
-    int  setObjLocation(IAccessible *acc, int childID);
-    void doClick(POINT obj_center, AjAccCmd cmd);
-
-    QString window_title;
-    HWND hwnd;
-
-};
 
 #endif // AJWIN_H

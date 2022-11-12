@@ -6,8 +6,7 @@
 int win_debug = 0;
 int win_offset = 0;
 int win_current = 0;
-DWORD   pid_g;
-QString exe_name_g;
+DWORD pid_g;
 HWND hwnd_g = NULL;
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
@@ -24,29 +23,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
         {
             hwnd_g = hwnd;
             return FALSE;
-        }
-    }
-    return TRUE;
-}
-
-BOOL CALLBACK EnumWindowsName(HWND hwnd, LPARAM lParam)
-{
-    char buffer[128];
-    int written = GetWindowTextA(hwnd, buffer, 128);
-    if( written && strlen(buffer)!=0 )
-    {
-        QString buff_s = buffer;
-        long pid = aj_getPid(hwnd);
-        QString pname = aj_getPPath(pid);
-
-        if( pname.contains(exe_name_g) )
-        {
-            AjWindow *window = (AjWindow *)lParam;
-            if( aj_fillWinSpec(hwnd, buff_s, window) )
-            {
-                return FALSE;
-            }
-
         }
     }
     return TRUE;
@@ -70,96 +46,6 @@ BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
-}
-
-//Add a new Hwnd to wins_title vector
-void aj_AddHwnd(HWND hwnd, AjListW *list_w)
-{
-    char buffer[128];
-    RECT rc;
-
-    if(IsWindowVisible(hwnd))
-    {
-        int cloaked;
-        DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &cloaked, 4);
-
-        HWND shell_window = GetShellWindow();
-        GetWindowRect(hwnd, &rc);
-        int width = rc.right - rc.left;
-
-        if((hwnd!=shell_window) && (width>100) ) //&& (rc.bottom>0)
-        {
-            int success = GetWindowTextA(hwnd, buffer, 128); //get title
-
-            if ( success==0 )
-            {
-                qDebug() << hwnd << "Failed to GetWindowTextA";
-            }
-
-
-            AjWindow current_win;
-            current_win.hWnd = hwnd;
-            current_win.title = buffer;
-            current_win.pname = aj_getPPath(aj_getPid(hwnd));
-            current_win.verify = 1; //always new windows are verified
-//                current_win.title = thread_w->cleanTitle(current_win.title);
-
-            aj_InsertWindow(list_w, current_win);
-        }
-    }
-}
-
-void aj_InsertWindow(AjListW *thread_w, AjWindow win)
-{
-    //Get clover child
-    aj_getType(&win);
-
-    //push active window to front
-    if ( win.hWnd == thread_w->win_active.hWnd )
-    {
-        if ( thread_w->windows.size()>0 )
-        {
-            if ( thread_w->windows[0].hWnd != win.hWnd )
-            {
-                thread_w->windows.push_front(win);
-                qDebug() << "Active Changed" << win.title;
-            }
-            else
-            {
-                thread_w->windows[0].verify = 1;
-                thread_w->windows[0].title = win.title;
-            }
-        }
-        else
-        {
-            thread_w->windows.push_front(win);
-            qDebug() << "First Time" << win.title;
-            return;
-        }
-    }
-
-    for( int i=1 ; i<thread_w->windows.size() ; i++ )
-    {
-        if ( thread_w->windows[i].hWnd==thread_w->win_active.hWnd )
-        {
-            thread_w->windows.remove(i);
-            i--;
-        }
-        else if ( thread_w->windows[i].hWnd==win.hWnd )
-        {
-            thread_w->windows[i].verify = 1;
-            thread_w->windows[i].title = win.title;
-//            qDebug() << "Ver Window" << i << win.title;
-            return;
-        }
-    }
-
-    if ( win.hWnd != thread_w->win_active.hWnd )
-    {
-        thread_w->windows.push_back(win);
-        qDebug() << "New Window" << win.title;
-    }
-
 }
 
 long aj_getPid(HWND hWnd)
@@ -202,81 +88,6 @@ QString aj_getPName(long pid)
     return fi.fileName();
 }
 
-void aj_getType(AjWindow *win)
-{
-    char buffer[128];
-    GetClassNameA(win->hWnd, buffer, 128);
-    QString class_name = buffer;
-
-    if( class_name.contains("Qt") && class_name.contains("QWindowIcon") )
-    {
-        win->type = RE_WIN_QT;
-
-        if ( win->title.contains(" - Qt Creator"))
-        {
-            QString title = "Qt Cre: ";
-            title += win->title.split(" (").at(0);
-            win->title = title;
-        }
-    }
-    else if( class_name.contains("Chrome_WidgetWin") )
-    {
-        if ( win->pname.contains("Spotify.exe") )
-        {
-            win->type = RE_WIN_SPOTIFY;
-
-            QString title = "Spotiy: ";
-            title += win->title;
-            win->title = title;
-        }
-        else if ( win->pname.contains("atom.exe") )
-        {
-            win->type = RE_WIN_TEXTEDITOR;
-
-            QString title = "Atom : ";
-            title += win->title.split("\ufffd").at(0);
-            win->title = title;
-        }
-        else
-        {
-            win->type = RE_WIN_UNKNOWN;
-            if( win_debug )
-            {
-                qDebug() << class_name << win->pname;
-            }
-        }
-    }
-    else if( class_name.contains("MozillaWindowClass") )
-    {
-        win->type = RE_WIN_FIREFOX;
-        if ( win->title.contains(" - YouTube"))
-        {
-            win->type = RE_WIN_YOUTUBE;
-        }
-
-        QString title = "Firef : ";
-        title += win->title.split("\ufffd").at(0);
-        win->title = title;
-    }
-    else if( class_name.contains("ConsoleWindowClass") )
-    {
-        win->type = RE_WIN_TERMINAL;
-
-        QString title = "CMD  : ";
-        title += win->title.split("\ufffd").at(0);
-//        win->title = title;
-
-    }
-    else
-    {
-        win->type = RE_WIN_UNKNOWN;
-        if( win_debug )
-        {
-            qDebug() << class_name << win->pname;
-        }
-    }
-}
-
 HWND aj_getHWND(QString exe_name)
 {
     char exe_name_c[200];
@@ -302,52 +113,6 @@ void aj_setActiveWindow(HWND hWnd)
     }
 
     AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
-}
-
-bool aj_fillWinSpec(HWND hwnd, QString title, AjWindow *win)
-{
-    RECT rc;
-
-    if(IsWindowVisible(hwnd))
-    {
-        HWND shell_window = GetShellWindow();
-        GetWindowRect(hwnd, &rc);
-        int width = rc.right - rc.left;
-
-        if((hwnd!=shell_window) && (width>100) ) //&& (rc.bottom>0)
-        {
-            long pid = aj_getPid(hwnd);
-            QString pname = aj_getPPath(pid);
-            QFileInfo fi(pname);
-            pname = fi.completeBaseName();
-            if( exe_name_g==pname )
-            {
-                qDebug() << "title" << title << "|" << exe_name_g << "|" << pname;
-                win->hWnd = hwnd;
-                win->title = title;
-                win->pname = pname;
-                win->pid = pid;
-                return true;
-            }
-        }
-        else
-        {
-//                int success = GetWindowTextA(hwnd, buffer, 128); //get title
-//                qDebug() << "----------" << buffer << rc.bottom << width;
-        }
-    }
-    else
-    {
-//        int success = GetWindowTextA(hwnd, buffer, 128); //get title
-//        qDebug() << "not vis" << buffer << IsWindowVisible(hwnd);
-    }
-    return false;
-}
-
-void aj_findAppByName(QString exe_name, AjWindow *window)
-{
-    exe_name_g = exe_name;
-    EnumWindows(EnumWindowsName, (LPARAM) window);
 }
 
 void aj_findWindowByPid(DWORD pid, AjWindow *window)

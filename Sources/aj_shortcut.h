@@ -13,8 +13,9 @@ typedef struct AjApplication
     QString shortcut_name;
     QString exe_name;
     QString exe_path;
+    QString win_title;
     DWORD pid = 0;
-    AjWindow window;
+    int workspace;
     HWND hwnd;
 }AjApplication;
 

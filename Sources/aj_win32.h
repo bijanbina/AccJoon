@@ -12,18 +12,6 @@
 #include <tchar.h> // to get file path
 #include <psapi.h> // For access to GetModuleFileNameEx
 
-#define RE_WIN_UNKNOWN     1
-#define RE_WIN_SPOTIFY     2
-#define RE_WIN_FIREFOX     3
-#define RE_WIN_EXPLORER    4
-#define RE_WIN_READING     5
-#define RE_WIN_QT          6
-#define RE_WIN_TEXTEDITOR  7
-#define RE_WIN_OVERVIEW    8
-#define RE_WIN_TELEGRAM    9
-#define RE_WIN_TERMINAL    10
-#define RE_WIN_YOUTUBE     11
-
 typedef struct AjWindow
 {
     int  verify; //verify hwnd still exist

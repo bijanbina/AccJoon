@@ -34,7 +34,7 @@ AjCommand AjParser::parseLine()
     {
         if( line=="}" )
         {
-            ret.command = "EOA"; // end of app
+            ret.command = "EOB"; // end of block "}"
         }
         else if( line.contains("==") )
         {
@@ -54,6 +54,7 @@ AjCommand AjParser::parseLine()
         ret.command = "EOF";
     }
     printCmd(&ret);
+    ret.command = ret.command.toLower();
     return ret;
 }
 
