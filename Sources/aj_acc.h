@@ -32,6 +32,7 @@ POINT   getAccLocation(IAccessible *acc, int childID);
 POINT   getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);
 QString getAccValue(HWND hwnd, QString path);
 void    setAccValue(HWND hwnd, QString path, QString val);
+void    aj_accList(IAccessible *pAcc, QString path);
 
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);

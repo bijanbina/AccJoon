@@ -34,7 +34,7 @@ SOURCES += \
         Sources/aj_dllgen.cpp \
         Sources/aj_executer.cpp \
         Sources/aj_keyboard.cpp \
-        Sources/aj_launcher.cpp \
+        Sources/aj_shortcut.cpp \
         Sources/aj_lua.cpp \
         Sources/aj_mouse.cpp \
         Sources/aj_parser.cpp \
@@ -51,7 +51,7 @@ HEADERS += \
     Sources/aj_dllgen.h \
     Sources/aj_executer.h \
     Sources/aj_keyboard.h \
-    Sources/aj_launcher.h \
+    Sources/aj_shortcut.h \
     Sources/aj_lua.h \
     Sources/aj_mouse.h \
     Sources/aj_parser.h \
