@@ -14,6 +14,7 @@ void AjParser::openFile(QString path)
 {
     conf_path = path;
     eof = false;
+    line_number = 0;
     conf_file = new QFile(conf_path);
 //    qDebug() << "Working dir is" << QDir::current().path();
     if( !conf_file->open(QIODevice::ReadOnly |
@@ -27,8 +28,10 @@ void AjParser::openFile(QString path)
 
 AjCommand AjParser::parseLine()
 {
-    QString line = readLine();
+    // trimmed would remove withespace from start and end
+    QString line = readLine().trimmed();
     AjCommand ret;
+    line_number++;
 
     if( line.length() )
     {
@@ -113,53 +116,125 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
 
 void AjParser::parseFunction(QString line, AjCommand *cmd)
 {
-    QString args, command;
-    QStringList arg_list;
-
-    QStringList word_list = line.split("(", QString::SkipEmptyParts);
-    if( word_list.size()!=2 )
+    cmd->command = getCommand(line);
+    int trim_len = cmd->command.length();
+    line.remove(0, trim_len);
+    if( line[line.length()-1]!=")" )
     {
-        qDebug() << "Error: Expect one ("
-                 << ", in:" << line;
-        exit(0);
+        qDebug() << "Error 123: no \")\" found in"
+                 << line_number << "line:" << line;
+        return;
     }
-    command = word_list[0].trimmed();
+    line.chop(1);// remove ) from end of line
 
-    args = getArguments(line);
-
-    word_list = args.split(",", QString::SkipEmptyParts);
-
-    if( command.toLower()=="write" )
+    cmd->args = getArguments(line);
+    for( int i=0; i<cmd->args.length(); i++)
     {
-        word_list[word_list.size()-1] = getVarValue(word_list.last());
+        if( isString(cmd->args[i])==0 )
+        {
+            if( isNumber(cmd->args[i])==0 )
+            {
+                QString value = getVarValue(cmd->args[i]);
+                cmd->args[i] = value;
+            }
+        }
+        else if( cmd->args[i].length() )
+        {
+            //remove double qoute from start and end
+            cmd->args[i].remove(0, 1);
+            cmd->args[i].chop(1);
+        }
     }
-    for( int i=0 ; i<word_list.size() ; i++ )
-    {
-        arg_list.push_back(word_list[i].trimmed());
-    }
-
-    cmd->command = command;
-    cmd->args = arg_list;
 }
 
-QString AjParser::getArguments(QString line)
+QString AjParser::getCommand(QString line)
 {
-    line = line.trimmed();
-    if( line.back()!=")" )
+    QString result;
+    for(int i=0; i<line.length(); i++)
     {
-        qDebug() << "Error: Unexpected end of line,"
-                 << "missing ')' in:" << line;
-        exit(0);
+        if (line[i]=="(")
+        {
+            return result;
+        }
+        result += line[i];
     }
-    line.remove(line.lastIndexOf(")"), 1);
+    qDebug() << "Error 122: no \"(\" found in"
+             << line_number << "line:" << line;
+    return "";
+}
 
-    QStringList wordlist = line.split("(");
-    if( wordlist.length()<2 )
+QStringList AjParser::getArguments(QString line)
+{
+    QStringList arglist;
+    int idq_flag = 0;//inside double qoute flag
+    QString buffer;
+
+    for( int i=0; i<line.length(); i++)
     {
-        qDebug() << "Error: missing '(' in:" << line;
-        exit(0);
+        buffer += line[i];
+        if( line[i]=="\"" )
+        {
+            if( idq_flag )
+            {
+                if( i>0 )
+                {
+                    if( line[i-1]!="\\" )
+                    {
+                        idq_flag = 0;
+                    }
+                }
+            }
+            else
+            {
+                idq_flag = 1;
+            }
+        }
+        else if( idq_flag==0 )
+        {
+            if( line[i]=="," )
+            {
+                buffer.chop(1);
+                buffer = buffer.trimmed();
+                arglist.push_back(buffer);
+                buffer = "";
+            }
+        }
     }
-    return wordlist[1];
+
+    return arglist;
+}
+
+int AjParser::isString(QString arg)
+{
+    if( arg.isEmpty() )
+    {
+        return 1;
+    }
+
+    if( arg[0]=="\"" )
+    {
+        if( arg[arg.length()-1]=="\"" )
+        {
+            return 1;
+        }
+        qDebug() << "Error 124: no \" found in"
+                 << line_number << "arg:" << arg;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int AjParser::isNumber(QString arg)
+{
+    if( arg.isEmpty() )
+    {
+        return 0;
+    }
+    bool ok;
+    arg.toInt(&ok);
+    return ok;
 }
 
 QString AjParser::readLine()
