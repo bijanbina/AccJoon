@@ -23,7 +23,7 @@ Read a value from `acc_path`
 void write("acc_path", "value")
 ```
 
-Set an acc object `value``
+Set an acc object `value`
 
 ## Click
 ```

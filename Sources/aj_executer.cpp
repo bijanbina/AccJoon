@@ -25,7 +25,7 @@ void AjExecuter::exec(AjCommand *cmd)
     {
         if( cmd->command=="shortcut" )
         {
-            app.shortcut_name = cmd->args[0].remove("\"").trimmed();
+            app.shortcut_name = cmd->args[0];
             app = getApplication(app.shortcut_name);
             if( app.exe_name=="" )
             {
@@ -108,7 +108,7 @@ int AjExecuter::execOpen(AjCommand *cmd)
     QString args;
     if( cmd->args.size()>0 )
     {
-        QString pcheck = cmd->args[0].remove("\"").trimmed();
+        QString pcheck = cmd->args[0];
         if( pcheck.length() )
         {
             if( aj_isProcOpen(pcheck) )
@@ -119,12 +119,12 @@ int AjExecuter::execOpen(AjCommand *cmd)
     }
     if( cmd->args.size()>1 )
     {
-        args = cmd->args[1].remove("\"").trimmed();
+        args = cmd->args[1];
     }
     if( cmd->args.size()>2 )
     {
         bool conversion_ok;
-        int workspace = cmd->args[2].trimmed().toInt(&conversion_ok);
+        int workspace = cmd->args[2].toInt(&conversion_ok);
         if( conversion_ok && workspace>0 )
         {
             vi.setDesktop(workspace-1);
@@ -183,7 +183,7 @@ int AjExecuter::execClick(AjCommand *cmd)
     SetForegroundWindow(app.hwnd);
     QThread::msleep(10);
 
-    QString path = cmd->args[0].remove("\"").trimmed();
+    QString path = cmd->args[0];
 
     if( cmd->args.size()>1 )
     {
@@ -234,7 +234,7 @@ QString AjExecuter::execRead(AjCommand *cmd)
     SetForegroundWindow(app.hwnd);
     QThread::msleep(10);
 
-    QString path = cmd->args[0].remove("\"").trimmed();
+    QString path = cmd->args[0];
 
     setFocus();
 
@@ -253,7 +253,7 @@ void AjExecuter::execWrite(AjCommand *cmd)
     SetForegroundWindow(app.hwnd);
     QThread::msleep(10);
 
-    QString path = cmd->args[0].remove("\"").trimmed();
+    QString path = cmd->args[0];
 
     setFocus();
     setAccValue(app.hwnd, path, cmd->args.last());

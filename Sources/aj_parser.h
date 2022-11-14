@@ -39,11 +39,16 @@ private:
     void parseAssignment(QString line, AjCommand *cmd);
     void parseFunction(QString line, AjCommand *cmd);
     void printCmd(AjCommand *cmd);
-    QString getArguments(QString line);
+    QStringList getArguments(QString line);
     QString getVarValue(QString word);
+
+    QString getCommand(QString line);
+    int isString(QString arg);
+    int isNumber(QString arg);
 
     QFile *conf_file;
     QString conf_path;
+    int line_number;
 };
 
 #endif // AJCONFPARSER_H
