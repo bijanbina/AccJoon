@@ -4,6 +4,7 @@
 
 AjExecuter::AjExecuter(QString script_path)
 {
+    inside_false_if = 0;
     parser.openFile(script_path);
     while( parser.eof==0 )
     {
@@ -58,6 +59,16 @@ void AjExecuter::exec(AjCommand *cmd)
 
 void AjExecuter::execNormal(AjCommand *cmd)
 {
+    if( app.hwnd==NULL )
+    {
+        qDebug() << "Warning: HWND is not set"
+                 << "line:" << parser.line_number;
+    }
+    else
+    {
+        setFocus();
+    }
+
     if( cmd->command=="click" )
     {
         execClick(cmd);
@@ -66,40 +77,39 @@ void AjExecuter::execNormal(AjCommand *cmd)
     {
         execKey(cmd);
     }
+    else if( cmd->command=="print" )
+    {
+        qDebug() << cmd->args[0];
+    }
     else if( cmd->command=="open" )
     {
         execOpen(cmd);
     }
-    else if( cmd->command=="delay" )
-    {
-        bool conversion_ok;
-        int delay = cmd->args[0].toInt(&conversion_ok);
-        if( conversion_ok && delay>0 )
-        {
-            QThread::msleep(delay);
-        }
-        else
-        {
-            qDebug() << "Error: delay value is wrong";
-        }
-    }
-    else if( cmd->command=="lua" )
-    {
-        AjLua lua;
-        QString path = cmd->args[0].remove("\"");
-        lua.run(path);
-    }
     else if( cmd->command=="read" )
     {
         QString ret = execRead(cmd);
-        if( ret.length() )
-        {
-            parser.vars.addVar(cmd->output, ret);
-        }
+        parser.vars.setVar(cmd->output, ret);
+    }
+    else if( cmd->command=="lua" )
+    {
+        execLua(cmd);
+    }
+    else if( cmd->command=="delay" )
+    {
+        execDelay(cmd);
     }
     else if( cmd->command=="write" )
     {
         execWrite(cmd);
+    }
+    else if( cmd->command=="state" )
+    {
+        QString ret = execState(cmd);
+        parser.vars.setVar(cmd->output, ret);
+    }
+    else if( cmd->command=="assign" )
+    {
+        parser.vars.setVar(cmd->output, cmd->args[0]);
     }
 }
 
@@ -144,13 +154,15 @@ void AjExecuter::setFocus()
     if( app.hwnd==NULL )
     {
 //        app->hwnd = GetForegroundWindow();
-        qDebug() << "Switching to active window";
-        if( app.hwnd==NULL )
-        {
+//        qDebug() << "Switching to active window";
+//        if( app.hwnd==NULL )
+//        {
             qDebug() << "Error: cannot get foreground window handler";
             return;
-        }
+//        }
     }
+    SetForegroundWindow(app.hwnd);
+    QThread::msleep(10);
 
     char buffer[256];
     GetWindowTextA(app.hwnd, buffer, 256);
@@ -160,12 +172,6 @@ void AjExecuter::setFocus()
 int AjExecuter::execKey(AjCommand *cmd)
 {
     AjKeyboard keyboard;
-    if( app.hwnd!=NULL )
-    {
-        SetForegroundWindow(app.hwnd);
-    }
-    QThread::msleep(10);
-
     AjKey key = aj_getKey(cmd->args[0]);
     keyboard.execKey(&key);
 
@@ -175,14 +181,6 @@ int AjExecuter::execKey(AjCommand *cmd)
 int AjExecuter::execClick(AjCommand *cmd)
 {
     AjAccCmd acc_cmd;
-    if( app.hwnd==NULL )
-    {
-        qDebug() << "Error: HWND is not set";
-        return -1;
-    }
-    SetForegroundWindow(app.hwnd);
-    QThread::msleep(10);
-
     QString path = cmd->args[0];
 
     if( cmd->args.size()>1 )
@@ -206,7 +204,6 @@ int AjExecuter::execClick(AjCommand *cmd)
         acc_cmd.offset_id = cmd->args[5].toInt();
     }
 
-    setFocus();
     POINT obj_center;
     obj_center = getAccLocation(acc_cmd, app.hwnd, path);
 
@@ -226,35 +223,41 @@ int AjExecuter::execClick(AjCommand *cmd)
 
 QString AjExecuter::execRead(AjCommand *cmd)
 {
-    if( app.hwnd==NULL )
-    {
-        qDebug() << "Error: HWND is not set";
-        return "";
-    }
-    SetForegroundWindow(app.hwnd);
-    QThread::msleep(10);
-
     QString path = cmd->args[0];
-
-    setFocus();
-
     QString ret = getAccValue(app.hwnd, path);
-
     return ret;
 }
 
 void AjExecuter::execWrite(AjCommand *cmd)
 {
-    if( app.hwnd==NULL )
-    {
-        qDebug() << "Error: HWND is not set";
-        return;
-    }
-    SetForegroundWindow(app.hwnd);
-    QThread::msleep(10);
-
     QString path = cmd->args[0];
-
-    setFocus();
     setAccValue(app.hwnd, path, cmd->args.last());
+}
+
+void AjExecuter::execLua(AjCommand *cmd)
+{
+    AjLua lua;
+    QString path = cmd->args[0].remove("\"");
+    lua.run(path);
+}
+
+void AjExecuter::execDelay(AjCommand *cmd)
+{
+    bool conversion_ok;
+    int delay = cmd->args[0].toInt(&conversion_ok);
+    if( conversion_ok && delay>0 )
+    {
+        QThread::msleep(delay);
+    }
+    else
+    {
+        qDebug() << "Error: delay value is wrong";
+    }
+}
+
+QString AjExecuter::execState(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString ret = getAccValue(app.hwnd, path);
+    return ret;
 }

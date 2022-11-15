@@ -24,7 +24,10 @@ private:
     int  execClick(AjCommand *cmd);
     int  execKey  (AjCommand *cmd);
     void execWrite(AjCommand *cmd);
+    void execLua(AjCommand *cmd);
+    void execDelay(AjCommand *cmd);
     QString execRead(AjCommand *cmd);
+    QString execState(AjCommand *cmd);
 
     void setFocus();
 
