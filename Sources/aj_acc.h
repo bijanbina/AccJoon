@@ -31,6 +31,7 @@ POINT   getAccLocationI4(IAccessible *acc, int childID);
 POINT   getAccLocation(IAccessible *acc, int childID);
 POINT   getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);
 QString getAccValue(HWND hwnd, QString path);
+QString getAccState(HWND hwnd, QString path);
 void    setAccValue(HWND hwnd, QString path, QString val);
 void    aj_accList(IAccessible *pAcc, QString path);
 
@@ -39,8 +40,11 @@ IAccessible* aj_getChild(IAccessible *acc, int index);
 
 IAccessible* aj_getWinPAcc(HWND window);
 IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
+IAccessible* aj_getAcc(HWND hwnd, QString path);
+VARIANT aj_getVarChild(QString path);
 int aj_getChildId(QString name, IAccessible *acc);
 
+QString aj_getStateName(long val);
 QString aj_toQString(BSTR input);
 BSTR aj_toBSTR(QString input);
 

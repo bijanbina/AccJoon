@@ -165,7 +165,7 @@ QString aj_getQtCreator()
 //        return "";
 //    }
     AjApplication app = getApplication("qt");
-    return app.exe_name;
+    return app.exe_path;
 }
 
 QStringList aj_listGccCompilers(QString tools_path)

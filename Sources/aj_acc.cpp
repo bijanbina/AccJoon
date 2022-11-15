@@ -188,6 +188,39 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     }
 }
 
+IAccessible* aj_getAcc(HWND hwnd, QString path)
+{
+    IAccessible *acc;
+    QStringList path_split = path.split('.', QString::SkipEmptyParts);
+    // presume acc_name is empty
+    path_split.removeLast();
+
+    IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
+    aj_accList(win_pAcc, "");
+    acc = aj_getAcc(path_split, win_pAcc);
+    if( acc==NULL )
+    {
+        qDebug() << "Error: cannot get acc in window ("
+                 << hwnd << ")";
+        return acc;
+    }
+
+    return acc;
+}
+
+VARIANT aj_getVarChild(QString path)
+{
+    int child_id;
+    QStringList path_split = path.split('.', QString::SkipEmptyParts);
+    child_id = path_split.last().toInt()-1;
+    path_split.removeLast();
+
+    VARIANT varChild;
+    varChild.vt = VT_I4;
+    varChild.lVal = child_id; //CHILDID_SELF?
+    return varChild;
+}
+
 int aj_getChildId(QString name, IAccessible *acc)
 {
     long childCount = aj_getChildCount(acc);
@@ -238,7 +271,6 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
                  << hwnd;
         return obj_center;
     }
-//    listChildren(win_pAcc, QString(""));
 
     //get parent path
     int child_id;
@@ -279,26 +311,9 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
 
 QString getAccValue(HWND hwnd, QString path)
 {
-    IAccessible *acc;
-    QStringList path_split = path.split('.', QString::SkipEmptyParts);
-    // presume acc_name is empty
-    int child_id;
-    child_id = path_split.last().toInt()-1;
-    path_split.removeLast();
-
-    IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
-    acc = aj_getAcc(path_split, win_pAcc);
-    if( acc==NULL )
-    {
-        qDebug() << "Error: cannot get acc in window ("
-                 << hwnd << ")";
-        return "";
-    }
-
     BSTR value;
-    VARIANT varChild;
-    varChild.vt = VT_I4;
-    varChild.lVal = child_id; //CHILDID_SELF?
+    IAccessible *acc = aj_getAcc(hwnd, path);
+    VARIANT varChild = aj_getVarChild(path);
     HRESULT hr = acc->get_accValue(varChild, &value);
 
     if( hr!=S_OK )
@@ -309,6 +324,40 @@ QString getAccValue(HWND hwnd, QString path)
     }
 
     return aj_toQString(value);
+}
+
+QString getAccState(HWND hwnd, QString path)
+{
+    IAccessible *acc = aj_getAcc(hwnd, path);
+    VARIANT varChild = aj_getVarChild(path);
+
+    VARIANT varState;
+    VariantInit(&varState);
+    HRESULT hr = acc->get_accState(varChild, &varState);
+
+    if( hr!=S_OK )
+    {
+        qDebug() << "Error: cannot get value of acc ("
+                 << path << ")";
+        return "";
+    }
+    else if( hr==S_OK && varState.vt==VT_I4 )
+    {
+        return aj_getStateName(varState.lVal);
+    }
+    return "";
+}
+
+QString aj_getStateName(long val)
+{
+    if( val&STATE_SYSTEM_CHECKED )
+    {
+        return "checked";
+    }
+    else
+    {
+        return "unchecked";
+    }
 }
 
 void setAccValue(HWND hwnd, QString path, QString val)
