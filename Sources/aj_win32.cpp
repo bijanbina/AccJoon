@@ -16,9 +16,10 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
     int written = GetWindowTextA(hwnd, buffer, 128);
     if( written && strlen(buffer)!=0 )
     {
-        QString buff_s = buffer;
         long pid = aj_getPid(hwnd);
         QString pname = aj_getPName(pid);
+        pname = QFileInfo(pname).completeBaseName();
+//        qDebug() << pname << req_pname;
         if( pname == req_pname )
         {
             hwnd_g = hwnd;
@@ -84,8 +85,8 @@ QString aj_getPPath(long pid)
 QString aj_getPName(long pid)
 {
     QString name = aj_getPPath(pid);
-    QFileInfo fi(name);
-    return fi.fileName();
+    QString process_name = QFileInfo(name).fileName();
+    return process_name;
 }
 
 HWND aj_getHWND(QString exe_name)

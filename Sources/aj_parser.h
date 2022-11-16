@@ -32,6 +32,7 @@ public:
     AjVar vars;
     int eof; //End of file
     int condition_flag;
+    int line_number;
 
 private:
     QString readLine();
@@ -39,8 +40,12 @@ private:
     void parseAssignment(QString line, AjCommand *cmd);
     void parseFunction(QString line, AjCommand *cmd);
     void printCmd(AjCommand *cmd);
+    bool isAssignment(QString line);
+    bool isFunction(QString line);
     QStringList getArguments(QString line);
-    QString getVarValue(QString word);
+    QStringList getCondition(QString line);
+    QString getAssignOutput(QString line);
+    QString getVarValue(QString arg);
 
     QString getCommand(QString line);
     int isString(QString arg);
@@ -48,7 +53,6 @@ private:
 
     QFile *conf_file;
     QString conf_path;
-    int line_number;
 };
 
 #endif // AJCONFPARSER_H

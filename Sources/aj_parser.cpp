@@ -29,9 +29,8 @@ void AjParser::openFile(QString path)
 AjCommand AjParser::parseLine()
 {
     // trimmed would remove withespace from start and end
-    QString line = readLine().trimmed();
+    QString line = readLine();
     AjCommand ret;
-    line_number++;
 
     if( line.length() )
     {
@@ -39,11 +38,11 @@ AjCommand AjParser::parseLine()
         {
             ret.command = "EOB"; // end of block "}"
         }
-        else if( line.contains("==") )
+        else if( line.startsWith("if") )
         {
             parseCondition(line, &ret);
         }
-        else if( line.contains("=") )
+        else if( isAssignment(line) )
         {
             parseAssignment(line, &ret);
         }
@@ -63,61 +62,56 @@ AjCommand AjParser::parseLine()
 
 void AjParser::parseCondition(QString line, AjCommand *cmd)
 {
-    QString args, command;
-    QStringList arg_list;
-
-    QStringList word_list = line.split("(", QString::SkipEmptyParts);
-    if( word_list.size()!=2 )
+    cmd->command = getCommand(line);
+    int trim_len = cmd->command.length() + 1;
+    line.remove(0, trim_len);
+    if( line[line.length()-1]!=")" )
     {
-        qDebug() << "Error: Unexpected conditional statement"
+        qDebug() << "Error 123: no \")\" found in"
+                 << line_number << "line:" << line;
+        return;
+    }
+    line.chop(1);// remove ) from end of line
+
+    cmd->args = getCondition(line);
+    qDebug() << cmd->command << "->" << cmd->args;
+    if( cmd->args.size()!=2 )
+    {
+        qDebug() << "Error 125: Unexpected conditional statement"
                  << ", in:" << line;
         exit(0);
     }
-    command = word_list[0];
 
-    args = getArguments(line);
-    word_list = args.split("==", QString::SkipEmptyParts);
-    if( word_list.size()!=2 )
+    for( int i=0 ; i<cmd->args.size() ; i++ )
     {
-        qDebug() << "Error: Unexpected conditional statement"
-                 << ", in:" << line;
-        exit(0);
+        cmd->args[i] = getVarValue(cmd->args[i]);
     }
-
-    for( int i=0 ; i<word_list.size() ; i++ )
-    {
-        arg_list.push_back(getVarValue(word_list[i]));
-    }
-    cmd->command = command;
-    cmd->args = arg_list;
 }
 
 void AjParser::parseAssignment(QString line, AjCommand *cmd)
 {
-    QStringList word_list = line.split("=", QString::SkipEmptyParts);
-    if( word_list.size()!=2 )
-    {
-        qDebug() << "Error: Unexpected assignment statement"
-                 << ", in:" << line;
-        exit(0);
-    }
-    cmd->output = word_list[0].trimmed();
+    cmd->output = getAssignOutput(line);
+    int len = cmd->output.length();
+    line.remove(0, len);
+    len = line.indexOf("=") + 1;
+    line.remove(0, len);
+    line = line.trimmed();
 
-    if( line.contains("(") )
+    if( isFunction(line) )
     {
-        parseFunction(word_list[1].trimmed(), cmd);
+        parseFunction(line, cmd);
     }
     else
     {
         cmd->command = "assign";
-        vars.addVar(cmd->output, getVarValue(word_list[1]));
+        cmd->args.push_back(getVarValue(line));
     }
 }
 
 void AjParser::parseFunction(QString line, AjCommand *cmd)
 {
     cmd->command = getCommand(line);
-    int trim_len = cmd->command.length();
+    int trim_len = cmd->command.length() + 1;
     line.remove(0, trim_len);
     if( line[line.length()-1]!=")" )
     {
@@ -130,29 +124,16 @@ void AjParser::parseFunction(QString line, AjCommand *cmd)
     cmd->args = getArguments(line);
     for( int i=0; i<cmd->args.length(); i++)
     {
-        if( isString(cmd->args[i])==0 )
-        {
-            if( isNumber(cmd->args[i])==0 )
-            {
-                QString value = getVarValue(cmd->args[i]);
-                cmd->args[i] = value;
-            }
-        }
-        else if( cmd->args[i].length() )
-        {
-            //remove double qoute from start and end
-            cmd->args[i].remove(0, 1);
-            cmd->args[i].chop(1);
-        }
+        cmd->args[i] = getVarValue(cmd->args[i]);
     }
 }
 
 QString AjParser::getCommand(QString line)
 {
     QString result;
-    for(int i=0; i<line.length(); i++)
+    for( int i=0; i<line.length(); i++ )
     {
-        if (line[i]=="(")
+        if( line[i]=="(" )
         {
             return result;
         }
@@ -163,13 +144,14 @@ QString AjParser::getCommand(QString line)
     return "";
 }
 
-QStringList AjParser::getArguments(QString line)
+QStringList AjParser::getCondition(QString line)
 {
     QStringList arglist;
     int idq_flag = 0;//inside double qoute flag
     QString buffer;
+    int len = line.length();
 
-    for( int i=0; i<line.length(); i++)
+    for( int i=0; i<len; i++)
     {
         buffer += line[i];
         if( line[i]=="\"" )
@@ -189,7 +171,58 @@ QStringList AjParser::getArguments(QString line)
                 idq_flag = 1;
             }
         }
-        else if( idq_flag==0 )
+        if( idq_flag==0 )
+        {
+            if( i>0 )
+            {
+                if( line[i]=="=" && line[i-1]=="=" )
+                {
+                    buffer.chop(2);
+                    buffer = buffer.trimmed();
+                    arglist.push_back(buffer);
+                    buffer = "";
+                }
+                else if( i==len-1 )
+                {
+                    buffer = buffer.trimmed();
+                    arglist.push_back(buffer);
+                    buffer = "";
+                }
+            }
+        }
+    }
+
+    return arglist;
+}
+
+QStringList AjParser::getArguments(QString line)
+{
+    QStringList arglist;
+    int idq_flag = 0;//inside double qoute flag
+    QString buffer;
+    int len = line.length();
+
+    for( int i=0 ; i<len ; i++ )
+    {
+        buffer += line[i];
+        if( line[i]=="\"" )
+        {
+            if( idq_flag )
+            {
+                if( i>0 )
+                {
+                    if( line[i-1]!="\\" )
+                    {
+                        idq_flag = 0;
+                    }
+                }
+            }
+            else
+            {
+                idq_flag = 1;
+            }
+        }
+        if( idq_flag==0 )
         {
             if( line[i]=="," )
             {
@@ -198,10 +231,28 @@ QStringList AjParser::getArguments(QString line)
                 arglist.push_back(buffer);
                 buffer = "";
             }
+            else if( i==len-1 )
+            {
+                buffer = buffer.trimmed();
+                arglist.push_back(buffer);
+                buffer = "";
+            }
         }
     }
 
     return arglist;
+}
+
+QString AjParser::getAssignOutput(QString line)
+{
+    QStringList word_list = line.split("=", QString::SkipEmptyParts);
+    if( word_list.size()!=2 )
+    {
+        qDebug() << "Error: Unexpected assignment statement"
+                 << ", in:" << line;
+        exit(0);
+    }
+    return word_list[0].trimmed();
 }
 
 int AjParser::isString(QString arg)
@@ -224,6 +275,7 @@ int AjParser::isString(QString arg)
     {
         return 0;
     }
+    return 0;
 }
 
 int AjParser::isNumber(QString arg)
@@ -243,6 +295,7 @@ QString AjParser::readLine()
     while( !conf_file->atEnd() )
     {
         QString line = conf_file->readLine().trimmed();
+        line_number++;
         if( line.isEmpty() )
         {
             continue;
@@ -271,21 +324,54 @@ void AjParser::printCmd(AjCommand *cmd)
              << "args:" << cmd->args;
 }
 
-QString AjParser::getVarValue(QString word)
+bool AjParser::isAssignment(QString line)
 {
-    word = word.trimmed();
-    if( word.contains("\"") )
+    int len = line.length();
+    for( int i=0; i<len; i++ )
     {
-        word.remove("\"");
-    }
-    else
-    {
-        bool conversion_ok;
-        word.toInt(&conversion_ok);
-        if( !conversion_ok )
+        if( line[i]=="\"" || line[i]=="(" )
         {
-            word = vars.getVal(word);
+            return false;
+        }
+        else if( line[i]=="=" )
+        {
+            return true;
         }
     }
-    return word;
+    return false;
+}
+
+bool AjParser::isFunction(QString line)
+{
+    int len = line.length();
+    for( int i=0; i<len; i++ )
+    {
+        if( line[i]=="\"" )
+        {
+            return false;
+        }
+        else if( line[i]=="(" )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+QString AjParser::getVarValue(QString arg)
+{
+    if( isString(arg)==0 )
+    {
+        if( isNumber(arg)==0 )
+        {
+            arg = vars.getVal(arg);
+        }
+    }
+    else if( arg.length() )
+    {
+        //remove double qoute from start and end
+        arg.remove(0, 1);
+        arg.chop(1);
+    }
+    return arg;
 }

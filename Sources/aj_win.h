@@ -33,7 +33,7 @@
 class AjVar
 {
 public:
-    void addVar(QString name, QString value);
+    void setVar(QString name, QString value);
     QString getVal(QString name);
 private:
     QStringList vars_name;
