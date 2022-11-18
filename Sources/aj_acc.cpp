@@ -271,6 +271,7 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
                  << hwnd;
         return obj_center;
     }
+//    aj_accList(win_pAcc, "");
 
     //get parent path
     int child_id;

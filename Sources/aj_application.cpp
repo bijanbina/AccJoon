@@ -1,4 +1,4 @@
-#include "aj_shortcut.h"
+#include "aj_application.h"
 #include <shobjidl.h>
 #include <shlguid.h>
 #include <QFileInfo>

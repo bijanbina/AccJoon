@@ -84,7 +84,7 @@ void AjParser::parseCondition(QString line, AjCommand *cmd)
 
     for( int i=0 ; i<cmd->args.size() ; i++ )
     {
-        cmd->args[i] = getVarValue(cmd->args[i]);
+        cmd->args[i] = getVal(cmd->args[i]);
     }
 }
 
@@ -104,7 +104,7 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
     else
     {
         cmd->command = "assign";
-        cmd->args.push_back(getVarValue(line));
+        cmd->args.push_back(getVal(line));
     }
 }
 
@@ -124,7 +124,7 @@ void AjParser::parseFunction(QString line, AjCommand *cmd)
     cmd->args = getArguments(line);
     for( int i=0; i<cmd->args.length(); i++)
     {
-        cmd->args[i] = getVarValue(cmd->args[i]);
+        cmd->args[i] = getVal(cmd->args[i]);
     }
 }
 
@@ -358,7 +358,7 @@ bool AjParser::isFunction(QString line)
     return false;
 }
 
-QString AjParser::getVarValue(QString arg)
+QString AjParser::getVal(QString arg)
 {
     if( isString(arg)==0 )
     {

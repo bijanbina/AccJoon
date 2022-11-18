@@ -30,11 +30,11 @@ win32:LIBS += -L../Benjamin/PNN/libs \
 
 SOURCES += \
         Sources/aj_acc.cpp \
+        Sources/aj_application.cpp \
         Sources/aj_client.cpp \
         Sources/aj_dllgen.cpp \
         Sources/aj_executer.cpp \
         Sources/aj_keyboard.cpp \
-        Sources/aj_shortcut.cpp \
         Sources/aj_lua.cpp \
         Sources/aj_mouse.cpp \
         Sources/aj_parser.cpp \
@@ -47,11 +47,11 @@ SOURCES += \
 
 HEADERS += \
     Sources/aj_acc.h \
+    Sources/aj_application.h \
     Sources/aj_client.h \
     Sources/aj_dllgen.h \
     Sources/aj_executer.h \
     Sources/aj_keyboard.h \
-    Sources/aj_shortcut.h \
     Sources/aj_lua.h \
     Sources/aj_mouse.h \
     Sources/aj_parser.h \

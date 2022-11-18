@@ -1,6 +1,6 @@
 #include "aj_executer.h"
 #include "aj_win_process.h"
-#include "aj_shortcut.h"
+#include "aj_application.h"
 
 AjExecuter::AjExecuter(QString script_path)
 {

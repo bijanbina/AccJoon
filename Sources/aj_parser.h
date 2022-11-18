@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
-#include "aj_shortcut.h"
+#include "aj_application.h"
 #include "aj_win.h"
 
 typedef struct AjCmdOptions
@@ -45,7 +45,7 @@ private:
     QStringList getArguments(QString line);
     QStringList getCondition(QString line);
     QString getAssignOutput(QString line);
-    QString getVarValue(QString arg);
+    QString getVal(QString arg);
 
     QString getCommand(QString line);
     int isString(QString arg);
