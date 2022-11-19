@@ -5,14 +5,14 @@
 
 int win_debug = 0;
 int win_offset = 0;
-int win_current = 0;
 DWORD pid_g;
 HWND hwnd_g = NULL;
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
     char buffer[128];
-    char *req_pname = (char *)lParam; // requested pname
+    QString *qname = (QString *)lParam; // requested pname
+    QString req_pname = *qname; // requested pname
     int written = GetWindowTextA(hwnd, buffer, 128);
     if( written && strlen(buffer)!=0 )
     {
@@ -20,7 +20,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
         QString pname = aj_getPName(pid);
         pname = QFileInfo(pname).completeBaseName();
 //        qDebug() << pname << req_pname;
-        if( pname == req_pname )
+        if( pname==req_pname )
         {
             hwnd_g = hwnd;
             return FALSE;
@@ -91,10 +91,13 @@ QString aj_getPName(long pid)
 
 HWND aj_getHWND(QString exe_name)
 {
-    char exe_name_c[200];
-    strcpy(exe_name_c, exe_name.toStdString().c_str());
-    win_current = 0;
-    EnumWindows(EnumWindowsProc, (LPARAM) exe_name_c);
+    HWND hwnd = aj_getFocusedHWND(exe_name);
+    if( hwnd )
+    {
+        return hwnd;
+    }
+    //else
+    EnumWindows(EnumWindowsProc, (LPARAM) &exe_name);
     return hwnd_g;
 }
 
@@ -155,4 +158,23 @@ void aj_setMouse(int x, int y)
     input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
 
     SendInput(1, &input, sizeof(INPUT));
+}
+
+//return focused HWND if it match exe_name
+HWND aj_getFocusedHWND(QString exe_name)
+{
+    HWND hwnd = GetForegroundWindow();
+    QString pname = aj_getPName(aj_getPid(hwnd));
+    qDebug() << "----------pname exe_name"
+             << pname << exe_name;
+
+    if( pname.contains(exe_name) )
+    {
+        qDebug() << "exe_name" << exe_name;
+        return hwnd;
+    }
+    else
+    {
+        return NULL;
+    }
 }

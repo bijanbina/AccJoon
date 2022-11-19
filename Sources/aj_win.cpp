@@ -27,5 +27,7 @@ QString AjVar::getVal(QString name)
             return vars_value[i];
         }
     }
+
+    qDebug() << "Warning: Coudn't find var" << name;
     return "";
 }

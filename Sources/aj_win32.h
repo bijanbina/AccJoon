@@ -40,5 +40,6 @@ bool aj_fillWinSpec(HWND hwnd, QString title, AjWindow *win);
 void aj_findAppByName(QString exe_name, AjWindow *window);
 void aj_findWindowByPid(DWORD pid, AjWindow *window);
 void aj_setMouse(int x, int y);
+HWND aj_getFocusedHWND(QString exe_name);
 
 #endif // AJWIN_H

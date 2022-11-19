@@ -17,7 +17,7 @@
 #include "aj_acc.h"
 #include "aj_lua.h"
 #include "aj_mouse.h"
-#include "aj_shortcut.h"
+#include "aj_application.h"
 
 #define AJ_CMD_EOF      0 // end of file
 #define AJ_CMD_DELAY    1
