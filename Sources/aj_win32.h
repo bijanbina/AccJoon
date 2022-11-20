@@ -12,34 +12,27 @@
 #include <tchar.h> // to get file path
 #include <psapi.h> // For access to GetModuleFileNameEx
 
-typedef struct AjWindow
+typedef struct AjApplication
 {
-    int  verify; //verify hwnd still exist
-    int  type;
-    long pid;
-    QString title;
+    QString shortcut_name;
+    QString exe_name;
+    QString exe_path;
+    QString win_title;
+    DWORD pid = 0;
     QString pname;
-    HWND hWnd = NULL;
-}AjWindow;
+    int workspace;
+    HWND hwnd;
+}AjApplication;;
 
-typedef struct AjListW
-{
-    QVector<AjWindow> windows;
-    AjWindow win_active;
-}AjThreadW;
-
-void aj_AddHwnd(HWND hwnd, AjListW *thread_w);
 long aj_getPid(HWND hWnd);
 QString aj_getPName(long pid);
 QString aj_getPPath(long pid);
-void aj_InsertWindow(AjListW *thread_w, AjWindow win);
-void aj_getType(AjWindow *win);
+QString aj_getWinTitle(HWND hwnd);
 void aj_setActiveWindow(HWND hWnd);
-HWND aj_getHWND(QString exe_name);
-bool aj_fillWinSpec(HWND hwnd, QString title, AjWindow *win);
-void aj_findAppByName(QString exe_name, AjWindow *window);
-void aj_findWindowByPid(DWORD pid, AjWindow *window);
+HWND aj_getHWND(AjApplication *app);
+void aj_findAppByName(QString exe_name, AjApplication *app);
+void aj_findWindowByPid(DWORD pid, AjApplication *app);
 void aj_setMouse(int x, int y);
-HWND aj_getFocusedHWND(QString exe_name);
+HWND aj_getFocusedHWND(AjApplication *app);
 
 #endif // AJWIN_H

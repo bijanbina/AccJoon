@@ -2,28 +2,34 @@
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QScreen>
+#include "aj_acc.h"
 
 int win_debug = 0;
 int win_offset = 0;
 DWORD pid_g;
 HWND hwnd_g = NULL;
+#define MAX_TITLE_LEN 200
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
-    char buffer[128];
-    QString *qname = (QString *)lParam; // requested pname
-    QString req_pname = *qname; // requested pname
-    int written = GetWindowTextA(hwnd, buffer, 128);
-    if( written && strlen(buffer)!=0 )
+    AjApplication *app = (AjApplication *)lParam; // requested pname
+    QString win_title = aj_getWinTitle(hwnd);
+
+    if( win_title.length() )
     {
         long pid = aj_getPid(hwnd);
         QString pname = aj_getPName(pid);
         pname = QFileInfo(pname).completeBaseName();
-//        qDebug() << pname << req_pname;
-        if( pname==req_pname )
+        if( pname==app->exe_name )
         {
-            hwnd_g = hwnd;
-            return FALSE;
+            qDebug() << "EnumWindowsProc find HWND"
+                     << pname << app->exe_name << hwnd
+                     << win_title;
+            if( win_title.contains(app->win_title) )
+            {
+                hwnd_g = hwnd;
+                return FALSE;
+            }
         }
     }
     return TRUE;
@@ -32,18 +38,18 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
 {
     DWORD enum_pid;
-    AjWindow *req_win = (AjWindow *)lParam;
+    AjApplication *req_win = (AjApplication *)lParam;
     GetWindowThreadProcessId(hwnd,&enum_pid);
     if( pid_g==enum_pid )
     {
         qDebug() << "found one!" << pid_g;
         char buffer[128];
         GetWindowTextA(hwnd, buffer, 128);
-        req_win = new AjWindow;
-        req_win->hWnd = hwnd;
+        req_win = new AjApplication;
+        req_win->hwnd = hwnd;
         req_win->pid = pid_g;
         req_win->pname = aj_getPPath(pid_g);
-        req_win->title = buffer;
+        req_win->win_title = buffer;
         return FALSE;
     }
     return TRUE;
@@ -89,15 +95,15 @@ QString aj_getPName(long pid)
     return process_name;
 }
 
-HWND aj_getHWND(QString exe_name)
+HWND aj_getHWND(AjApplication *app)
 {
-    HWND hwnd = aj_getFocusedHWND(exe_name);
+    HWND hwnd = aj_getFocusedHWND(app);
     if( hwnd )
     {
         return hwnd;
     }
     //else
-    EnumWindows(EnumWindowsProc, (LPARAM) &exe_name);
+    EnumWindows(EnumWindowsProc, (LPARAM) app);
     return hwnd_g;
 }
 
@@ -119,15 +125,15 @@ void aj_setActiveWindow(HWND hWnd)
     AttachThreadInput(dwCurrentThread, dwFGThread, FALSE);
 }
 
-void aj_findWindowByPid(DWORD pid, AjWindow *window)
+void aj_findWindowByPid(DWORD pid, AjApplication *app)
 {
     int cntr=0;
     pid_g = pid;
-    window->hWnd = NULL;
-    while( window->hWnd )
+    app->hwnd = NULL;
+    while( app->hwnd )
     {
         cntr++;
-        EnumWindows(EnumWindowsPid, (LPARAM) window);
+        EnumWindows(EnumWindowsPid, (LPARAM) app);
         QThread::msleep(50);
         if( cntr%100==0 )
         {
@@ -160,21 +166,46 @@ void aj_setMouse(int x, int y)
     SendInput(1, &input, sizeof(INPUT));
 }
 
+QString aj_getWinTitle(HWND hwnd)
+{
+    char buffer[MAX_TITLE_LEN];
+    int written = GetWindowTextA(hwnd, buffer, MAX_TITLE_LEN);
+    if( written==0 )
+    {
+        return "";
+    }
+
+    QString ret = buffer;
+    return ret;
+}
 //return focused HWND if it match exe_name
-HWND aj_getFocusedHWND(QString exe_name)
+HWND aj_getFocusedHWND(AjApplication *app)
 {
     HWND hwnd = GetForegroundWindow();
     QString pname = aj_getPName(aj_getPid(hwnd));
     qDebug() << "----------pname exe_name"
-             << pname << exe_name;
+             << pname << app->exe_name;
 
-    if( pname.contains(exe_name) )
+    if( pname.contains(app->exe_name) )
     {
-        qDebug() << "exe_name" << exe_name;
+        qDebug() << "exe_name" << app->exe_name;
         return hwnd;
     }
     else
     {
         return NULL;
     }
+}
+
+void aj_listAcc(HWND hwnd)
+{
+    IAccessible *win_pAcc;
+
+    win_pAcc = aj_getWinPAcc(hwnd);
+    if( win_pAcc==NULL )
+    {
+        qDebug() << "Error [doAcc]: cannot get parent acc of HWND ("
+                 << hwnd;
+    }
+    aj_accList(win_pAcc, "");
 }

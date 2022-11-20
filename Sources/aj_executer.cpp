@@ -26,8 +26,13 @@ void AjExecuter::exec(AjCommand *cmd)
     {
         if( cmd->command=="shortcut" )
         {
-            app.shortcut_name = cmd->args[0];
-            app = getApplication(app.shortcut_name);
+            QString shortcut_name = cmd->args[0];
+            QString win_title;;
+            if( cmd->args.size()>0 )
+            {
+                win_title = cmd->args[1];
+            }
+            app = getApplication(shortcut_name, win_title);
             if( app.exe_name=="" )
             {
                 qDebug() << "Error: exe file not found"
