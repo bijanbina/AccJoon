@@ -171,6 +171,8 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     {
         int index = varpath[0].toInt() - 1;
         IAccessible* pChild = aj_getChild(pAcc, index);
+        qDebug() << "aj_getAcc"
+                 << varpath;
 
         if ( pChild!=NULL )
         {
@@ -188,7 +190,7 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     }
 }
 
-IAccessible* aj_getAcc(HWND hwnd, QString path)
+IAccessible* aj_getAccHWND(HWND hwnd, QString path)
 {
     IAccessible *acc;
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
@@ -260,8 +262,8 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
     IAccessible *win_pAcc, *acc;
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
 
-    obj_center.x = -1;
-    obj_center.y = -1;
+    obj_center.x = 0;
+    obj_center.y = 0;
 
     win_pAcc = aj_getWinPAcc(hwnd);
 //    qDebug() << "HWND" << win_pAcc->get_accName(0);
@@ -283,6 +285,7 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
     }
 
     acc = aj_getAcc(path_split, win_pAcc);
+    qDebug() << "---------------------------------";
     if( acc==NULL )
     {
         qDebug() << "Error: cannot get acc in HWND (" << hwnd << ")";
@@ -313,7 +316,7 @@ POINT getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
 QString getAccValue(HWND hwnd, QString path)
 {
     BSTR value;
-    IAccessible *acc = aj_getAcc(hwnd, path);
+    IAccessible *acc = aj_getAccHWND(hwnd, path);
     VARIANT varChild = aj_getVarChild(path);
     HRESULT hr = acc->get_accValue(varChild, &value);
 
@@ -329,7 +332,7 @@ QString getAccValue(HWND hwnd, QString path)
 
 QString getAccState(HWND hwnd, QString path)
 {
-    IAccessible *acc = aj_getAcc(hwnd, path);
+    IAccessible *acc = aj_getAccHWND(hwnd, path);
     VARIANT varChild = aj_getVarChild(path);
 
     VARIANT varState;

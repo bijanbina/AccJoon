@@ -40,7 +40,7 @@ IAccessible* aj_getChild(IAccessible *acc, int index);
 
 IAccessible* aj_getWinPAcc(HWND window);
 IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
-IAccessible* aj_getAcc(HWND hwnd, QString path);
+IAccessible* aj_getAccHWND(HWND hwnd, QString path);
 VARIANT aj_getVarChild(QString path);
 int aj_getChildId(QString name, IAccessible *acc);
 

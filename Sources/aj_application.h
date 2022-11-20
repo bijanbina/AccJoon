@@ -7,21 +7,10 @@
 
 #include "aj_win.h"
 
-
-typedef struct AjApplication
-{
-    QString shortcut_name;
-    QString exe_name;
-    QString exe_path;
-    QString win_title;
-    DWORD pid = 0;
-    int workspace;
-    HWND hwnd;
-}AjApplication;
-
 QString getLinkLongPath(QString shortcut_name);
 void launchApp(AjApplication *app, QString arg="");
-AjApplication getApplication(QString shortcut_name);
+AjApplication getApplication(QString shortcut_name,
+                             QString win_title="");
 
 QString getLinkPath(QString name);
 QString getLinkPathA(QString name);

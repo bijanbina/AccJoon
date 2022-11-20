@@ -18,14 +18,16 @@ QString getLinkLongPath(QString shortcut_name)
     return buffer;
 }
 
-AjApplication getApplication(QString shortcut_name)
+AjApplication getApplication(QString shortcut_name,
+                             QString win_title)
 {
     AjApplication app;
     app.shortcut_name = shortcut_name;
+    app.win_title = win_title;
     app.exe_path = getLinkLongPath(shortcut_name);
     QFileInfo fi(app.exe_path);
     app.exe_name = fi.completeBaseName();
-    app.hwnd = aj_getHWND(app.exe_name);
+    app.hwnd = aj_getHWND(&app);
     return app;
 }
 
