@@ -184,8 +184,6 @@ HWND aj_getFocusedHWND(AjApplication *app)
 {
     HWND hwnd = GetForegroundWindow();
     QString pname = aj_getPName(aj_getPid(hwnd));
-    qDebug() << "----------pname exe_name"
-             << pname << app->exe_name;
 
     if( pname.contains(app->exe_name) )
     {

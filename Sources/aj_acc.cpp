@@ -171,9 +171,9 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     {
         int index = varpath[0].toInt() - 1;
         IAccessible* pChild = aj_getChild(pAcc, index);
-//        qDebug() << "aj_getAcc"
-//                 << varpath;
-//        aj_accList2(pAcc);
+        qDebug() << "aj_getAcc"
+                 << varpath;
+        aj_accList2(pAcc);
 
         if ( pChild!=NULL )
         {

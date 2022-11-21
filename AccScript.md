@@ -1,15 +1,25 @@
 ## Shortcut
 ```
-shortcut("name")
+shortcut("name", "title")
 {
 	...
 }
 ```
-Find and focus on an application just by providing part of it's name.
+Focus on an application by providing
 
-This function is `case-insensitive`
+### \<name\>
+
+`case-insensitive`
+
+name is part of application shortcut's name. 
 
 Examples: `Qt`, `Altium`, `Telegram`
+
+### <title>
+
+`optional`
+
+To match better, you can specify a string that the matched window title should have
 
 ## Read
 ```
@@ -82,7 +92,7 @@ Run lua from `script_path`
 
 ## If
 ```
-if(condition)
+if( condition )
 {
 	...
 }
@@ -90,7 +100,7 @@ if(condition)
 
 ## Full Example
 ```
-shortcut(Qt)
+shortcut("Qt")
 {
 	open("mom.exe", "", 6)
 	delay(2000)
