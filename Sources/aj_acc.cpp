@@ -171,10 +171,9 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     {
         int index = varpath[0].toInt() - 1;
         IAccessible* pChild = aj_getChild(pAcc, index);
-        qDebug() << "aj_getAcc"
-                 << varpath;
-
-        aj_accList2(pAcc);
+//        qDebug() << "aj_getAcc"
+//                 << varpath;
+//        aj_accList2(pAcc);
 
         if ( pChild!=NULL )
         {
@@ -200,7 +199,7 @@ IAccessible* aj_getAccHWND(HWND hwnd, QString path)
     path_split.removeLast();
 
     IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
-    aj_accList(win_pAcc, "");
+//    aj_accList(win_pAcc, "");
     acc = aj_getAcc(path_split, win_pAcc);
     if( acc==NULL )
     {
@@ -343,7 +342,7 @@ QString getAccState(HWND hwnd, QString path)
 
     if( hr!=S_OK )
     {
-        qDebug() << "Error: cannot get value of acc ("
+        qDebug() << "Error: cannot get state of acc ("
                  << path << ")";
         return "";
     }
@@ -354,14 +353,43 @@ QString getAccState(HWND hwnd, QString path)
     return "";
 }
 
+QString getAccType(HWND hwnd, QString path)
+{
+    IAccessible *acc = aj_getAccHWND(hwnd, path);
+    VARIANT varChild = aj_getVarChild(path);
+
+    VARIANT varRole;
+    VariantInit(&varRole);
+    HRESULT hr = acc->get_accRole(varChild, &varRole);
+
+    if( hr!=S_OK )
+    {
+        qDebug() << "Error: cannot get role of acc ("
+                 << path << ")";
+        return "";
+    }
+    else
+    {
+        char buffer[1024];
+        long role = varRole.lVal;
+        GetRoleTextA(role, buffer, 1024);
+        return buffer;
+    }
+    return "";
+}
+
 QString aj_getStateName(long val)
 {
     if( val&STATE_SYSTEM_CHECKED )
     {
+        qDebug() << "aj_getStateName"
+                 << val << "checked";
         return "checked";
     }
     else
     {
+        qDebug() << "aj_getStateName"
+                 << val << "unchecked";
         return "unchecked";
     }
 }

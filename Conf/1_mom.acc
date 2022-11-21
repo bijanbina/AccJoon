@@ -1,4 +1,4 @@
-shortcut(Qt)
+shortcut("Qt")
 {
 	open("mom.exe", "", 6)
 	delay(2000)
@@ -8,13 +8,13 @@ shortcut(Qt)
 	delay(2000)
 	key("Ctrl+1")
 	delay(200)
-	click("4.1.3.3.1.7" , L , Chess)
+	click("4.1.3.3.1.7" , L , "Chess")
 	delay(200)
-	read("4.1.3.3.1.7", lolo)
+	read("4.1.3.3.1.7", "lolo")
 	delay(200)
 	if( lolo==2 )
 	{
-		write("4.1.3.3.1.7", lolo)
+		write("4.1.3.3.1.7", "lolo")
 	}
 	delay(200)
 	key("F5")
@@ -26,11 +26,11 @@ shortcut(Qt)
 	key("F5")
 }
 delay(2000)
-shortcut(Qt)
+shortcut("Qt")
 {
 	open(batool.exe, "", 6)
 	delay(2000)
-	click(4.1.3.3.1.7, L, BaTool)
+	click(4.1.3.3.1.7, L, "BaTool")
 	delay(2000)
 	key(F5)
 }

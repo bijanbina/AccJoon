@@ -56,7 +56,6 @@ AjCommand AjParser::parseLine()
         ret.command = "EOF";
     }
     printCmd(&ret);
-    ret.command = ret.command.toLower();
     return ret;
 }
 

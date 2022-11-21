@@ -107,9 +107,14 @@ void AjExecuter::execNormal(AjCommand *cmd)
     {
         execWrite(cmd);
     }
-    else if( cmd->command=="state" )
+    else if( cmd->command=="getState" )
     {
         QString ret = execState(cmd);
+        parser.vars.setVar(cmd->output, ret);
+    }
+    else if( cmd->command=="getType" )
+    {
+        QString ret = execGetType(cmd);
         parser.vars.setVar(cmd->output, ret);
     }
     else if( cmd->command=="assign" )
@@ -263,6 +268,13 @@ void AjExecuter::execDelay(AjCommand *cmd)
 QString AjExecuter::execState(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = getAccValue(app.hwnd, path);
+    QString ret = getAccState(app.hwnd, path);
+    return ret;
+}
+
+QString AjExecuter::execGetType(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString ret = getAccType(app.hwnd, path);
     return ret;
 }

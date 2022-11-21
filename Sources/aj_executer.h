@@ -28,6 +28,7 @@ private:
     void execDelay(AjCommand *cmd);
     QString execRead(AjCommand *cmd);
     QString execState(AjCommand *cmd);
+    QString execGetType(AjCommand *cmd);
 
     void setFocus();
 
