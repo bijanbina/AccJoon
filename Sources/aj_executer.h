@@ -23,10 +23,10 @@ private:
     int  execOpen (AjCommand *cmd);
     int  execClick(AjCommand *cmd);
     int  execKey  (AjCommand *cmd);
-    void execWrite(AjCommand *cmd);
+    void execSetVal(AjCommand *cmd);
     void execLua(AjCommand *cmd);
-    void execDelay(AjCommand *cmd);
-    QString execRead(AjCommand *cmd);
+    void execSleep(AjCommand *cmd);
+    QString execGetVal(AjCommand *cmd);
     QString execState(AjCommand *cmd);
     QString execGetType(AjCommand *cmd);
 
