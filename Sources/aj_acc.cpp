@@ -174,6 +174,8 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
         qDebug() << "aj_getAcc"
                  << varpath;
 
+        aj_accList2(pAcc);
+
         if ( pChild!=NULL )
         {
             return aj_getAcc(varpath.mid(1), pChild);
@@ -446,4 +448,45 @@ void aj_accList(IAccessible *pAcc, QString path)
     }
     delete[] pArray;
     qDebug() <<"####### Exit getChildren: " + path;
+}
+
+void aj_accList2(IAccessible *pAcc)
+{
+    QString pAcc_name = aj_getAccName(pAcc, CHILDID_SELF);
+
+    long childCount;
+    long returnCount;
+    HRESULT hr = pAcc->get_accChildCount(&childCount);
+    VARIANT* pArray = new VARIANT[childCount];
+    hr = AccessibleChildren(pAcc, 0L, childCount, pArray, &returnCount);
+
+    for (int i=0 ; i<returnCount ; i++ )
+    {
+        VARIANT vtChild = pArray[i];
+        if (vtChild.vt == VT_DISPATCH)
+        {
+            IDispatch* pDisp = vtChild.pdispVal;
+            IAccessible* pChild = NULL;
+            hr = pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
+            if (hr == S_OK)
+            {
+                QString child_name = aj_getAccName(pAcc, i);
+                long child_count = aj_getChildCount(pChild);
+                qDebug() << "acc[" + QString::number(i) + "/" + QString::number(returnCount-1)
+                            + "] name:" + child_name +
+                            " child:" + QString::number(child_count);
+                pChild->Release();
+            }
+            pDisp->Release();
+        }
+        // Else it's a child element so we have to call accNavigate on the parent,
+        //   and we do not recurse because child elements can't have children.
+        else
+        {
+            qDebug() <<"Element:" + pAcc_name +
+                        " - child[" + QString::number(i) + "/" + QString::number(returnCount-1) +
+                        "] name:" + aj_getAccName(pAcc, vtChild.lVal);
+        }
+    }
+    delete[] pArray;
 }

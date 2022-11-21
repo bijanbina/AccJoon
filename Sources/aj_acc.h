@@ -34,6 +34,7 @@ QString getAccValue(HWND hwnd, QString path);
 QString getAccState(HWND hwnd, QString path);
 void    setAccValue(HWND hwnd, QString path, QString val);
 void    aj_accList(IAccessible *pAcc, QString path);
+void aj_accList2(IAccessible *pAcc);
 
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);

@@ -27,6 +27,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
                      << win_title;
             if( win_title.contains(app->win_title) )
             {
+//                aj_listAcc(hwnd);
                 hwnd_g = hwnd;
                 return FALSE;
             }

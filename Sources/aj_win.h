@@ -1,5 +1,5 @@
-#ifndef AJWIN_H
-#define AJWIN_H
+#ifndef AJ_WIN_H
+#define AJ_WIN_H
 
 #include <QString>
 #include <QtDebug>
@@ -48,4 +48,4 @@ typedef struct AjCommand
 }AjCommand;
 
 
-#endif // AJWIN_H
+#endif // AJ_WIN_H

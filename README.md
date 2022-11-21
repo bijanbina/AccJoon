@@ -1,26 +1,20 @@
 # AccJoon
-AccJoon is a little tool that exerts MSAA library to create a scripting language to interact with any software. If you know the acc path of a controller then AccJoon can find the controller for you and run an action on it, read/wirte it's value and even do conditional expression. Please checkout [AccScript](https://github.com/bijanbina/AccJoon/blob/main/AccScript.md) page to see what awesome features is inside this marvelous software.
+AccJoon is a tool that exerts MSAA library to offer a scripting language to interact with any software. If you know the acc path of a controller then AccJoon can find the controller for you and run an action on it, read/wirte it's value and even do conditional expression. 
 
-### Supported Actions
-- Left Click (L)
-- Double Click (D)
-- Middle Click (M)
-- Right Click (R)
-- Return Child ID (C)
+Please checkout [AccScript](https://github.com/bijanbina/AccJoon/blob/main/AccScript.md) page to learn more about the `acc` language.
 
-### Usage
-`accjoon -c <script_address>`
+## Usage
 
-Script address is the relative path of a .acc script
+Two options are availabe
 
-### Key
-Key codes are designed to be simple, Just type exact word you see on a key(on keyboard). Some example are available below:
+### Conf Dir
+You can create a `Conf` directory beside `AccJoon` executable and put all of your `acc` script inside. `AccJoon` then execute them in an alphabetically order.
 
-Ctrl+R
+### Run with Command Line
 
-Ctrl+Alt+Delete
+```accjoon -c <script_address>```
 
-Super+Left
+`<script_address>` is the relative path of a `.acc` script regard to the `AccJoon` executable path
 
-### Acknowledgment
-Brought to you by only and only DR AKHAVAN! BTW I'm in love with him :)
+## Acknowledgment
+Brought to you by Dr. E. Akhavan, One of the best programmer on earth!
