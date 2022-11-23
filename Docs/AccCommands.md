@@ -1,3 +1,9 @@
+## Table of Content 
+- [getVal](#getVal)
+- [setVal](#setVal)
+- [click](#click)
+- [accList](#accList)
+
 ## getVal
 ```
 string getVal("acc_path")

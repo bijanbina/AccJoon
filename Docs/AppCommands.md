@@ -1,3 +1,7 @@
+## Table of Content 
+- [shortcut](#shortcut)
+- [open](#open)
+
 ## shortcut
 ```
 shortcut("name", "title")

@@ -1,3 +1,8 @@
+## Table of Content 
+- [key](#key)
+- [sleep](#sleep)
+- [lua](#lua)
+
 ## key
 ```
 void key("key")
