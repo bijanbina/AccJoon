@@ -2,7 +2,7 @@
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QScreen>
-#include "aj_acc.h"
+//#include "aj_acc_prop.h"
 
 int win_debug = 0;
 int win_offset = 0;
@@ -27,7 +27,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
                      << win_title;
             if( win_title.contains(app->win_title) )
             {
-//                aj_listAcc(hwnd);
                 hwnd_g = hwnd;
                 return FALSE;
             }
@@ -187,24 +186,11 @@ HWND aj_getFocusedHWND(AjApplication *app)
 
     if( pname.contains(app->exe_name) )
     {
-        qDebug() << "exe_name" << app->exe_name;
+//        qDebug() << "exe_name" << app->exe_name;
         return hwnd;
     }
     else
     {
         return NULL;
     }
-}
-
-void aj_listAcc(HWND hwnd)
-{
-    IAccessible *win_pAcc;
-
-    win_pAcc = aj_getWinPAcc(hwnd);
-    if( win_pAcc==NULL )
-    {
-        qDebug() << "Error [doAcc]: cannot get parent acc of HWND ("
-                 << hwnd;
-    }
-    aj_accList(win_pAcc, "");
 }

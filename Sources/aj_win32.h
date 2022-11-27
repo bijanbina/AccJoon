@@ -34,6 +34,5 @@ void aj_findAppByName(QString exe_name, AjApplication *app);
 void aj_findWindowByPid(DWORD pid, AjApplication *app);
 void aj_setMouse(int x, int y);
 HWND aj_getFocusedHWND(AjApplication *app);
-void aj_listAcc(HWND hwnd);
 
 #endif // AJWIN_H

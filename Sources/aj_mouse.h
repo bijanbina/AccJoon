@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include <QVector>
 #include "backend.h"
-#include "aj_acc.h"
+#include "aj_acc_prop.h"
 
 #define AJ_MOUSE_DELAY   20
 #define AJ_DOUBLE_DELAY  3

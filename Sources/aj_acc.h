@@ -25,17 +25,10 @@ typedef struct AjAccCmd
     int offset_id = 0;
 }AjAccCmd;
 
-QString aj_getAccNameI4(IAccessible *acc, long childId);
-QString aj_getAccName(IAccessible *acc, long childId);
-POINT   getAccLocationI4(IAccessible *acc, int childID);
-POINT   getAccLocation(IAccessible *acc, int childID);
-POINT   getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);
-QString getAccValue(HWND hwnd, QString path);
-QString getAccState(HWND hwnd, QString path);
-QString getAccType(HWND hwnd, QString path);
-void    setAccValue(HWND hwnd, QString path, QString val);
 void    aj_accList(IAccessible *pAcc, QString path);
-void aj_accList2(IAccessible *pAcc);
+void    aj_accList2(IAccessible *pAcc);
+QString aj_getAccName(IAccessible *acc, long childId);
+QString aj_getAccNameI4(IAccessible *acc, long childId);
 
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);
@@ -46,7 +39,6 @@ IAccessible* aj_getAccHWND(HWND hwnd, QString path);
 VARIANT aj_getVarChild(QString path);
 int aj_getChildId(QString name, IAccessible *acc);
 
-QString aj_getStateName(long val);
 QString aj_toQString(BSTR input);
 BSTR aj_toBSTR(QString input);
 

@@ -14,7 +14,7 @@
 
 #include "backend.h"
 #include "aj_win32.h"
-#include "aj_acc.h"
+#include "aj_acc_prop.h"
 #include "aj_lua.h"
 #include "aj_mouse.h"
 #include "aj_application.h"
@@ -45,6 +45,7 @@ typedef struct AjCommand
     QString command;
     QString output;
     QStringList args;
+    int flag_append;
 }AjCommand;
 
 
