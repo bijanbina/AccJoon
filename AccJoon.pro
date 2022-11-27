@@ -30,6 +30,7 @@ win32:LIBS += -L../Benjamin/PNN/libs \
 
 SOURCES += \
         Sources/aj_acc.cpp \
+        Sources/aj_acc_prop.cpp \
         Sources/aj_application.cpp \
         Sources/aj_client.cpp \
         Sources/aj_dllgen.cpp \
@@ -47,6 +48,7 @@ SOURCES += \
 
 HEADERS += \
     Sources/aj_acc.h \
+    Sources/aj_acc_prop.h \
     Sources/aj_application.h \
     Sources/aj_client.h \
     Sources/aj_dllgen.h \
