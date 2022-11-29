@@ -3,7 +3,6 @@
 
 #include "aj_acc.h"
 
-QString aj_getAccParent(QString path);
 POINT   aj_getAccLocationI4(IAccessible *acc, int childID);
 POINT   aj_getAccLocation(IAccessible *acc, int childID);
 POINT   aj_getAccLocation(AjAccCmd cmd, HWND hwnd, QString path);

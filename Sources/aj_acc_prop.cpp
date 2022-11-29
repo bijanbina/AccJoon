@@ -5,15 +5,8 @@ QString aj_getAccName(HWND hwnd, QString path)
     QString parent = aj_getAccParent(path);
     IAccessible *acc = aj_getAccHWND(hwnd, parent);
     int child_id = path.split(".").last().toInt();
-    return aj_getAccName(acc, child_id);
-}
-
-QString aj_getAccParent(QString path)
-{
-    QStringList path_split = path.split(".");
-    path_split.removeLast();
-    QString path_combine = path_split.join(".");
-    return path_combine;
+    qDebug() << "par" << parent << "chl" << child_id;
+    return aj_getAccName(acc, child_id-1);
 }
 
 POINT aj_getAccLocationI4(IAccessible *acc, int childID)
@@ -135,7 +128,8 @@ POINT aj_getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
 QString aj_getAccValue(HWND hwnd, QString path)
 {
     BSTR value;
-    IAccessible *acc = aj_getAccHWND(hwnd, path);
+    QString parent = aj_getAccParent(path);
+    IAccessible *acc = aj_getAccHWND(hwnd, parent);
     VARIANT varChild = aj_getVarChild(path);
     HRESULT hr = acc->get_accValue(varChild, &value);
 
@@ -151,7 +145,8 @@ QString aj_getAccValue(HWND hwnd, QString path)
 
 QString aj_getAccState(HWND hwnd, QString path)
 {
-    IAccessible *acc = aj_getAccHWND(hwnd, path);
+    QString parent = aj_getAccParent(path);
+    IAccessible *acc = aj_getAccHWND(hwnd, parent);
     VARIANT varChild = aj_getVarChild(path);
 
     VARIANT varState;
@@ -173,7 +168,8 @@ QString aj_getAccState(HWND hwnd, QString path)
 
 QString aj_getAccType(HWND hwnd, QString path)
 {
-    IAccessible *acc = aj_getAccHWND(hwnd, path);
+    QString parent = aj_getAccParent(path);
+    IAccessible *acc = aj_getAccHWND(hwnd, parent);
     VARIANT varChild = aj_getVarChild(path);
 
     VARIANT varRole;
@@ -217,7 +213,7 @@ QString aj_getChild(HWND hwnd, QString path, QString name)
     IAccessible *acc = aj_getAccHWND(hwnd, path);
     int child_id = aj_getChildId(name, acc);
 
-    path += "." + QString(child_id);
+    path += "." + QString::number(child_id);
     return path;
 }
 
