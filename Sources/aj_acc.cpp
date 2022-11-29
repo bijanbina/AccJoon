@@ -13,14 +13,18 @@ QString aj_getAccNameI4(IAccessible *acc, long childId)
 
 QString aj_getAccName(IAccessible *acc, long childId)
 {
-    long childCount = aj_getChildCount(acc);
+    long child_count = aj_getChildCount(acc);
+    if( child_count<0 )
+    {
+        return "";
+    }
     long returnCount;
-    VARIANT *pArray = new VARIANT[childCount];
-    AccessibleChildren(acc, 0L, childCount, pArray, &returnCount);
+    VARIANT *pArray = new VARIANT[child_count];
+    AccessibleChildren(acc, 0L, child_count, pArray, &returnCount);
 
     VARIANT vtChild = pArray[childId];
 
-    if( childId>childCount )
+    if( childId>child_count )
     {
         return "";
     }
@@ -41,9 +45,21 @@ QString aj_getAccName(IAccessible *acc, long childId)
     }
 }
 
+QString aj_getAccParent(QString path)
+{
+    QStringList path_split = path.split(".");
+    path_split.removeLast();
+    QString path_combine = path_split.join(".");
+    return path_combine;
+}
+
 long aj_getChildCount(IAccessible *pAcc)
 {
     long cc;
+    if( pAcc==NULL )
+    {
+        return -1;
+    }
     pAcc->get_accChildCount(&cc);
     return cc;
 }
@@ -136,8 +152,6 @@ IAccessible* aj_getAccHWND(HWND hwnd, QString path)
 {
     IAccessible *acc;
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
-    // presume acc_name is empty
-    path_split.removeLast();
 
     IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
 //    aj_accList(win_pAcc, "");
@@ -291,4 +305,49 @@ void aj_accList2(IAccessible *pAcc)
         }
     }
     delete[] pArray;
+}
+
+QString aj_accSearch(HWND hwnd, QString path, QString name)
+{
+    IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
+    QStringList path_list = path.split(".");
+    return aj_accSearch(win_pAcc, path_list, name);
+}
+
+QString aj_accSearch(IAccessible *acc, QStringList path_list, QString name)
+{
+    int search_index = path_list.indexOf("?");
+    QStringList fix_part = path_list.mid(0,search_index);
+    QStringList var_part = path_list.mid(search_index);
+
+    IAccessible *acc_part1 = aj_getAcc(fix_part, acc);
+    IAccessible *acc_part2 = NULL;
+
+    int child_count = aj_getChildCount(acc_part1);
+    for( int i=0; i<child_count; i++)
+    {
+        var_part[0] = QString::number(i+1);
+        if( var_part.contains("?") ) // recursive part
+        {
+            QString ret = aj_accSearch(acc_part1, var_part, name);
+            if( ret.length() )
+            {
+                return fix_part.join(".") + "." + ret;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        QString parent = aj_getAccParent(var_part.join("."));
+        acc_part2 = aj_getAcc(parent.split("."), acc_part1);
+        QString acc_name = aj_getAccName(acc_part2,
+                                 var_part.back().toInt()-1);
+        if( acc_name==name )
+        {
+            QStringList total_list = fix_part + var_part;
+            return total_list.join(".");
+        }
+    }
+    return "";
 }

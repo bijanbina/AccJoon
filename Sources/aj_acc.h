@@ -29,6 +29,7 @@ void    aj_accList(IAccessible *pAcc, QString path);
 void    aj_accList2(IAccessible *pAcc);
 QString aj_getAccName(IAccessible *acc, long childId);
 QString aj_getAccNameI4(IAccessible *acc, long childId);
+QString aj_getAccParent(QString path);
 
 long aj_getChildCount(IAccessible *pAcc);
 IAccessible* aj_getChild(IAccessible *acc, int index);
@@ -38,6 +39,8 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
 IAccessible* aj_getAccHWND(HWND hwnd, QString path);
 VARIANT aj_getVarChild(QString path);
 int aj_getChildId(QString name, IAccessible *acc);
+QString aj_accSearch(HWND hwnd, QString path, QString name);
+QString aj_accSearch(IAccessible *acc, QStringList path_list, QString name);
 
 QString aj_toQString(BSTR input);
 BSTR aj_toBSTR(QString input);
