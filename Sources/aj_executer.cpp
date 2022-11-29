@@ -4,7 +4,8 @@
 
 AjExecuter::AjExecuter(QString script_path)
 {
-    inside_false_if = 0;
+    condition_flag = AJ_NORMAL;
+
     parser.openFile(script_path);
     while( parser.eof==0 )
     {
@@ -15,11 +16,11 @@ AjExecuter::AjExecuter(QString script_path)
 
 void AjExecuter::exec(AjCommand *cmd)
 {
-    if( inside_false_if )
+    if( condition_flag==AJ_RUN_NEXT_BLOCK )
     {
         if( cmd->command=="EOB" )
         {
-            inside_false_if = 0;
+            condition_flag = AJ_NORMAL;
         }
     }
     else
@@ -28,7 +29,7 @@ void AjExecuter::exec(AjCommand *cmd)
         {
             QString shortcut_name = cmd->args[0];
             QString win_title;;
-            if( cmd->args.size()>0 )
+            if( cmd->args.size()>1 )
             {
                 win_title = cmd->args[1];
             }
@@ -40,26 +41,46 @@ void AjExecuter::exec(AjCommand *cmd)
                 exit(0);
             }
         }
-        else if( cmd->command=="if" )
+        else if( cmd->command=="if_t" )
         {
-            if( cmd->args[0]==cmd->args[1] )
+            condition_flag = AJ_TRUE_COND;
+        }
+        else if( cmd->command=="if_f" )
+        {
+            condition_flag = AJ_RUN_NEXT_BLOCK;
+        }
+        else if( cmd->command=="else" )
+        {
+            if( condition_flag==AJ_PENDING_ELSE )
             {
-                inside_false_if = 0;
+                condition_flag = AJ_RUN_NEXT_BLOCK;
             }
-            else
+            else // AJ_NORMAL
             {
-                inside_false_if = 1;
+                condition_flag = AJ_TRUE_COND;
             }
         }
         else if( cmd->command=="EOB" )
         {
-            app.hwnd = NULL;
+            if( condition_flag==AJ_TRUE_COND )
+            {
+                condition_flag = AJ_PENDING_ELSE;
+            }
+            else
+            {
+                app.hwnd = NULL;
+            }
         }
         else
         {
+            if( condition_flag!=AJ_TRUE_COND )
+            {
+                condition_flag = AJ_NORMAL;
+            }
             execNormal(cmd);
         }
     }
+    printCondFlag();
 }
 
 void AjExecuter::execNormal(AjCommand *cmd)
@@ -71,14 +92,10 @@ void AjExecuter::execNormal(AjCommand *cmd)
     }
     else
     {
-        setFocus();
+//        setFocus();
     }
 
-    if( cmd->command=="click" )
-    {
-        execClick(cmd);
-    }
-    else if( cmd->command=="key" )
+    if( cmd->command=="key" )
     {
         execKey(cmd);
     }
@@ -90,36 +107,69 @@ void AjExecuter::execNormal(AjCommand *cmd)
     {
         execOpen(cmd);
     }
-    else if( cmd->command=="read" )
-    {
-        QString ret = execRead(cmd);
-        parser.vars.setVar(cmd->output, ret);
-    }
     else if( cmd->command=="lua" )
     {
         execLua(cmd);
     }
     else if( cmd->command=="delay" )
     {
-        execDelay(cmd);
-    }
-    else if( cmd->command=="write" )
-    {
-        execWrite(cmd);
-    }
-    else if( cmd->command=="getState" )
-    {
-        QString ret = execState(cmd);
-        parser.vars.setVar(cmd->output, ret);
-    }
-    else if( cmd->command=="getType" )
-    {
-        QString ret = execGetType(cmd);
-        parser.vars.setVar(cmd->output, ret);
+        execSleep(cmd);
     }
     else if( cmd->command=="assign" )
     {
-        parser.vars.setVar(cmd->output, cmd->args[0]);
+        execAssign(cmd, cmd->args[0]);
+    }
+    else
+    {
+        execAcc(cmd);
+    }
+}
+
+void AjExecuter::execAcc(AjCommand *cmd)
+{
+    if( cmd->command=="click" )
+    {
+        execClick(cmd);
+    }
+    else if( cmd->command=="getVal" )
+    {
+        execGetVal(cmd);
+    }
+    else if( cmd->command=="setVal" )
+    {
+        execSetVal(cmd);
+    }
+    else if( cmd->command=="accList" )
+    {
+        execAccList(cmd);
+    }
+    else if( cmd->command=="accListChild" )
+    {
+        execAccList(cmd);
+    }
+    else if( cmd->command=="getName" )
+    {
+        execGetName(cmd);
+    }
+    else if( cmd->command=="getState" )
+    {
+        execState(cmd);
+    }
+    else if( cmd->command=="getType" )
+    {
+        execGetType(cmd);
+    }
+    else if( cmd->command=="getParent" )
+    {
+        execGetParent(cmd);
+    }
+    else if( cmd->command=="getChild" )
+    {
+        execGetChild(cmd);
+    }
+    else if( cmd->command=="accSearch" )
+    {
+        execAccSearch(cmd);
     }
 }
 
@@ -179,13 +229,13 @@ void AjExecuter::setFocus()
     app.win_title = buffer;
 }
 
-int AjExecuter::execKey(AjCommand *cmd)
+void AjExecuter::execAssign(AjCommand *cmd, QString val)
 {
-    AjKeyboard keyboard;
-    AjKey key = aj_getKey(cmd->args[0]);
-    keyboard.execKey(&key);
-
-    return 0;
+    if( cmd->flag_append )
+    {
+        val = parser.vars.getVal(cmd->output) + val;
+    }
+    parser.vars.setVar(cmd->output, val);
 }
 
 int AjExecuter::execClick(AjCommand *cmd)
@@ -215,7 +265,7 @@ int AjExecuter::execClick(AjCommand *cmd)
     }
 
     POINT obj_center;
-    obj_center = getAccLocation(acc_cmd, app.hwnd, path);
+    obj_center = aj_getAccLocation(acc_cmd, app.hwnd, path);
 
     if( obj_center.x==0 && obj_center.y==0 )
     {
@@ -231,17 +281,61 @@ int AjExecuter::execClick(AjCommand *cmd)
     return 0;
 }
 
-QString AjExecuter::execRead(AjCommand *cmd)
+void AjExecuter::execGetVal(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = getAccValue(app.hwnd, path);
-    return ret;
+    QString ret = aj_getAccValue(app.hwnd, path);
+    execAssign(cmd, ret);
 }
 
-void AjExecuter::execWrite(AjCommand *cmd)
+void AjExecuter::execSetVal(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    setAccValue(app.hwnd, path, cmd->args.last());
+    aj_setAccValue(app.hwnd, path, cmd->args.last());
+}
+
+void AjExecuter::execAccList(AjCommand *cmd)
+{
+    if( cmd->args.size() )
+    {
+        IAccessible* acc = aj_getAccHWND(app.hwnd, cmd->args[0]);
+        if( cmd->command=="accListChild" )
+        {
+            aj_accList2(acc);
+        }
+        else
+        {
+            aj_accList(acc, cmd->args[0]);
+        }
+    }
+    else
+    {
+        IAccessible* acc = aj_getWinPAcc(app.hwnd);
+        if( cmd->command=="accListChild" )
+        {
+            aj_accList2(acc);
+        }
+        else
+        {
+            aj_accList(acc, "");
+        }
+    }
+}
+
+void AjExecuter::execGetName(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString ret = aj_getAccName(app.hwnd, path);
+    execAssign(cmd, ret);
+}
+
+int AjExecuter::execKey(AjCommand *cmd)
+{
+    AjKeyboard keyboard;
+    AjKey key = aj_getKey(cmd->args[0]);
+    keyboard.execKey(&key);
+
+    return 0;
 }
 
 void AjExecuter::execLua(AjCommand *cmd)
@@ -251,7 +345,7 @@ void AjExecuter::execLua(AjCommand *cmd)
     lua.run(path);
 }
 
-void AjExecuter::execDelay(AjCommand *cmd)
+void AjExecuter::execSleep(AjCommand *cmd)
 {
     bool conversion_ok;
     int delay = cmd->args[0].toInt(&conversion_ok);
@@ -265,16 +359,58 @@ void AjExecuter::execDelay(AjCommand *cmd)
     }
 }
 
-QString AjExecuter::execState(AjCommand *cmd)
+void AjExecuter::execState(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = getAccState(app.hwnd, path);
-    return ret;
+    QString ret = aj_getAccState(app.hwnd, path);
+    execAssign(cmd, ret);
 }
 
-QString AjExecuter::execGetType(AjCommand *cmd)
+void AjExecuter::execGetType(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = getAccType(app.hwnd, path);
-    return ret;
+    QString ret = aj_getAccType(app.hwnd, path);
+    execAssign(cmd, ret);
+}
+
+void AjExecuter::execGetParent(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString ret = aj_getAccParent(path);
+    execAssign(cmd, ret);
+}
+
+void AjExecuter::execGetChild(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString ret = aj_getAccParent(path);
+    execAssign(cmd, ret);
+}
+
+void AjExecuter::execAccSearch(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString name = cmd->args[1];
+    QString ret  = aj_accSearch(app.hwnd, path, name);
+    execAssign(cmd, ret);
+}
+
+void AjExecuter::printCondFlag()
+{
+    if( condition_flag==AJ_RUN_NEXT_BLOCK )
+    {
+        qDebug() << ">> RUN_NEXT_BLOCK";
+    }
+    else if( condition_flag==AJ_TRUE_COND )
+    {
+        qDebug() << ">> TRUE_COND";
+    }
+    else if( condition_flag==AJ_PENDING_ELSE )
+    {
+        qDebug() << ">> PENDING_ELSE";
+    }
+    else if( condition_flag==AJ_NORMAL )
+    {
+        qDebug() << ">> NORMAL";
+    }
 }
