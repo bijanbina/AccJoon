@@ -31,6 +31,7 @@ AjCommand AjParser::parseLine()
     // trimmed would remove withespace from start and end
     QString line = readLine();
     AjCommand ret;
+    ret.flag_append = 0;
 
     if( line.length() )
     {
@@ -41,6 +42,10 @@ AjCommand AjParser::parseLine()
         else if( line.startsWith("if") )
         {
             parseCondition(line, &ret);
+        }
+        else if( line.startsWith("else") )
+        {
+            ret.command = "else";
         }
         else if( isAssignment(line) )
         {
@@ -72,8 +77,8 @@ void AjParser::parseCondition(QString line, AjCommand *cmd)
     }
     line.chop(1);// remove ) from end of line
 
-    cmd->args = getCondition(line);
-    qDebug() << cmd->command << "->" << cmd->args;
+    cmd->args = getCondition(line, cmd);
+//    qDebug() << cmd->command << "->" << cmd->args;
     if( cmd->args.size()!=2 )
     {
         qDebug() << "Error 125: Unexpected conditional statement"
@@ -85,6 +90,17 @@ void AjParser::parseCondition(QString line, AjCommand *cmd)
     {
         cmd->args[i] = getVal(cmd->args[i]);
     }
+    if( (cmd->command=="if_eq" &&
+         cmd->args[0]==cmd->args[1]) ||
+        (cmd->command=="if_ne" &&
+         cmd->args[0]!=cmd->args[1]) )
+    {
+        cmd->command = "if_t";
+    }
+    else
+    {
+        cmd->command = "if_f";
+    }
 }
 
 void AjParser::parseAssignment(QString line, AjCommand *cmd)
@@ -93,6 +109,10 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
     int len = cmd->output.length();
     line.remove(0, len);
     len = line.indexOf("=") + 1;
+    if( len>0 )
+    {
+        cmd->flag_append = ( line[len-1]=="+" );
+    }
     line.remove(0, len);
     line = line.trimmed();
 
@@ -143,7 +163,7 @@ QString AjParser::getCommand(QString line)
     return "";
 }
 
-QStringList AjParser::getCondition(QString line)
+QStringList AjParser::getCondition(QString line, AjCommand *cmd)
 {
     QStringList arglist;
     int idq_flag = 0;//inside double qoute flag
@@ -174,12 +194,21 @@ QStringList AjParser::getCondition(QString line)
         {
             if( i>0 )
             {
-                if( line[i]=="=" && line[i-1]=="=" )
+                if( (line[i-1]=="=" && line[i]=="=") ||
+                    (line[i-1]=="!" && line[i]=="=") )
                 {
                     buffer.chop(2);
                     buffer = buffer.trimmed();
                     arglist.push_back(buffer);
                     buffer = "";
+                    if( line[i-1]=="=" && line[i]=="=" )
+                    {
+                        cmd->command = "if_eq";
+                    }
+                    else
+                    {
+                        cmd->command = "if_ne";
+                    }
                 }
                 else if( i==len-1 )
                 {
@@ -245,11 +274,15 @@ QStringList AjParser::getArguments(QString line)
 QString AjParser::getAssignOutput(QString line)
 {
     QStringList word_list = line.split("=", QString::SkipEmptyParts);
-    if( word_list.size()!=2 )
+    if( word_list.size()<2 )
     {
         qDebug() << "Error: Unexpected assignment statement"
-                 << ", in:" << line;
+                 << ", in:" << line_number << line;
         exit(0);
+    }
+    if( word_list[0].back()=="+" ) // for += case
+    {
+        word_list[0].chop(1);
     }
     return word_list[0].trimmed();
 }
@@ -299,7 +332,7 @@ QString AjParser::readLine()
         {
             continue;
         }
-        else if( line.startsWith("--") )
+        else if( line.startsWith("//") )
         {
             continue;
         }

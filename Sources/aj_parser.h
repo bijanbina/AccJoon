@@ -43,7 +43,7 @@ private:
     bool isAssignment(QString line);
     bool isFunction(QString line);
     QStringList getArguments(QString line);
-    QStringList getCondition(QString line);
+    QStringList getCondition(QString line, AjCommand *cmd);
     QString getAssignOutput(QString line);
     QString getVal(QString arg);
 
