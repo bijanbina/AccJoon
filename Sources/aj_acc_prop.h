@@ -12,5 +12,6 @@ QString aj_getAccType(HWND hwnd, QString path);
 QString aj_getAccName(HWND hwnd, QString path);
 QString aj_getStateName(long val);
 void    aj_setAccValue(HWND hwnd, QString path, QString val);
+QString aj_getChild(HWND hwnd, QString path, QString name);
 
 #endif // AJ_ACC_PROP_H

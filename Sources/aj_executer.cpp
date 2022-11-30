@@ -80,7 +80,7 @@ void AjExecuter::exec(AjCommand *cmd)
             execNormal(cmd);
         }
     }
-    printCondFlag();
+//    printCondFlag();
 }
 
 void AjExecuter::execNormal(AjCommand *cmd)
@@ -111,7 +111,7 @@ void AjExecuter::execNormal(AjCommand *cmd)
     {
         execLua(cmd);
     }
-    else if( cmd->command=="delay" )
+    else if( cmd->command=="sleep" )
     {
         execSleep(cmd);
     }
@@ -383,7 +383,8 @@ void AjExecuter::execGetParent(AjCommand *cmd)
 void AjExecuter::execGetChild(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = aj_getAccParent(path);
+    QString name = cmd->args[1];
+    QString ret = aj_getChild(app.hwnd, path, name);
     execAssign(cmd, ret);
 }
 

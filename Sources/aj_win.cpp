@@ -8,7 +8,6 @@ void AjVar::setVar(QString name, QString value)
     {
         if( vars_name[i]==name )
         {
-            qDebug() << "setVar" << name << value;
             vars_value[i] = value;
             return;
         }

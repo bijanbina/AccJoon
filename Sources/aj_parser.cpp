@@ -109,9 +109,9 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
     int len = cmd->output.length();
     line.remove(0, len);
     len = line.indexOf("=") + 1;
-    if( len>0 )
+    if( len>1 )
     {
-        cmd->flag_append = ( line[len-1]=="+" );
+        cmd->flag_append = ( line[len-2]=="+" );
     }
     line.remove(0, len);
     line = line.trimmed();

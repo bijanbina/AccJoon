@@ -212,8 +212,7 @@ QString aj_getChild(HWND hwnd, QString path, QString name)
 {
     IAccessible *acc = aj_getAccHWND(hwnd, path);
     int child_id = aj_getChildId(name, acc);
-
-    path += "." + QString::number(child_id);
+    path += "." + QString::number(child_id+1);
     return path;
 }
 
