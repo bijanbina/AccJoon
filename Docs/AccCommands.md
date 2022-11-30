@@ -3,6 +3,13 @@
 - [setVal](#setVal)
 - [click](#click)
 - [accList](#accList)
+- [accListChild](#accListChild)
+- [getParent](#getParent)
+- [getChild](#getChild)
+- [accSearch](#accSearch)
+- [getType](#getType)
+- [getState](#getState)
+- [getName](#getName)
 
 ## getVal
 ```
@@ -65,3 +72,63 @@ List all children in a recursive manner
 `optional`
 
 Acc path is the parent acc that the listing process begins, can be remained empty.
+
+## accListChild
+```
+void accListChild("acc_path")
+```
+
+List all children of acc from `acc_path`
+
+### <acc_path>
+
+`optional`
+
+Acc path is the parent acc that the listing process begins, can be remained empty.
+
+## getParent
+```
+string getParent("acc_path")
+```
+
+Get parent path of `acc_path`
+
+## getChild
+```
+string getParent("acc_path", "name")
+```
+
+Get child match with `name` and from path of `acc_path`
+
+## accSearch
+```
+string accSearch("acc_path", "name")
+```
+
+Search path by replacing `?` with possible cases of `acc_path` 
+to find acc match with `name`, then returns true path
+
+### <acc_path>
+
+Acc path is a known path with only few unknown steps represented by `?`
+
+## getType
+```
+string getParent("acc_path")
+```
+
+Get type of acc from path of `acc_path`
+
+## getState
+```
+string getState("acc_path")
+```
+
+Get State of acc from path of `acc_path`
+
+## getName
+```
+string getName("acc_path")
+```
+
+Get name of acc from path of `acc_path`

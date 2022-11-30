@@ -5,6 +5,13 @@
     - setVal
     - click
     - accList
+	- accListChild
+	- getType
+	- getState
+	- getName
+	- getParent
+	- getChild
+	- accSearch
 - [Application Commands](https://github.com/bijanbina/AccJoon/blob/main/Docs/AppCommands.md)
     - shortcut
     - open
@@ -12,7 +19,10 @@
     - key
     - sleep
     - lua
+	- print
 - [Programming Commands](https://github.com/bijanbina/AccJoon/blob/main/Docs/ProgCommands.md)
     - if
+	- else
+	- assignment
 - [Examples](https://github.com/bijanbina/AccJoon/blob/main/Docs/Examples.md)
     - Qt Example

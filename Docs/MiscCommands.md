@@ -2,6 +2,7 @@
 - [key](#key)
 - [sleep](#sleep)
 - [lua](#lua)
+- [print](#print)
 
 ## key
 ```
@@ -25,3 +26,10 @@ void lua("script_path")
 ```
 
 Run lua from `script_path`
+
+## print
+```
+void print("value")
+```
+
+Print `value` in debug console
