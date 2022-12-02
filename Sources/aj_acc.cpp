@@ -112,8 +112,8 @@ IAccessible* aj_getChild(IAccessible *acc, int index)
     }
     else
     {
-        QString msg = "child is not an Acc, variable type: ";
-        msg += QString::number(vtChild.vt) + ", index:";
+        QString msg = "child is not an Acc, child count: ";
+        msg += QString::number(childCount) + ", index:";
         msg += QString::number(index);
         logMessage(msg);
 
@@ -128,8 +128,6 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     {
         int index = varpath[0].toInt() - 1;
         IAccessible* pChild = aj_getChild(pAcc, index);
-//        qDebug() << "aj_getAcc"
-//                 << varpath;
 //        aj_accList2(pAcc);
 
         if( pChild!=NULL )
@@ -150,18 +148,18 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
 
 IAccessible* aj_getAccHWND(HWND hwnd, QString path)
 {
-    IAccessible *acc;
+    IAccessible *acc = NULL;
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
 
     IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
-//    aj_accList(win_pAcc, "");
-    acc = aj_getAcc(path_split, win_pAcc);
-    if( acc==NULL )
+    if( win_pAcc==NULL )
     {
-        qDebug() << "Error: cannot get acc in window ("
+        qDebug() << "Error: cannot get p_acc in window ("
                  << hwnd << ")";
         return acc;
     }
+//    aj_accList(win_pAcc, "");
+    acc = aj_getAcc(path_split, win_pAcc);
 
     return acc;
 }
@@ -307,21 +305,29 @@ void aj_accList2(IAccessible *pAcc)
     delete[] pArray;
 }
 
-QString aj_accSearch(HWND hwnd, QString path, QString name)
+QString aj_findAcc(HWND hwnd, QString path, QString name)
 {
+    clock_t start = clock();
     IAccessible *win_pAcc = aj_getWinPAcc(hwnd);
+    qDebug() << "pacc" << getDiffTime(start);
     QStringList path_list = path.split(".");
-    return aj_accSearch(win_pAcc, path_list, name);
+    start = clock();
+    QString path_c = aj_findAcc(win_pAcc, path_list, name);
+    qDebug() << "findAcc" << getDiffTime(start);
+    return path_c; // complete path
 }
 
-QString aj_accSearch(IAccessible *acc, QStringList path_list, QString name)
+QString aj_findAcc(IAccessible *acc, QStringList path_list, QString name)
 {
     int search_index = path_list.indexOf("?");
     QStringList fix_part = path_list.mid(0,search_index);
     QStringList var_part = path_list.mid(search_index);
 
+    clock_t start = clock();
     IAccessible *acc_part1 = aj_getAcc(fix_part, acc);
-    IAccessible *acc_part2 = NULL;
+    qDebug() << "findAcc1" << getDiffTime(start);
+    start = clock();
+    IAccessible *acc_full = NULL;
 
     int child_count = aj_getChildCount(acc_part1);
     for( int i=0; i<child_count; i++)
@@ -329,7 +335,7 @@ QString aj_accSearch(IAccessible *acc, QStringList path_list, QString name)
         var_part[0] = QString::number(i+1);
         if( var_part.contains("?") ) // recursive part
         {
-            QString ret = aj_accSearch(acc_part1, var_part, name);
+            QString ret = aj_findAcc(acc_part1, var_part, name);
             if( ret.length() )
             {
                 return fix_part.join(".") + "." + ret;
@@ -340,13 +346,18 @@ QString aj_accSearch(IAccessible *acc, QStringList path_list, QString name)
             }
         }
         QString parent = aj_getAccParent(var_part.join("."));
-        acc_part2 = aj_getAcc(parent.split("."), acc_part1);
-        QString acc_name = aj_getAccName(acc_part2,
-                                 var_part.back().toInt()-1);
-        if( acc_name==name )
+        acc_full = aj_getAcc(parent.split("."), acc_part1);
+
+        if( acc_full )
         {
-            QStringList total_list = fix_part + var_part;
-            return total_list.join(".");
+            int child_id = var_part.back().toInt()-1;
+            QString acc_name = aj_getAccName(acc_full, child_id);
+            qDebug() << "var_part" << var_part[0] << acc_name << child_id;
+            if( acc_name==name )
+            {
+                QStringList total_list = fix_part + var_part;
+                return total_list.join(".");
+            }
         }
     }
     return "";

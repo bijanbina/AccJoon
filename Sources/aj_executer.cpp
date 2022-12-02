@@ -167,9 +167,9 @@ void AjExecuter::execAcc(AjCommand *cmd)
     {
         execGetChild(cmd);
     }
-    else if( cmd->command=="accSearch" )
+    else if( cmd->command=="findAcc" )
     {
-        execAccSearch(cmd);
+        execFindAcc(cmd);
     }
 }
 
@@ -388,11 +388,11 @@ void AjExecuter::execGetChild(AjCommand *cmd)
     execAssign(cmd, ret);
 }
 
-void AjExecuter::execAccSearch(AjCommand *cmd)
+void AjExecuter::execFindAcc(AjCommand *cmd)
 {
     QString path = cmd->args[0];
     QString name = cmd->args[1];
-    QString ret  = aj_accSearch(app.hwnd, path, name);
+    QString ret  = aj_findAcc(app.hwnd, path, name);
     execAssign(cmd, ret);
 }
 

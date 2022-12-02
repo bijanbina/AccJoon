@@ -39,8 +39,8 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
 IAccessible* aj_getAccHWND(HWND hwnd, QString path);
 VARIANT aj_getVarChild(QString path);
 int aj_getChildId(QString name, IAccessible *acc);
-QString aj_accSearch(HWND hwnd, QString path, QString name);
-QString aj_accSearch(IAccessible *acc, QStringList path_list, QString name);
+QString aj_findAcc(HWND hwnd, QString path, QString name);
+QString aj_findAcc(IAccessible *acc, QStringList path_list, QString name);
 
 QString aj_toQString(BSTR input);
 BSTR aj_toBSTR(QString input);

@@ -32,7 +32,7 @@ private:
     void execLua(AjCommand *cmd);
     void execSleep(AjCommand *cmd);
     void execAccList(AjCommand *cmd);
-    void execAccSearch(AjCommand *cmd);
+    void execFindAcc(AjCommand *cmd);
     void execGetVal(AjCommand *cmd);
     void execState(AjCommand *cmd);
     void execGetType(AjCommand *cmd);

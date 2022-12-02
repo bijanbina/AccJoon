@@ -14,5 +14,7 @@
 #define AJ_CMD_CHILDID "C" // Show Child ID
 
 void logMessage(QString msg);
+QString getDiffTime(clock_t start);
+QString getLDiffTime();
 
 #endif // BACKEND_H
