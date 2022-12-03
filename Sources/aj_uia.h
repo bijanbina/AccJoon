@@ -1,5 +1,5 @@
-#ifndef AJ_ACC_H
-#define AJ_ACC_H
+#ifndef AJ_UIA_H
+#define AJ_UIA_H
 
 #include <QString>
 #include <QtDebug>
@@ -12,18 +12,6 @@
 #include <tchar.h> // to get application file path
 
 #include "backend.h"
-
-typedef struct AjAccCmd
-{
-    QString acc_path;
-    QString action = "L";
-    QString acc_name;
-    QString value;
-    QString value_name;
-    int offset_x = 0;
-    int offset_y = 0;
-    int offset_id = 0;
-}AjAccCmd;
 
 void    aj_accList(IAccessible *pAcc, QString path);
 void    aj_accList2(IAccessible *pAcc);
@@ -45,5 +33,4 @@ QString aj_findAcc(IAccessible *acc, QStringList path_list, QString name);
 QString aj_toQString(BSTR input);
 BSTR aj_toBSTR(QString input);
 
-void aj_execAcc(AjAccCmd cmd);
-#endif // AJ_ACC_H
+#endif // AJ_UIA_H

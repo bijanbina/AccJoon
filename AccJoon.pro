@@ -39,6 +39,7 @@ SOURCES += \
         Sources/aj_lua.cpp \
         Sources/aj_mouse.cpp \
         Sources/aj_parser.cpp \
+        Sources/aj_uia.cpp \
         Sources/aj_virt.cpp \
         Sources/aj_win.cpp \
         Sources/aj_win32.cpp \
@@ -57,6 +58,7 @@ HEADERS += \
     Sources/aj_lua.h \
     Sources/aj_mouse.h \
     Sources/aj_parser.h \
+    Sources/aj_uia.h \
     Sources/aj_virt.h \
     Sources/aj_win.h \
     Sources/aj_win32.h \
