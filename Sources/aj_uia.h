@@ -9,28 +9,26 @@
 #include <windows.h>
 #include <psapi.h> // For access to GetModuleFileNameEx
 #include <tlhelp32.h> // to get application pid
-#include <tchar.h> // to get application file path
+#include <UIAutomation.h>
+#include <uiautomationclient.h>
 
 #include "backend.h"
 
-void    aj_accList(IAccessible *pAcc, QString path);
-void    aj_accList2(IAccessible *pAcc);
-QString aj_getAccName(IAccessible *acc, long childId);
-QString aj_getAccNameI4(IAccessible *acc, long childId);
-QString aj_getAccParent(QString path);
+void    aj_uiaList(HWND hwnd);
+IUIAutomationElement* aj_getUiaHWND(HWND hwnd);
 
-long aj_getChildCount(IAccessible *pAcc);
-IAccessible* aj_getChild(IAccessible *acc, int index);
+class AjUia: public QObject
+{
+    Q_OBJECT
+public:
+    explicit AjUia(QObject *parent = nullptr);
+    ~AjUia();
 
-IAccessible* aj_getWinPAcc(HWND window);
-IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
-IAccessible* aj_getAccHWND(HWND hwnd, QString path);
-VARIANT aj_getVarChild(QString path);
-int aj_getChildId(QString name, IAccessible *acc);
-QString aj_findAcc(HWND hwnd, QString path, QString name);
-QString aj_findAcc(IAccessible *acc, QStringList path_list, QString name);
+    IUIAutomationElement* getElement(HWND hwnd);
+    void list(IAccessible *pAcc, QString path);
 
-QString aj_toQString(BSTR input);
-BSTR aj_toBSTR(QString input);
+private:
+    IUIAutomation *pAutomation;
+};
 
 #endif // AJ_UIA_H
