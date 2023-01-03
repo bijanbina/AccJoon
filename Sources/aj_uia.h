@@ -13,6 +13,7 @@
 #include <uiautomationclient.h>
 
 #include "backend.h"
+#include "uia_element.h"
 
 void    aj_uiaList(HWND hwnd);
 IUIAutomationElement* aj_getUiaHWND(HWND hwnd);

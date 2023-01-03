@@ -63,4 +63,7 @@ HEADERS += \
     Sources/aj_win.h \
     Sources/aj_win32.h \
     Sources/aj_win_process.h \
-    Sources/backend.h
+    Sources/backend.h \
+    Sources/uia_client.h \
+    Sources/uia_core.h \
+    Sources/uia_element.h
