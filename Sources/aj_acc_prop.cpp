@@ -149,6 +149,11 @@ QString aj_getAccState(HWND hwnd, QString path)
     IAccessible *acc = aj_getAccHWND(hwnd, parent);
     VARIANT varChild = aj_getVarChild(path);
 
+    if( acc==NULL )
+    {
+        return "";
+    }
+
     VARIANT varState;
     VariantInit(&varState);
     HRESULT hr = acc->get_accState(varChild, &varState);
@@ -171,6 +176,11 @@ QString aj_getAccType(HWND hwnd, QString path)
     QString parent = aj_getAccParent(path);
     IAccessible *acc = aj_getAccHWND(hwnd, parent);
     VARIANT varChild = aj_getVarChild(path);
+
+    if( acc==NULL )
+    {
+        return "";
+    }
 
     VARIANT varRole;
     VariantInit(&varRole);

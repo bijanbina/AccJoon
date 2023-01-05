@@ -1,68 +1,32 @@
 ## Table of Content 
-- [getVal](#getVal)
-- [setVal](#setVal)
-- [click](#click)
-- [accList](#accList)
-- [accListChild](#accListChild)
-- [getParent](#getParent)
-- [getChild](#getChild)
-- [accSearch](#accSearch)
-- [getType](#getType)
-- [getState](#getState)
-- [getName](#getName)
+- [acc_getVal](#acc_getVal)
+- [acc_setVal](#acc_setVal)
+- [acc_list](#acc_list)
+- [acc_listChild](#acc_listChild)
+- [acc_getParent](#acc_getParent)
+- [acc_getChild](#acc_getChild)
+- [acc_search](#acc_search)
+- [acc_getType](#acc_getType)
+- [acc_getState](#acc_getState)
+- [acc_getName](#acc_getName)
 
-## getVal
+## acc_getVal
 ```
-string getVal("acc_path")
+string acc_getVal("acc_path")
 ```
 
 Get value from an `acc_path`
 
-## setVal
+## acc_setVal
 ```
-void setVal("acc_path", "value")
+void acc_setVal("acc_path", "value")
 ```
 
 Set value for an `acc_path`
 
-## click
+## acc_list
 ```
-void click("acc_path", "action", "name", offset_x, offset_y, offset_id)
-```
-
-Do an `action` on center of `acc_path`
-
-### \<action\> 
-	
-Possible actions are 
-
-- `L`: Left Click
-- `R`: Right Click
-- `M`: Middle Click
-- `D`: Double Click
-- `C`: Report Child ID (Debug Action)
-	
-### \<name\>
-
-`optional`
-	
-specify a child in a list
-	
-### <offset_x, offset_y>
-	
-`optional`
-
-add offset to the click position
-	
-### <offset_id>
-	
-`optional`
-
-add offset to final child Id
-
-## accList
-```
-void accList("acc_path")
+void acc_list("acc_path")
 ```
 
 List all children in a recursive manner
@@ -73,9 +37,9 @@ List all children in a recursive manner
 
 Acc path is the parent acc that the listing process begins, can be remained empty.
 
-## accListChild
+## acc_listChild
 ```
-void accListChild("acc_path")
+void acc_listChild("acc_path")
 ```
 
 List all children of acc from `acc_path`
@@ -86,23 +50,23 @@ List all children of acc from `acc_path`
 
 Acc path is the parent acc that the listing process begins, can be remained empty.
 
-## getParent
+## acc_getParent
 ```
-string getParent("acc_path")
+string acc_getParent("acc_path")
 ```
 
 Get parent path of `acc_path`
 
-## getChild
+## acc_getChild
 ```
-string getParent("acc_path", "name")
+string acc_getParent("acc_path", "name")
 ```
 
 Get child match with `name` and from path of `acc_path`
 
-## accSearch
+## acc_search
 ```
-string accSearch("acc_path", "name")
+string acc_search("acc_path", "name")
 ```
 
 Search path by replacing `?` with possible cases of `acc_path` 
@@ -112,23 +76,23 @@ to find acc match with `name`, then returns true path
 
 Acc path is a known path with only few unknown steps represented by `?`
 
-## getType
+## acc_getType
 ```
-string getParent("acc_path")
+string acc_getParent("acc_path")
 ```
 
 Get type of acc from path of `acc_path`
 
-## getState
+## acc_getState
 ```
-string getState("acc_path")
+string acc_getState("acc_path")
 ```
 
 Get State of acc from path of `acc_path`
 
-## getName
+## acc_getName
 ```
-string getName("acc_path")
+string acc_getName("acc_path")
 ```
 
 Get name of acc from path of `acc_path`
