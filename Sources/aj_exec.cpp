@@ -1,10 +1,11 @@
-#include "aj_executer.h"
+#include "aj_exec.h"
 #include "aj_win_process.h"
 #include "aj_application.h"
 
-AjExecuter::AjExecuter(QString script_path)
+AjExec::AjExec(QString script_path)
 {
     condition_flag = AJ_NORMAL;
+    acc = new AjExecAcc(&parser, &app);
 
     parser.openFile(script_path);
     while( parser.eof==0 )
@@ -14,7 +15,7 @@ AjExecuter::AjExecuter(QString script_path)
     }
 }
 
-void AjExecuter::exec(AjCommand *cmd)
+void AjExec::exec(AjCommand *cmd)
 {
     if( condition_flag==AJ_RUN_NEXT_BLOCK )
     {
@@ -83,7 +84,7 @@ void AjExecuter::exec(AjCommand *cmd)
 //    printCondFlag();
 }
 
-void AjExecuter::execNormal(AjCommand *cmd)
+void AjExec::execNormal(AjCommand *cmd)
 {
     if( app.hwnd==NULL )
     {
@@ -95,7 +96,11 @@ void AjExecuter::execNormal(AjCommand *cmd)
 //        setFocus();
     }
 
-    if( cmd->command=="key" )
+    if( cmd->command=="click" )
+    {
+        execClick(cmd);
+    }
+    else if( cmd->command=="key" )
     {
         execKey(cmd);
     }
@@ -121,59 +126,11 @@ void AjExecuter::execNormal(AjCommand *cmd)
     }
     else
     {
-        execAcc(cmd);
+        acc->exec(cmd);
     }
 }
 
-void AjExecuter::execAcc(AjCommand *cmd)
-{
-    if( cmd->command=="click" )
-    {
-        execClick(cmd);
-    }
-    else if( cmd->command=="getVal" )
-    {
-        execGetVal(cmd);
-    }
-    else if( cmd->command=="setVal" )
-    {
-        execSetVal(cmd);
-    }
-    else if( cmd->command=="accList" )
-    {
-        execAccList(cmd);
-    }
-    else if( cmd->command=="accListChild" )
-    {
-        execAccList(cmd);
-    }
-    else if( cmd->command=="getName" )
-    {
-        execGetName(cmd);
-    }
-    else if( cmd->command=="getState" )
-    {
-        execState(cmd);
-    }
-    else if( cmd->command=="getType" )
-    {
-        execGetType(cmd);
-    }
-    else if( cmd->command=="getParent" )
-    {
-        execGetParent(cmd);
-    }
-    else if( cmd->command=="getChild" )
-    {
-        execGetChild(cmd);
-    }
-    else if( cmd->command=="findAcc" )
-    {
-        execFindAcc(cmd);
-    }
-}
-
-int AjExecuter::execOpen(AjCommand *cmd)
+int AjExec::execOpen(AjCommand *cmd)
 {
     QString args;
     if( cmd->args.size()>0 )
@@ -209,7 +166,7 @@ int AjExecuter::execOpen(AjCommand *cmd)
     return AJ_CHECK_SUCCESS;
 }
 
-void AjExecuter::setFocus()
+void AjExec::setFocus()
 {
     if( app.hwnd==NULL )
     {
@@ -229,16 +186,7 @@ void AjExecuter::setFocus()
     app.win_title = buffer;
 }
 
-void AjExecuter::execAssign(AjCommand *cmd, QString val)
-{
-    if( cmd->flag_append )
-    {
-        val = parser.vars.getVal(cmd->output) + val;
-    }
-    parser.vars.setVar(cmd->output, val);
-}
-
-int AjExecuter::execClick(AjCommand *cmd)
+int AjExec::execClick(AjCommand *cmd)
 {
     AjAccCmd acc_cmd;
     QString path = cmd->args[0];
@@ -265,7 +213,7 @@ int AjExecuter::execClick(AjCommand *cmd)
     }
 
     POINT obj_center;
-    obj_center = aj_getAccLocation(acc_cmd, app.hwnd, path);
+    obj_center = aj_accGetLocation(acc_cmd, app.hwnd, path);
 
     if( obj_center.x==0 && obj_center.y==0 )
     {
@@ -281,55 +229,7 @@ int AjExecuter::execClick(AjCommand *cmd)
     return 0;
 }
 
-void AjExecuter::execGetVal(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString ret = aj_getAccValue(app.hwnd, path);
-    execAssign(cmd, ret);
-}
-
-void AjExecuter::execSetVal(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    aj_setAccValue(app.hwnd, path, cmd->args.last());
-}
-
-void AjExecuter::execAccList(AjCommand *cmd)
-{
-    if( cmd->args.size() )
-    {
-        IAccessible* acc = aj_getAccHWND(app.hwnd, cmd->args[0]);
-        if( cmd->command=="accListChild" )
-        {
-            aj_accList2(acc);
-        }
-        else
-        {
-            aj_accList(acc, cmd->args[0]);
-        }
-    }
-    else
-    {
-        IAccessible* acc = aj_getWinPAcc(app.hwnd);
-        if( cmd->command=="accListChild" )
-        {
-            aj_accList2(acc);
-        }
-        else
-        {
-            aj_accList(acc, "");
-        }
-    }
-}
-
-void AjExecuter::execGetName(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString ret = aj_getAccName(app.hwnd, path);
-    execAssign(cmd, ret);
-}
-
-int AjExecuter::execKey(AjCommand *cmd)
+int AjExec::execKey(AjCommand *cmd)
 {
     AjKeyboard keyboard;
     AjKey key = aj_getKey(cmd->args[0]);
@@ -338,14 +238,14 @@ int AjExecuter::execKey(AjCommand *cmd)
     return 0;
 }
 
-void AjExecuter::execLua(AjCommand *cmd)
+void AjExec::execLua(AjCommand *cmd)
 {
     AjLua lua;
     QString path = cmd->args[0].remove("\"");
     lua.run(path);
 }
 
-void AjExecuter::execSleep(AjCommand *cmd)
+void AjExec::execSleep(AjCommand *cmd)
 {
     bool conversion_ok;
     int delay = cmd->args[0].toInt(&conversion_ok);
@@ -359,44 +259,7 @@ void AjExecuter::execSleep(AjCommand *cmd)
     }
 }
 
-void AjExecuter::execState(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString ret = aj_getAccState(app.hwnd, path);
-    execAssign(cmd, ret);
-}
-
-void AjExecuter::execGetType(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString ret = aj_getAccType(app.hwnd, path);
-    execAssign(cmd, ret);
-}
-
-void AjExecuter::execGetParent(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString ret = aj_getAccParent(path);
-    execAssign(cmd, ret);
-}
-
-void AjExecuter::execGetChild(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString name = cmd->args[1];
-    QString ret = aj_getChild(app.hwnd, path, name);
-    execAssign(cmd, ret);
-}
-
-void AjExecuter::execFindAcc(AjCommand *cmd)
-{
-    QString path = cmd->args[0];
-    QString name = cmd->args[1];
-    QString ret  = aj_findAcc(app.hwnd, path, name);
-    execAssign(cmd, ret);
-}
-
-void AjExecuter::printCondFlag()
+void AjExec::printCondFlag()
 {
     if( condition_flag==AJ_RUN_NEXT_BLOCK )
     {
@@ -414,4 +277,13 @@ void AjExecuter::printCondFlag()
     {
         qDebug() << ">> NORMAL";
     }
+}
+
+void AjExec::execAssign(AjCommand *cmd, QString val)
+{
+    if( cmd->flag_append )
+    {
+        val = parser.vars.getVal(cmd->output) + val;
+    }
+    parser.vars.setVar(cmd->output, val);
 }
