@@ -7,7 +7,7 @@
 #include "aj_win.h"
 #include "aj_client.h"
 #include "aj_dllgen.h"
-#include "aj_executer.h"
+#include "aj_exec.h"
 
 #define DEBUG_SLEEP 5000
 //set PATH=%PATH%;C:\Qt\Qt5.12.10\5.12.10\mingw73_32\bin
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     if( opt->conf_path.length() )
     {
-        AjExecuter exec(opt->conf_path);
+        AjExec exec(opt->conf_path);
     }
     else
     {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 //        qDebug() << conf_list;
         for( int i=0; i<conf_list.size(); i++)
         {
-            AjExecuter exec(conf_list[i]);
+            AjExec exec(conf_list[i]);
         }
     }
     /*else if( opt->is_remote )

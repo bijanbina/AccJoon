@@ -1,15 +1,15 @@
 #include "aj_acc_prop.h"
 
-QString aj_getAccName(HWND hwnd, QString path)
+QString aj_accGetName(HWND hwnd, QString path)
 {
     QString parent = aj_getAccParent(path);
     IAccessible *acc = aj_getAccHWND(hwnd, parent);
     int child_id = path.split(".").last().toInt();
     qDebug() << "par" << parent << "chl" << child_id;
-    return aj_getAccName(acc, child_id-1);
+    return aj_accGetName(acc, child_id-1);
 }
 
-POINT aj_getAccLocationI4(IAccessible *acc, int childID)
+POINT aj_accGetLocationI4(IAccessible *acc, int childID)
 {
     VARIANT varChild;
     POINT ret;
@@ -35,7 +35,7 @@ POINT aj_getAccLocationI4(IAccessible *acc, int childID)
     return ret;
 }
 
-POINT aj_getAccLocation(IAccessible *acc, int childID)
+POINT aj_accGetLocation(IAccessible *acc, int childID)
 {
     POINT ret;
     long returnCount;
@@ -51,12 +51,12 @@ POINT aj_getAccLocation(IAccessible *acc, int childID)
             IDispatch   *pDisp = vtChild.pdispVal;
             IAccessible *pChild = NULL;
             pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
-            return aj_getAccLocationI4(pChild, CHILDID_SELF);
+            return aj_accGetLocationI4(pChild, CHILDID_SELF);
         }
         else if( vtChild.vt==VT_I4 ) //An element object
         {
             qDebug() << "getAccLocation element";
-            return aj_getAccLocationI4(acc, childID);
+            return aj_accGetLocationI4(acc, childID);
         }
     }
     else
@@ -68,7 +68,7 @@ POINT aj_getAccLocation(IAccessible *acc, int childID)
     return ret;
 }
 
-POINT aj_getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
+POINT aj_accGetLocation(AjAccCmd cmd, HWND hwnd, QString path)
 {
     POINT obj_center;
     IAccessible *win_pAcc, *acc;
@@ -121,11 +121,11 @@ POINT aj_getAccLocation(AjAccCmd cmd, HWND hwnd, QString path)
     }
 
 
-    obj_center = aj_getAccLocation(acc, child_id);
+    obj_center = aj_accGetLocation(acc, child_id);
     return  obj_center;
 }
 
-QString aj_getAccValue(HWND hwnd, QString path)
+QString aj_accGetValue(HWND hwnd, QString path)
 {
     BSTR value;
     QString parent = aj_getAccParent(path);
@@ -143,7 +143,7 @@ QString aj_getAccValue(HWND hwnd, QString path)
     return aj_toQString(value);
 }
 
-QString aj_getAccState(HWND hwnd, QString path)
+QString aj_accGetState(HWND hwnd, QString path)
 {
     QString parent = aj_getAccParent(path);
     IAccessible *acc = aj_getAccHWND(hwnd, parent);
@@ -166,12 +166,12 @@ QString aj_getAccState(HWND hwnd, QString path)
     }
     else if( hr==S_OK && varState.vt==VT_I4 )
     {
-        return aj_getStateName(varState.lVal);
+        return aj_accGetStateName(varState.lVal);
     }
     return "";
 }
 
-QString aj_getAccType(HWND hwnd, QString path)
+QString aj_accGetType(HWND hwnd, QString path)
 {
     QString parent = aj_getAccParent(path);
     IAccessible *acc = aj_getAccHWND(hwnd, parent);
@@ -202,7 +202,7 @@ QString aj_getAccType(HWND hwnd, QString path)
     return "";
 }
 
-QString aj_getStateName(long val)
+QString aj_accGetStateName(long val)
 {
     if( val&STATE_SYSTEM_CHECKED )
     {
@@ -218,7 +218,7 @@ QString aj_getStateName(long val)
     }
 }
 
-QString aj_getChild(HWND hwnd, QString path, QString name)
+QString aj_accGetChild(HWND hwnd, QString path, QString name)
 {
     IAccessible *acc = aj_getAccHWND(hwnd, path);
     int child_id = aj_getChildId(name, acc);
@@ -226,7 +226,7 @@ QString aj_getChild(HWND hwnd, QString path, QString name)
     return path;
 }
 
-void aj_setAccValue(HWND hwnd, QString path, QString val)
+void aj_accSetValue(HWND hwnd, QString path, QString val)
 {
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
     // presume acc_name is empty
