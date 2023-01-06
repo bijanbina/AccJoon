@@ -11,7 +11,7 @@ QString aj_getAccNameI4(IAccessible *acc, long childId)
     return QString::fromWCharArray(bstrName);
 }
 
-QString aj_getAccName(IAccessible *acc, long childId)
+QString aj_accGetName(IAccessible *acc, long childId)
 {
     long child_count = aj_getChildCount(acc);
     if( child_count<0 )
@@ -73,7 +73,7 @@ IAccessible* aj_getWinPAcc(HWND window)
     return pAcc;
 }
 
-IAccessible* aj_getChild(IAccessible *acc, int index)
+IAccessible* aj_accGetChild(IAccessible *acc, int index)
 {
     long childCount = aj_getChildCount(acc);
     long returnCount;
@@ -105,7 +105,7 @@ IAccessible* aj_getChild(IAccessible *acc, int index)
     else if( vtChild.vt==VT_I4 ) //An element object
     {
         QString msg = "child is an element " + QString::number(vtChild.iVal);
-        msg += " name = " + aj_getAccName(acc, vtChild.iVal);
+        msg += " name = " + aj_accGetName(acc, vtChild.iVal);
         logMessage(msg);
 
         return NULL;
@@ -127,7 +127,7 @@ IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc)
     if( varpath.size()>0 )
     {
         int index = varpath[0].toInt() - 1;
-        IAccessible* pChild = aj_getChild(pAcc, index);
+        IAccessible* pChild = aj_accGetChild(pAcc, index);
 //        aj_accList2(pAcc);
 
         if( pChild!=NULL )
@@ -183,7 +183,7 @@ int aj_getChildId(QString name, IAccessible *acc)
 
     for( int i=0 ; i<childCount ; i++ )
     {
-        QString child_name = aj_getAccName(acc, i);
+        QString child_name = aj_accGetName(acc, i);
 //        QString msg = "Get ChildID:" + QString::number(i);
 //        msg += " childCount:" + QString::number(childCount) + " " +
 //                child_name;
@@ -213,7 +213,7 @@ QString aj_toQString(BSTR input)
 
 void aj_accList(IAccessible *pAcc, QString path)
 {
-    QString pAcc_name = aj_getAccName(pAcc, CHILDID_SELF);
+    QString pAcc_name = aj_accGetName(pAcc, CHILDID_SELF);
     qDebug() << "####### getChildren: " + path;
 
     long childCount;
@@ -236,7 +236,7 @@ void aj_accList(IAccessible *pAcc, QString path)
             hr = pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             if (hr == S_OK)
             {
-                QString child_name = aj_getAccName(pAcc, i);
+                QString child_name = aj_accGetName(pAcc, i);
                 long child_count = aj_getChildCount(pChild);
                 qDebug() << "acc[" + QString::number(i) + "/" + QString::number(returnCount-1)
                             + "] name:" + child_name +
@@ -256,7 +256,7 @@ void aj_accList(IAccessible *pAcc, QString path)
         {
             qDebug() <<"Element:" + pAcc_name +
                         " - child[" + QString::number(i) + "/" + QString::number(returnCount-1) +
-                        "] name:" + aj_getAccName(pAcc, vtChild.lVal)
+                        "] name:" + aj_accGetName(pAcc, vtChild.lVal)
                         + " path:" + path + QString::number(i+1);
         }
     }
@@ -266,7 +266,7 @@ void aj_accList(IAccessible *pAcc, QString path)
 
 void aj_accList2(IAccessible *pAcc)
 {
-    QString pAcc_name = aj_getAccName(pAcc, CHILDID_SELF);
+    QString pAcc_name = aj_accGetName(pAcc, CHILDID_SELF);
 
     long childCount;
     long returnCount;
@@ -284,7 +284,7 @@ void aj_accList2(IAccessible *pAcc)
             hr = pDisp->QueryInterface(IID_IAccessible, (void**) &pChild);
             if (hr == S_OK)
             {
-                QString child_name = aj_getAccName(pAcc, i);
+                QString child_name = aj_accGetName(pAcc, i);
                 long child_count = aj_getChildCount(pChild);
                 qDebug() << "acc[" + QString::number(i) + "/" + QString::number(returnCount-1)
                             + "] name:" + child_name +
@@ -299,7 +299,7 @@ void aj_accList2(IAccessible *pAcc)
         {
             qDebug() <<"Element:" + pAcc_name +
                         " - child[" + QString::number(i) + "/" + QString::number(returnCount-1) +
-                        "] name:" + aj_getAccName(pAcc, vtChild.lVal);
+                        "] name:" + aj_accGetName(pAcc, vtChild.lVal);
         }
     }
     delete[] pArray;
@@ -351,7 +351,7 @@ QString aj_findAcc(IAccessible *acc, QStringList path_list, QString name)
         if( acc_full )
         {
             int child_id = var_part.back().toInt()-1;
-            QString acc_name = aj_getAccName(acc_full, child_id);
+            QString acc_name = aj_accGetName(acc_full, child_id);
             qDebug() << "var_part" << var_part[0] << acc_name << child_id;
             if( acc_name==name )
             {

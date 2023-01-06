@@ -27,12 +27,12 @@ typedef struct AjAccCmd
 
 void    aj_accList(IAccessible *pAcc, QString path);
 void    aj_accList2(IAccessible *pAcc);
-QString aj_getAccName(IAccessible *acc, long childId);
+QString aj_accGetName(IAccessible *acc, long childId);
 QString aj_getAccNameI4(IAccessible *acc, long childId);
 QString aj_getAccParent(QString path);
 
 long aj_getChildCount(IAccessible *pAcc);
-IAccessible* aj_getChild(IAccessible *acc, int index);
+IAccessible* aj_accGetChild(IAccessible *acc, int index);
 
 IAccessible* aj_getWinPAcc(HWND window);
 IAccessible* aj_getAcc(QStringList varpath, IAccessible *pAcc);
