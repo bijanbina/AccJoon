@@ -5,6 +5,7 @@
 #include "aj_parser.h"
 #include "aj_virt.h"
 #include "aj_exec_acc.h"
+#include "aj_uia.h"
 
 #define AJ_CHECK_FAILED  1
 #define AJ_CHECK_SUCCESS 2
@@ -40,6 +41,7 @@ private:
     AjVirt   vi;
     AjApplication app;
     AjExecAcc    *acc;
+    AjUia        *uia;
 };
 
 

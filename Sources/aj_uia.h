@@ -15,15 +15,15 @@
 #include "backend.h"
 #include "uia_element.h"
 #include "uia_tree_walker.h"
+#include "aj_application.h"
 
 void    aj_uiaList(HWND hwnd);
 IUIAutomationElement* aj_getUiaHWND(HWND hwnd);
 
-class AjUia: public QObject
+class AjUia
 {
-    Q_OBJECT
 public:
-    explicit AjUia(QObject *parent = nullptr);
+    explicit AjUia(AjApplication *a);
     ~AjUia();
 
     IUIAutomationElement* getElement(HWND hwnd);
@@ -32,6 +32,7 @@ public:
 
 private:
     IUIAutomation *pAutomation;
+    AjApplication *app;
 };
 
 #endif // AJ_UIA_H

@@ -1,12 +1,14 @@
 #include "aj_uia.h"
 
-AjUia::AjUia(QObject *parent): QObject(parent)
+AjUia::AjUia(AjApplication *a)
 {
     // Get a pointer to the IUIAutomation interface. It is assumed that CoInitialize
     // has already been called.
     HRESULT hr = CoCreateInstance(UUID_CUIAutomation, NULL,
                                   CLSCTX_INPROC_SERVER, UUID_IUIAutomation,
                                   (LPVOID *)&pAutomation);
+
+    app = a;
 }
 
 AjUia::~AjUia()

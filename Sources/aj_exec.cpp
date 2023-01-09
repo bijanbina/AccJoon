@@ -6,6 +6,7 @@ AjExec::AjExec(QString script_path)
 {
     condition_flag = AJ_NORMAL;
     acc = new AjExecAcc(&parser, &app);
+    uia = new AjUia(&app);
 
     parser.openFile(script_path);
     while( parser.eof==0 )
@@ -124,9 +125,17 @@ void AjExec::execNormal(AjCommand *cmd)
     {
         execAssign(cmd, cmd->args[0]);
     }
-    else
+    else if( cmd->command.startsWith("acc_") )
     {
         acc->exec(cmd);
+    }
+    else if( cmd->command.startsWith("uia_") )
+    {
+        uia->ListWindow(app.hwnd);
+    }
+    else
+    {
+        qDebug() << "unknown command";
     }
 }
 
