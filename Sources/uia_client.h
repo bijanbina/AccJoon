@@ -6,6 +6,8 @@
 
 /* Forward Declarations */
 
+#ifndef _MSC_VER
+
 #ifndef __IUIAutomationElement_FWD_DEFINED__
 #define __IUIAutomationElement_FWD_DEFINED__
 typedef interface IUIAutomationElement IUIAutomationElement;
@@ -116,5 +118,8 @@ enum PropertyConditionFlags
         PropertyConditionFlags_IgnoreCase	= 0x1,
         PropertyConditionFlags_MatchSubstring	= 0x2
     } ;
+
+#endif // MSVC Compiler
+
 
 #endif // UIA_CLIENT_H

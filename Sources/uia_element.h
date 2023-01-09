@@ -1,9 +1,11 @@
 #ifndef UIA_ELEMENT_H
 #define UIA_ELEMENT_H
 
-#include "uia_client.h"
-#include "uia_core.h"
 #include <uiautomationcore.h>
+#include "uia_client.h"
+// if not MSVC Compiler
+#ifndef _MSC_VER
+#include "uia_core.h"
 
 #ifndef __IUIAutomationElement_INTERFACE_DEFINED__
 #define __IUIAutomationElement_INTERFACE_DEFINED__
@@ -1702,6 +1704,7 @@ class DECLSPEC_UUID("ff48dba4-60ef-4201-aa87-54103eef594e")
 CUIAutomation;
 #endif
 
+#endif // MSVC Compiler
 const CLSID UUID_CUIAutomation = {
     0xFF48DBA4, 0x60EF, 0x4201, {0xAA, 0x87, 0x54, 0x10, 0x3E, 0xEF, 0x59, 0x4E} };
 

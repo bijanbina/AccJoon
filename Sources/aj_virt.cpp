@@ -1,11 +1,6 @@
 #include "aj_virt.h"
 #include <initguid.h>
 #include <windows.h>
-#include <inspectable.h> // IInspectable, HSTRING, TrustLevel
-#include <shobjidl.h> // IObjectArray, ObjectArray, IVirtualDesktopManager, VirtualDesktopManager
-#include <strsafe.h> // StringCbPrintf
-#include <tlhelp32.h> // to get pid
-#include <psapi.h> // For access to GetModuleFileNameEx
 #include <QDebug>
 #include <QThread>
 

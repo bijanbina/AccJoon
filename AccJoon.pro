@@ -28,6 +28,16 @@ win32:LIBS += -L../Benjamin/PNN/libs \
               -lPsapi \
               -llua54
 
+win32-gcc*
+{
+    win32:LIBS += -llua54
+}
+
+win32-msvc*
+{
+    win32:LIBS += -L"lua54.dll"
+}
+
 SOURCES += \
         Sources/aj_acc.cpp \
         Sources/aj_acc_prop.cpp \
