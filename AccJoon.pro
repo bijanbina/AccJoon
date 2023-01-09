@@ -78,4 +78,5 @@ HEADERS += \
     Sources/backend.h \
     Sources/uia_client.h \
     Sources/uia_core.h \
-    Sources/uia_element.h
+    Sources/uia_element.h \
+    Sources/uia_tree_walker.h
