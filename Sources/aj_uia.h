@@ -14,6 +14,7 @@
 
 #include "backend.h"
 #include "uia_element.h"
+#include "uia_tree_walker.h"
 
 void    aj_uiaList(HWND hwnd);
 IUIAutomationElement* aj_getUiaHWND(HWND hwnd);
@@ -26,7 +27,8 @@ public:
     ~AjUia();
 
     IUIAutomationElement* getElement(HWND hwnd);
-    void list(IAccessible *pAcc, QString path);
+    void list(IUIAutomationElement *parent, int indent);
+    void ListWindow(HWND hwnd);
 
 private:
     IUIAutomation *pAutomation;
