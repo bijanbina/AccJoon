@@ -90,3 +90,64 @@ void AjUia::ListWindow(HWND hwnd)
     int indent = 0;
     list(parent, indent);
 }
+
+QString AjUia::getValue(HWND hwnd, QString path)
+{
+    return "";
+}
+
+void AjUia::setValue(HWND hwnd, QString path, QString val)
+{
+
+}
+
+IAccessible* AjUia::getHWND(HWND hwnd, QString path)
+{
+    return 0;
+}
+
+void AjUia::list(IAccessible *pAcc, QString path)
+{
+    qDebug() << "list";
+}
+
+void AjUia::list2(IAccessible *pAcc)
+{
+    qDebug() << "list2";
+}
+
+
+IAccessible* AjUia::getWinP(HWND window)
+{
+    return 0;
+}
+
+QString AjUia::getName(HWND hwnd, QString path)
+{
+    return 0;
+}
+
+QString AjUia::getState(HWND hwnd, QString path)
+{
+    return "";
+}
+
+QString AjUia::getType(HWND hwnd, QString path)
+{
+    return "";
+}
+
+QString AjUia::getParent(QString path)
+{
+    return "";
+}
+
+QString AjUia::getChild(HWND hwnd, QString path, QString name)
+{
+    return "";
+}
+
+QString AjUia::find(HWND hwnd, QString path, QString name)
+{
+    return "";
+}
