@@ -6,6 +6,7 @@
 #include "aj_virt.h"
 #include "aj_exec_acc.h"
 #include "aj_uia.h"
+#include "aj_exec_uia.h"
 
 #define AJ_CHECK_FAILED  1
 #define AJ_CHECK_SUCCESS 2
@@ -39,9 +40,9 @@ private:
     QString  conf_path;
     AjParser parser; // value stored in parser
     AjVirt   vi;
-    AjApplication app;
-    AjExecAcc    *acc;
-    AjUia        *uia;
+    AjApplication  app;
+    AjExecAcc     *acc;
+    AjExecUia     *uia;
 };
 
 

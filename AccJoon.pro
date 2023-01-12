@@ -46,6 +46,7 @@ SOURCES += \
         Sources/aj_dllgen.cpp \
         Sources/aj_exec.cpp \
         Sources/aj_exec_acc.cpp \
+        Sources/aj_exec_uia.cpp \
         Sources/aj_keyboard.cpp \
         Sources/aj_lua.cpp \
         Sources/aj_mouse.cpp \
@@ -66,6 +67,7 @@ HEADERS += \
     Sources/aj_dllgen.h \
     Sources/aj_exec.h \
     Sources/aj_exec_acc.h \
+    Sources/aj_exec_uia.h \
     Sources/aj_keyboard.h \
     Sources/aj_lua.h \
     Sources/aj_mouse.h \

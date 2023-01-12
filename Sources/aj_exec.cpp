@@ -6,7 +6,7 @@ AjExec::AjExec(QString script_path)
 {
     condition_flag = AJ_NORMAL;
     acc = new AjExecAcc(&parser, &app);
-    uia = new AjUia(&app);
+    uia = new AjExecUia(&parser, &app);
 
     parser.openFile(script_path);
     while( parser.eof==0 )
@@ -131,7 +131,7 @@ void AjExec::execNormal(AjCommand *cmd)
     }
     else if( cmd->command.startsWith("uia_") )
     {
-        uia->ListWindow(app.hwnd);
+        uia->exec(cmd);
     }
     else
     {
