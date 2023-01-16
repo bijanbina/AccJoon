@@ -29,39 +29,41 @@ IUIAutomationElement* AjUia::getElement(HWND hwnd)
     return uia;
 }
 
-void AjUia::list(IUIAutomationElement *parent, int indent)
+void AjUia::list(IUIAutomationElement *parent, QString path)
 {
-//    qDebug() << "####### getChildren: "
-//             << indent;
-
     IUIAutomationTreeWalker* pControlWalker = NULL;
     IUIAutomationElement* pNode = NULL;
+    int child_id = 0;
 
     pAutomation->get_ControlViewWalker(&pControlWalker);
-    if (pControlWalker == NULL)
+    if( pControlWalker==NULL )
         goto cleanup;
 
     pControlWalker->GetFirstChildElement(parent, &pNode);
-    if (pNode == NULL)
+    if( pNode==NULL )
         goto cleanup;
+
+    if( path.length() )
+    {
+        path += QString(".");
+    }
 
     while( pNode )
     {
+        child_id += 1;
         BSTR desc, name;
         pNode->get_CurrentLocalizedControlType(&desc);
         pNode->get_CurrentName(&name);
-        QString print_desc;
-        for( int x=0 ; x<=indent ; x++ )
-        {
-           print_desc += "  ";
-        }
+        QString print_desc = path;
+        print_desc.chop(1);
+        print_desc += " ";
         print_desc += QString::fromStdWString(desc);
         print_desc += ":";
         print_desc += QString::fromStdWString(name);
         qDebug() << print_desc;
         SysFreeString(desc);
 
-        list(pNode, indent+1);
+        list(pNode, path + QString::number(child_id+1));
         IUIAutomationElement* pNext;
         pControlWalker->GetNextSiblingElement(pNode, &pNext);
         pNode->Release();
@@ -75,8 +77,7 @@ cleanup:
     if (pNode != NULL)
         pNode->Release();
 
-//    qDebug() <<"####### Exit getChildren: "
-//             << indent;
+    qDebug() <<"####### Exit getChildren: ";
     return;
 }
 
@@ -87,8 +88,7 @@ void AjUia::ListWindow(HWND hwnd)
     if (parent == NULL)
             return;
 
-    int indent = 0;
-    list(parent, indent);
+    list(parent);
 }
 
 QString AjUia::getValue(HWND hwnd, QString path)
@@ -106,20 +106,15 @@ IAccessible* AjUia::getHWND(HWND hwnd, QString path)
     return 0;
 }
 
-void AjUia::list(IAccessible *pAcc, QString path)
+void AjUia::list(IUIAutomationElement *elem)
 {
+    list(elem, "");
     qDebug() << "list";
 }
 
-void AjUia::list2(IAccessible *pAcc)
+void AjUia::list2(IUIAutomationElement *elem)
 {
     qDebug() << "list2";
-}
-
-
-IAccessible* AjUia::getWinP(HWND window)
-{
-    return 0;
 }
 
 QString AjUia::getName(HWND hwnd, QString path)

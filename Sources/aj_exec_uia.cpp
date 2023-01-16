@@ -71,10 +71,10 @@ void AjExecUia::execList(AjCommand *cmd)
 {
     if( cmd->args.size() )
     {
-        IAccessible* element = uia->getHWND(app->hwnd, cmd->args[0]);
+        IUIAutomationElement* element = uia->getElement(app->hwnd);
         if( cmd->command=="uia_listChild" )
         {
-            aj_accList2(element);
+            uia->list2(element);
         }
         else
         {
@@ -83,7 +83,7 @@ void AjExecUia::execList(AjCommand *cmd)
     }
     else
     {
-        IAccessible* element = uia->getWinP(app->hwnd);
+        IUIAutomationElement* element = uia->getElement(app->hwnd);
         if( cmd->command=="uia_listChild" )
         {
             uia->list2(element);

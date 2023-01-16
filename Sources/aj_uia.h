@@ -27,14 +27,14 @@ public:
     ~AjUia();
 
     IUIAutomationElement* getElement(HWND hwnd);
-    void list(IUIAutomationElement *parent, int indent);
+    void list(IUIAutomationElement *parent, QString path);
     void ListWindow(HWND hwnd);
 
     QString getValue(HWND hwnd, QString path);
     void setValue(HWND hwnd, QString path, QString val);
     IAccessible* getHWND(HWND hwnd, QString path);
-    void list(IAccessible *pAcc, QString path);
-    void list2(IAccessible *pAcc);
+    void list(IUIAutomationElement *elem);
+    void list2(IUIAutomationElement *elem);
     IAccessible* getWinP(HWND window);
     QString getName(HWND hwnd, QString path);
     QString getState(HWND hwnd, QString path);
