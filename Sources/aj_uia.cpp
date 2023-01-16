@@ -54,13 +54,17 @@ void AjUia::list(IUIAutomationElement *parent, QString path)
         BSTR desc, name;
         pNode->get_CurrentLocalizedControlType(&desc);
         pNode->get_CurrentName(&name);
+
         QString print_desc = path;
         print_desc.chop(1);
         print_desc += " ";
         print_desc += QString::fromStdWString(desc);
         print_desc += ":";
-        print_desc += QString::fromStdWString(name);
-        qDebug() << print_desc;
+        if( name!=NULL )
+        {
+            print_desc += QString::fromStdWString(name);
+        }
+//        qDebug() << print_desc;
         SysFreeString(desc);
 
         list(pNode, path + QString::number(child_id+1));
@@ -71,13 +75,16 @@ void AjUia::list(IUIAutomationElement *parent, QString path)
     }
 
 cleanup:
-    if (pControlWalker != NULL)
+    if( pControlWalker!=NULL )
+    {
         pControlWalker->Release();
+    }
 
-    if (pNode != NULL)
+    if( pNode!=NULL )
+    {
         pNode->Release();
+    }
 
-    qDebug() <<"####### Exit getChildren: ";
     return;
 }
 
