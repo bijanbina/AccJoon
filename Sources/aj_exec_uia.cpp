@@ -9,7 +9,6 @@ AjExecUia::AjExecUia(AjParser *p, AjApplication *a)
     uia = new AjUia(app);
 }
 
-
 void AjExecUia::exec(AjCommand *cmd)
 {
     if( cmd->command=="uia_getVal" )

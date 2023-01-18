@@ -30,9 +30,8 @@ public:
     void list(IUIAutomationElement *parent, QString path);
     void ListWindow(HWND hwnd);
 
-    QString getValue(HWND hwnd, QString path);
-    void setValue(HWND hwnd, QString path, QString val);
-    IAccessible* getHWND(HWND hwnd, QString path);
+    QString getValue(IUIAutomationElement *root, QString path);
+    void setValue(IUIAutomationElement *root, QString path);
     void list(IUIAutomationElement *elem);
     void list2(IUIAutomationElement *elem);
     IAccessible* getWinP(HWND window);
@@ -42,6 +41,11 @@ public:
     QString getParent(QString path);
     QString getChild(HWND hwnd, QString path, QString name);
     QString find(HWND hwnd, QString path, QString name);
+
+    IUIAutomationElement* getElem(IUIAutomationElement *root, QString path);
+    IUIAutomationElement* getElem(IUIAutomationElement *elem, QStringList path_list);
+    IUIAutomationElement  getChild(IUIAutomationElement *elem, int index);
+    IUIAutomationElement  getChildCount(IUIAutomationElement *pAcc);
 
 private:
     IUIAutomation *pAutomation;

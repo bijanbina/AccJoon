@@ -98,19 +98,47 @@ void AjUia::ListWindow(HWND hwnd)
     list(parent);
 }
 
-QString AjUia::getValue(HWND hwnd, QString path)
+QString AjUia::getValue(IUIAutomationElement *root, QString path)
 {
     return "";
 }
 
-void AjUia::setValue(HWND hwnd, QString path, QString val)
+void AjUia::setValue(IUIAutomationElement *root, QString path)
 {
 
 }
 
-IAccessible* AjUia::getHWND(HWND hwnd, QString path)
+IUIAutomationElement* AjUia::getElem(IUIAutomationElement *root, QString path)
 {
-    return 0;
+    IUIAutomationElement *elem = NULL;
+    QStringList path_split = path.split('.', QString::SkipEmptyParts);
+
+    getElem(elem, path_split);
+
+    return elem;
+}
+
+IUIAutomationElement* AjUia::getElem(IUIAutomationElement *elem, QStringList path_list)
+{
+    if( path_list.size()>0 )
+    {
+        int index = path_list[0].toInt() - 1;
+        IUIAutomationElement* child = aj_accGetChild(elem, index);
+
+        if( child!=NULL )
+        {
+            return getElem(child, path_list.mid(1));
+        }
+        else
+        {
+            return NULL;
+        }
+
+    }
+    else
+    {
+        return elem;
+    }
 }
 
 void AjUia::list(IUIAutomationElement *elem)
@@ -144,12 +172,59 @@ QString AjUia::getParent(QString path)
     return "";
 }
 
-QString AjUia::getChild(HWND hwnd, QString path, QString name)
+IUIAutomationElement AjUia::getChild(IUIAutomationElement *elem, int index)
 {
-    return "";
+    IUIAutomationTreeWalker* pControlWalker = NULL;
+    IUIAutomationElement* pNode = NULL;
+    int child_id = 0;
+
+    pAutomation->get_ControlViewWalker(&pControlWalker);
+    if( pControlWalker==NULL )
+        goto cleanup;
+
+    pControlWalker->GetFirstChildElement(elem, &pNode);
+    if( pNode==NULL )
+        goto cleanup;
+
+    for( int i=0 ; i<index ; i++ )
+    {
+        IUIAutomationElement* pNext;
+        pControlWalker->GetNextSiblingElement(pNode, &pNext);
+        pNode->Release();
+        pNode = pNext;
+
+        if( pNode )
+        {
+
+        }
+    }
+
+cleanup:
+    if( pControlWalker!=NULL )
+    {
+        pControlWalker->Release();
+    }
+
+    if( pNode!=NULL )
+    {
+        pNode->Release();
+    }
+
+    return NULL;
 }
 
 QString AjUia::find(HWND hwnd, QString path, QString name)
 {
     return "";
+}
+
+long AjUia::getChildCount(IUIAutomationElement *elem)
+{
+    long count;
+    if( elem==NULL )
+    {
+        return -1;
+    }
+//    elem->get_->get_accChildCount(&cc);
+    return count;
 }
