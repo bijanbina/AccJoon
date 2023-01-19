@@ -64,7 +64,7 @@ void AjUia::list(IUIAutomationElement *parent, QString path)
         {
             print_desc += QString::fromStdWString(name);
         }
-//        qDebug() << print_desc;
+        qDebug() << print_desc;
         SysFreeString(desc);
 
         list(pNode, path + QString::number(child_id+1));
@@ -100,10 +100,23 @@ void AjUia::ListWindow(HWND hwnd)
 
 QString AjUia::getValue(IUIAutomationElement *root, QString path)
 {
-    return "";
+    BSTR value;
+    IUIAutomationElement *elem = getElem(root, path);
+
+    if( elem==NULL )
+    {
+        qDebug() << "Error: cannot get value of uia ("
+                 << path << ")";
+        return "";
+    }
+
+    elem->get_CurrentItemStatus(&value);
+
+
+    return aj_toQString(value);
 }
 
-void AjUia::setValue(IUIAutomationElement *root, QString path)
+void AjUia::setValue(IUIAutomationElement *root, QString path, QString val)
 {
 
 }
@@ -123,7 +136,7 @@ IUIAutomationElement* AjUia::getElem(IUIAutomationElement *elem, QStringList pat
     if( path_list.size()>0 )
     {
         int index = path_list[0].toInt() - 1;
-        IUIAutomationElement* child = aj_accGetChild(elem, index);
+        IUIAutomationElement* child = getChild(elem, index);
 
         if( child!=NULL )
         {
@@ -172,31 +185,40 @@ QString AjUia::getParent(QString path)
     return "";
 }
 
-IUIAutomationElement AjUia::getChild(IUIAutomationElement *elem, int index)
+IUIAutomationElement* AjUia::getChild(IUIAutomationElement *elem, int index)
 {
     IUIAutomationTreeWalker* pControlWalker = NULL;
-    IUIAutomationElement* pNode = NULL;
-    int child_id = 0;
+    IUIAutomationElement* node = NULL;
+    int i = 0;
 
     pAutomation->get_ControlViewWalker(&pControlWalker);
     if( pControlWalker==NULL )
         goto cleanup;
 
-    pControlWalker->GetFirstChildElement(elem, &pNode);
-    if( pNode==NULL )
+    pControlWalker->GetFirstChildElement(elem, &node);
+    if( node==NULL )
         goto cleanup;
 
-    for( int i=0 ; i<index ; i++ )
+    for( i=0 ; i<index ; i++ )
     {
-        IUIAutomationElement* pNext;
-        pControlWalker->GetNextSiblingElement(pNode, &pNext);
-        pNode->Release();
-        pNode = pNext;
+        IUIAutomationElement* next;
+        pControlWalker->GetNextSiblingElement(node, &next);
+        node->Release();
+        node = next;
 
-        if( pNode )
+        if( node==NULL )
         {
-
+            qDebug() << "Error 151: Index child surpass child count";
+            break;
         }
+    }
+
+    qDebug() << "Index =" << i;
+
+    if( i==index )
+    {
+        pControlWalker->Release();
+        return node;
     }
 
 cleanup:
@@ -205,9 +227,9 @@ cleanup:
         pControlWalker->Release();
     }
 
-    if( pNode!=NULL )
+    if( node!=NULL )
     {
-        pNode->Release();
+        node->Release();
     }
 
     return NULL;

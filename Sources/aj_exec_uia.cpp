@@ -56,14 +56,16 @@ void AjExecUia::exec(AjCommand *cmd)
 void AjExecUia::execGetVal(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = uia->getValue(app->hwnd, path);
+    IUIAutomationElement* element = uia->getElement(app->hwnd);
+    QString ret = uia->getValue(element, path);
     execAssign(cmd, ret);
 }
 
 void AjExecUia::execSetVal(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    uia->setValue(app->hwnd, path, cmd->args.last());
+    IUIAutomationElement* element = uia->getElement(app->hwnd);
+    uia->setValue(element, path, cmd->args.last());
 }
 
 void AjExecUia::execList(AjCommand *cmd)
@@ -126,7 +128,9 @@ void AjExecUia::execGetChild(AjCommand *cmd)
 {
     QString path = cmd->args[0];
     QString name = cmd->args[1];
-    QString ret = uia->getChild(app->hwnd, path, name);
+    ///FIXME: Please implement this function
+    QString ret = "";
+//    QString ret = uia->getChild(app->hwnd, path, name);
     execAssign(cmd, ret);
 }
 
