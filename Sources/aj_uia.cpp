@@ -113,7 +113,7 @@ QString AjUia::getValue(IUIAutomationElement *root, QString path)
     elem->get_CurrentItemStatus(&value);
 
 
-    return aj_toQString(value);
+    return QString::fromStdWString(value);
 }
 
 void AjUia::setValue(IUIAutomationElement *root, QString path, QString val)
@@ -126,7 +126,7 @@ IUIAutomationElement* AjUia::getElem(IUIAutomationElement *root, QString path)
     IUIAutomationElement *elem = NULL;
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
 
-    getElem(elem, path_split);
+    elem = getElem(root, path_split);
 
     return elem;
 }
@@ -140,6 +140,7 @@ IUIAutomationElement* AjUia::getElem(IUIAutomationElement *elem, QStringList pat
 
         if( child!=NULL )
         {
+            qDebug() << "path =" << path_list;
             return getElem(child, path_list.mid(1));
         }
         else
@@ -199,7 +200,7 @@ IUIAutomationElement* AjUia::getChild(IUIAutomationElement *elem, int index)
     if( node==NULL )
         goto cleanup;
 
-    for( i=0 ; i<index ; i++ )
+    for( i=1 ; i<index ; i++ )
     {
         IUIAutomationElement* next;
         pControlWalker->GetNextSiblingElement(node, &next);
@@ -208,12 +209,11 @@ IUIAutomationElement* AjUia::getChild(IUIAutomationElement *elem, int index)
 
         if( node==NULL )
         {
-            qDebug() << "Error 151: Index child surpass child count";
+            qDebug() << "Error 151: Index child surpass child count"
+                     << "i =" << i << index;
             break;
         }
     }
-
-    qDebug() << "Index =" << i;
 
     if( i==index )
     {

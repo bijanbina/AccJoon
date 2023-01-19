@@ -58,6 +58,7 @@ void AjExecUia::execGetVal(AjCommand *cmd)
     QString path = cmd->args[0];
     IUIAutomationElement* element = uia->getElement(app->hwnd);
     QString ret = uia->getValue(element, path);
+    qDebug() << "ret =" << ret;
     execAssign(cmd, ret);
 }
 
