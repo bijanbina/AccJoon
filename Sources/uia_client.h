@@ -14,6 +14,12 @@ typedef interface IUIAutomationElement IUIAutomationElement;
 
 #endif 	/* __IUIAutomationElement_FWD_DEFINED__ */
 
+#ifndef __IUIAutomationValuePattern_FWD_DEFINED__
+#define __IUIAutomationValuePattern_FWD_DEFINED__
+typedef interface IUIAutomationValuePattern IUIAutomationValuePattern;
+
+#endif 	/* __IUIAutomationValuePattern_FWD_DEFINED__ */
+
 #ifndef __IUIAutomation_FWD_DEFINED__
 #define __IUIAutomation_FWD_DEFINED__
 typedef interface IUIAutomation IUIAutomation;

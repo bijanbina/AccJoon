@@ -100,7 +100,7 @@ void AjUia::ListWindow(HWND hwnd)
 
 QString AjUia::getValue(IUIAutomationElement *root, QString path)
 {
-    BSTR value;
+    VARIANT value;
     IUIAutomationElement *elem = getElem(root, path);
 
     if( elem==NULL )
@@ -110,10 +110,23 @@ QString AjUia::getValue(IUIAutomationElement *root, QString path)
         return "";
     }
 
-    elem->get_CurrentItemStatus(&value);
+    elem->GetCurrentPropertyValue(UIA_ToggleToggleStatePropertyId,
+                                  &value);
+//    IUIAutomationValuePattern *pattern = nullptr;
+//    hr = found_element->GetCurrentPattern(UIA_ValuePatternId,
+//                                              reinterpret_cast<IUnknown **>(&pattern));
+//    if (hr != S_OK || !pattern) {
+//        std::for_each(to_release.begin(), to_release.end(), [](auto i) { i->Release(); });
+//        return "";
+//    }
+//    to_release.push_back(pattern);
 
+//    BSTR current_value = nullptr;
+//    hr = pattern->get_CurrentValue(&current_value);
 
-    return QString::fromStdWString(value);
+    qDebug() << "lval =" <<value.lVal;
+    return "";
+//    return QString::fromStdWString(value.bstrVal);
 }
 
 void AjUia::setValue(IUIAutomationElement *root, QString path, QString val)
