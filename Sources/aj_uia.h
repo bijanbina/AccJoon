@@ -16,6 +16,7 @@
 #include "uia_element.h"
 #include "uia_tree_walker.h"
 #include "aj_application.h"
+#include "uia_pattern.h"
 
 void    aj_uiaList(HWND hwnd);
 IUIAutomationElement* aj_getUiaHWND(HWND hwnd);

@@ -112,26 +112,35 @@ QString AjUia::getValue(IUIAutomationElement *root, QString path)
 
     elem->GetCurrentPropertyValue(UIA_ToggleToggleStatePropertyId,
                                   &value);
-//    IUIAutomationValuePattern *pattern = nullptr;
-//    hr = found_element->GetCurrentPattern(UIA_ValuePatternId,
-//                                              reinterpret_cast<IUnknown **>(&pattern));
-//    if (hr != S_OK || !pattern) {
-//        std::for_each(to_release.begin(), to_release.end(), [](auto i) { i->Release(); });
-//        return "";
-//    }
-//    to_release.push_back(pattern);
 
-//    BSTR current_value = nullptr;
-//    hr = pattern->get_CurrentValue(&current_value);
-
-    qDebug() << "lval =" <<value.lVal;
+    qDebug() << "lval =" << value.lVal;
     return "";
 //    return QString::fromStdWString(value.bstrVal);
 }
 
 void AjUia::setValue(IUIAutomationElement *root, QString path, QString val)
 {
+    IUIAutomationElement *elem = getElem(root, path);
 
+    if( elem==NULL )
+    {
+        qDebug() << "Error: cannot set value of uia ("
+                 << path << ")";
+        return;
+    }
+
+    IUIAutomationValuePattern *pattern = NULL;
+    HRESULT hr = elem->GetCurrentPattern(UIA_TogglePatternId,
+                                         reinterpret_cast<IUnknown **>(&pattern));
+    if( hr!=S_OK || pattern==NULL )
+    {
+        return;
+    }
+    BSTR value = SysAllocString(val.toStdWString().c_str());
+    pattern->SetValue(value);
+
+    return;
+//    return QString::fromStdWString(value.bstrVal);
 }
 
 IUIAutomationElement* AjUia::getElem(IUIAutomationElement *root, QString path)
