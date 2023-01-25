@@ -1,0 +1,36 @@
+shortcut("Altium", "Altium Designer")
+{
+	path = "3.?.1.1.1.1.1.1.1.1.1.1.1.1.1.10.1.2.1.2.7.1.1"
+	via_path = uia_search(path, "Vias")
+	via_path = uia_getParent(via_path)
+	print(via_path)
+	filter_path = uia_getParent(via_path)
+	filter_path = uia_getParent(filter_path)
+	filter_path += ".?.1.1"
+	//print(path)
+	//print(lolo)
+	//lolo += "sag"
+	//print(lolo)
+		
+	//accList("4.3.4.3")
+	//sleep(2000)
+	//click("4.3.4.6.4.1.4.2.4.1.4.1.4.1.4.1.4.1.4.1.4.2.4.1.4.1.4.1.1.10.1.2.1.2.2.1", "L", "")
+	//       4.3.4.3.4.1.4.2.4.1.4.1.4.1.4.1.4.1.4.1.4.2.4.1.4.1.4.1.1.10.1.2.1.2.2.1
+	//       4.3.4.3.4.1.4.2.4.1.4.1.4.1.4.1.4.1.4.1.4.2.4.1.4.1.4.1.1.10.1.2.1.2.2.1.1
+	//com = getState("4.3.4.6.4.1.4.2.4.1.4.1.4.1.4.1.4.1.4.1.4.2.4.1.4.1.4.1.1.10.1.2.1.2.2.1.1")
+	//type = getType("4.3.4.6.4.1.4.2.4.1.4.1.4.1.4.1.4.1.4.1.4.2.4.1.4.1.4.1.1.10.1.2.1.2.2.1.1")
+	//uia_list()
+	toggle_out = uia_getToggle(via_path)
+	print(toggle_out)
+	if( toggle_out=="0" )
+	{
+		uia_toggle(via_path)
+	}
+	3D_path = uia_search(filter_path, "3D Bodies")
+	3D_path = uia_getParent(3D_path)
+	toggle_out = uia_getToggle(3D_path)
+	if( toggle_out=="0" )
+	{
+		uia_toggle(3D_path)
+	}
+}

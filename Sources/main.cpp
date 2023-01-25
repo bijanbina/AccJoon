@@ -83,11 +83,11 @@ AjCmdOptions* parseClOptions(QCoreApplication *app)
     AjCmdOptions *ret_opt = new AjCmdOptions;
     QCommandLineParser parser;
 
-    // -c conf
+    // -c Scripts
     QStringList option_conf_list;
-    option_conf_list << "c" << "conf";
+    option_conf_list << "c" << "Scripts";
     QCommandLineOption conf_option(option_conf_list,
-                       "Set Config File", "Conf path");
+                       "Set Config File", "Scripts path");
     parser.addOption(conf_option);
 
     // -a acc-path - default 4.1.3.2.1.2.2.1.1

@@ -9,6 +9,8 @@
 - [uia_getType](#uia_getType)
 - [uia_getState](#uia_getState)
 - [uia_getName](#uia_getName)
+- [uia_toggle](#uia_toggle)
+- [uia_getToggle](#uia_getToggle)
 
 ## uia_getVal
 ```
@@ -96,3 +98,17 @@ string uia_getName("uia_path")
 ```
 
 Get name of uia from path of `uia_path`
+
+## uia_toggle
+```
+void uia_toggle("uia_path")
+```
+
+Toggle value of component from path of `uia_path`, if it supports UIA_ToggleToggleStatePropertyId.
+
+## uia_toggle
+```
+string uia_getToggle("uia_path")
+```
+
+Get toggle value of component from path of `uia_path`, if it supports UIA_ToggleToggleStatePropertyId.

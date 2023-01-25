@@ -7,8 +7,8 @@ Please checkout [AccScript](https://github.com/bijanbina/AccJoon/blob/main/Docs/
 
 Two options are available
 
-### Conf Dir
-You can create a `Conf` directory beside `AccJoon` executable and put all of your `acc` script inside. `AccJoon` then execute them in an alphabetically order.
+### Scripts Dir
+You can create a `Scripts` directory beside `AccJoon` executable and put all of your `acc` script inside. `AccJoon` then execute them in an alphabetically order.
 
 ### Run with Command Line
 
