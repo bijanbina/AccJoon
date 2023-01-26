@@ -95,54 +95,9 @@ void AjUia::ListWindow(HWND hwnd)
     list(parent);
 }
 
-QString AjUia::getValue(IUIAutomationElement *root, QString path)
+UiaElement* AjUia::getElem(UiaElement *root, QString path)
 {
-    VARIANT value;
-    IUIAutomationElement *elem = getElem(root, path);
-
-    if( elem==NULL )
-    {
-        qDebug() << "Error: cannot get value of uia ("
-                 << path << ")";
-        return "";
-    }
-
-    elem->GetCurrentPropertyValue(UIA_ToggleToggleStatePropertyId,
-                                  &value);
-
-    qDebug() << "lval =" << value.lVal;
-    return "";
-//    return QString::fromStdWString(value.bstrVal);
-}
-
-void AjUia::setValue(IUIAutomationElement *root, QString path, QString val)
-{
-    IUIAutomationElement *elem = getElem(root, path);
-
-    if( elem==NULL )
-    {
-        qDebug() << "Error: cannot set value of uia ("
-                 << path << ")";
-        return;
-    }
-
-    IUIAutomationValuePattern *pattern = NULL;
-    HRESULT hr = elem->GetCurrentPattern(UIA_TogglePatternId,
-                                         reinterpret_cast<IUnknown **>(&pattern));
-    if( hr!=S_OK || pattern==NULL )
-    {
-        return;
-    }
-    BSTR value = SysAllocString(val.toStdWString().c_str());
-    pattern->SetValue(value);
-
-    return;
-//    return QString::fromStdWString(value.bstrVal);
-}
-
-IUIAutomationElement* AjUia::getElem(IUIAutomationElement *root, QString path)
-{
-    IUIAutomationElement *elem = NULL;
+    UiaElement *elem = NULL;
     QStringList path_split = path.split('.', QString::SkipEmptyParts);
 
     elem = getElem(root, path_split);
@@ -150,23 +105,23 @@ IUIAutomationElement* AjUia::getElem(IUIAutomationElement *root, QString path)
     return elem;
 }
 
-IUIAutomationElement* AjUia::getElem(IUIAutomationElement *elem, QStringList path_list)
+UiaElement* AjUia::getElem(UiaElement *elem, QStringList path_list)
 {
     if( path_list.size()>0 )
     {
-        int index = path_list[0].toInt() - 1;
-        IUIAutomationElement* child = getChild(elem, index);
+        int index = path_list[0].toInt();
+        UiaElement* child = getChild(elem, index);
 
         if( child!=NULL )
         {
-            qDebug() << "path =" << path_list;
+//            qDebug() << "path =" << path_list;
             return getElem(child, path_list.mid(1));
         }
         else
         {
+//            qDebug() << "null bud";
             return NULL;
         }
-
     }
     else
     {
@@ -174,54 +129,69 @@ IUIAutomationElement* AjUia::getElem(IUIAutomationElement *elem, QStringList pat
     }
 }
 
-void AjUia::list(IUIAutomationElement *elem)
-{
-    list(elem, "");
-    qDebug() << "list";
-}
-
-void AjUia::list2(IUIAutomationElement *elem)
-{
-    qDebug() << "list2";
-}
-
-QString AjUia::getName(HWND hwnd, QString path)
-{
-    return 0;
-}
-
-QString AjUia::getState(HWND hwnd, QString path)
-{
-    return "";
-}
-
-QString AjUia::getType(HWND hwnd, QString path)
-{
-    return "";
-}
-
 QString AjUia::getParent(QString path)
 {
-    return "";
+    QStringList path_split = path.split(".");
+    path_split.removeLast();
+    QString path_combine = path_split.join(".");
+    return path_combine;
 }
 
-IUIAutomationElement* AjUia::getChild(IUIAutomationElement *elem, int index)
+void AjUia::list(UiaElement* root)
 {
-    IUIAutomationTreeWalker* pControlWalker = NULL;
-    IUIAutomationElement* node = NULL;
-    int i = 0;
+    list(root, "");
+}
 
-    pAutomation->get_ControlViewWalker(&pControlWalker);
-    if( pControlWalker==NULL )
-        goto cleanup;
+void AjUia::listChild(UiaElement *parent)
+{
+    UiaElement* pNode = NULL;
+    int child_id = 0;
+
+    pControlWalker->GetFirstChildElement(parent, &pNode);
+    if( pNode==NULL )
+    {
+        return;
+    }
+
+    while( pNode )
+    {
+        child_id += 1;
+        BSTR desc, name;
+        pNode->get_CurrentLocalizedControlType(&desc);
+        pNode->get_CurrentName(&name);
+
+        QString print_desc = QString::number(child_id) + ")";
+        print_desc += QString::fromStdWString(desc);
+        print_desc += ":";
+        if( name!=NULL )
+        {
+            print_desc += QString::fromStdWString(name);
+        }
+        qDebug() << print_desc;
+        SysFreeString(desc);
+        SysFreeString(name);
+
+        UiaElement* pNext;
+        pControlWalker->GetNextSiblingElement(pNode, &pNext);
+        pNode->Release();
+        pNode = pNext;
+    }
+}
+
+UiaElement* AjUia::getChild(UiaElement *elem, int index)
+{
+    UiaElement* node = NULL;
+    int i = 0;
 
     pControlWalker->GetFirstChildElement(elem, &node);
     if( node==NULL )
-        goto cleanup;
+    {
+        return NULL;
+    }
 
     for( i=1 ; i<index ; i++ )
     {
-        IUIAutomationElement* next;
+        UiaElement* next;
         pControlWalker->GetNextSiblingElement(node, &next);
         node->Release();
         node = next;
@@ -236,36 +206,112 @@ IUIAutomationElement* AjUia::getChild(IUIAutomationElement *elem, int index)
 
     if( i==index )
     {
-        pControlWalker->Release();
         return node;
-    }
-
-cleanup:
-    if( pControlWalker!=NULL )
-    {
-        pControlWalker->Release();
-    }
-
-    if( node!=NULL )
-    {
-        node->Release();
     }
 
     return NULL;
 }
 
-QString AjUia::find(HWND hwnd, QString path, QString name)
+int AjUia::getChildId(UiaElement *parent, QString name)
 {
-    return "";
-}
+    UiaElement* pNode = NULL;
+    int child_id = 0;
 
-long AjUia::getChildCount(IUIAutomationElement *elem)
-{
-    long count;
-    if( elem==NULL )
+    pControlWalker->GetFirstChildElement(parent, &pNode);
+    if( pNode==NULL )
     {
         return -1;
     }
-//    elem->get_->get_accChildCount(&cc);
-    return count;
+
+    while( pNode )
+    {
+        BSTR name_bstr;
+        pNode->get_CurrentName(&name_bstr);
+
+        if( name!=NULL )
+        {
+            if( QString::fromStdWString(name_bstr)==name )
+            {
+                return child_id;
+            }
+        }
+        SysFreeString(name_bstr);
+        UiaElement* pNext;
+        pControlWalker->GetNextSiblingElement(pNode, &pNext);
+        pNode->Release();
+        pNode = pNext;
+        child_id += 1;
+    }
+    return -1;
+}
+
+QString AjUia::find(HWND hwnd, QString path, QString name)
+{
+    UiaElement *root = getElement(hwnd);
+    QStringList path_list = path.split(".");
+    QString path_c = find(root, path_list, name);
+    return path_c;
+}
+
+QString AjUia::find(UiaElement *elem, QStringList path_list, QString name)
+{
+    int search_index = path_list.indexOf("?");
+    QStringList fix_part = path_list.mid(0,search_index);
+    QStringList var_part = path_list.mid(search_index);
+    UiaElement *elem_part1 = getElem(elem, fix_part);
+    UiaElement *elem_full = NULL;
+
+    UiaElement* pNode = NULL;
+    int child_id = 0;
+
+    pControlWalker->GetFirstChildElement(elem_part1, &pNode);
+    if( pNode==NULL )
+    {
+        return "";
+    }
+
+    while( pNode )
+    {
+        var_part[0] = QString::number(child_id+1);
+        if( var_part.contains("?") ) // recursive part
+        {
+            QString ret = find(elem_part1, var_part, name);
+            if( ret.length() )
+            {
+                pNode->Release();
+                return fix_part.join(".") + "." + ret;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        elem_full = getElem(elem_part1, var_part);
+        if( elem_full )
+        {
+            BSTR name_bstr, type;
+            elem_full->get_CurrentName(&name_bstr);
+            elem_full->get_CurrentLocalizedControlType(&type);
+
+//            qDebug() << "finding: " << var_part[0]
+//                     << QString::fromStdWString(name_bstr)
+//                     << QString::fromStdWString(type);
+            if( QString::fromStdWString(name_bstr)==name )
+            {
+                QStringList total_list = fix_part + var_part;
+                SysFreeString(name_bstr);
+                pNode->Release();
+                return total_list.join(".");
+            }
+            SysFreeString(name_bstr);
+            SysFreeString(type);
+        }
+
+        UiaElement* pNext;
+        pControlWalker->GetNextSiblingElement(pNode, &pNext);
+        pNode->Release();
+        pNode = pNext;
+        child_id += 1;
+    }
+    return "";
 }

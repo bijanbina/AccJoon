@@ -29,29 +29,26 @@ public:
     explicit AjUia(AjApplication *a);
     ~AjUia();
 
-    IUIAutomationElement* getElement(HWND hwnd);
-    void list(IUIAutomationElement *parent, QString path);
+    UiaElement* getElement(HWND hwnd);
+    void list(UiaElement *root, QString path);
     void ListWindow(HWND hwnd);
 
-    QString getValue(IUIAutomationElement *root, QString path);
-    void setValue(IUIAutomationElement *root, QString path, QString val);
-    void list(IUIAutomationElement *elem);
-    void list2(IUIAutomationElement *elem);
+    void list(UiaElement *root);
+    void listChild(UiaElement *parent);
     IAccessible* getWinP(HWND window);
-    QString getName(HWND hwnd, QString path);
-    QString getState(HWND hwnd, QString path);
-    QString getType(HWND hwnd, QString path);
-    QString getParent(QString path);
-    QString getChild(HWND hwnd, QString path, QString name);
+    QString getChildPath(HWND hwnd, QString path, QString name);
     QString find(HWND hwnd, QString path, QString name);
+    QString find(UiaElement *elem, QStringList path_list, QString name);
+    QString getParent(QString path);
 
-    IUIAutomationElement* getElem(IUIAutomationElement *root, QString path);
-    IUIAutomationElement* getElem(IUIAutomationElement *elem, QStringList path_list);
-    IUIAutomationElement* getChild(IUIAutomationElement *elem, int index);
-    long                  getChildCount(IUIAutomationElement *pAcc);
+    UiaElement* getElem(UiaElement *root, QString path);
+    UiaElement* getElem(UiaElement *elem, QStringList path_list);
+    UiaElement* getChild(UiaElement *elem, int index);
+    int getChildId(UiaElement *parent, QString name);
 
 private:
     IUIAutomation *pAutomation;
+    IUIAutomationTreeWalker* pControlWalker;
     AjApplication *app;
 };
 
