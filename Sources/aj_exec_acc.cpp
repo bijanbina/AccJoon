@@ -72,7 +72,7 @@ void AjExecAcc::execList(AjCommand *cmd)
         IAccessible* acc = aj_getAccHWND(app->hwnd, cmd->args[0]);
         if( cmd->command=="acc_listChild" )
         {
-            aj_accList2(acc);
+            aj_accListChild(acc);
         }
         else
         {
@@ -84,7 +84,7 @@ void AjExecAcc::execList(AjCommand *cmd)
         IAccessible* acc = aj_getWinPAcc(app->hwnd);
         if( cmd->command=="acc_listChild" )
         {
-            aj_accList2(acc);
+            aj_accListChild(acc);
         }
         else
         {

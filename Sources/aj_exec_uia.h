@@ -3,7 +3,7 @@
 
 #include "aj_keyboard.h"
 #include "aj_parser.h"
-#include "aj_uia.h"
+#include "aj_uia_prop.h"
 
 class AjExecUia
 {
@@ -15,6 +15,7 @@ public:
 private:
     void execSetVal(AjCommand *cmd);
     void execList(AjCommand *cmd);
+    void execListChild(AjCommand *cmd);
     void execSearch(AjCommand *cmd);
     void execGetVal(AjCommand *cmd);
     void execState(AjCommand *cmd);
@@ -23,9 +24,12 @@ private:
     void execGetParent(AjCommand *cmd);
     void execGetChild(AjCommand *cmd);
     void execAssign(AjCommand *cmd, QString val);
+    void executeToggle(AjCommand *cmd);
+    void executeGetToggle(AjCommand *cmd);
 
     AjApplication *app;
     AjParser      *parser; // value stored in parser
+    AjUiaProp     *uia_prop;
     AjUia         *uia;
 };
 

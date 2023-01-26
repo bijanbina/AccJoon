@@ -140,7 +140,9 @@ QString aj_accGetValue(HWND hwnd, QString path)
         return "";
     }
 
-    return aj_toQString(value);
+    QString ret = aj_toQString(value);
+    SysFreeString(value);
+    return ret;
 }
 
 QString aj_accGetState(HWND hwnd, QString path)
@@ -255,4 +257,5 @@ void aj_accSetValue(HWND hwnd, QString path, QString val)
     {
         qDebug() << "Error: cannot set value of acc (" << path << ")";
     }
+    SysFreeString(val_bstr);
 }

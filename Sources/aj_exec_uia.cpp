@@ -7,6 +7,7 @@ AjExecUia::AjExecUia(AjParser *p, AjApplication *a)
     parser = p;
     app = a;
     uia = new AjUia(app);
+    uia_prop = new AjUiaProp(uia);
 }
 
 void AjExecUia::exec(AjCommand *cmd)
@@ -51,70 +52,75 @@ void AjExecUia::exec(AjCommand *cmd)
     {
         execSearch(cmd);
     }
+    else if( cmd->command=="uia_toggle" )
+    {
+        executeToggle(cmd);
+    }
+    else if( cmd->command=="uia_getToggle" )
+    {
+        executeGetToggle(cmd);
+    }
 }
 
 void AjExecUia::execGetVal(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    IUIAutomationElement* element = uia->getElement(app->hwnd);
-    QString ret = uia->getValue(element, path);
-    qDebug() << "ret =" << ret;
+    QString ret = uia_prop->getValue(app->hwnd, path);
     execAssign(cmd, ret);
 }
 
 void AjExecUia::execSetVal(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    IUIAutomationElement* element = uia->getElement(app->hwnd);
-    uia->setValue(element, path, cmd->args.last());
+    uia_prop->setValue(app->hwnd, path, cmd->args.last());
 }
 
 void AjExecUia::execList(AjCommand *cmd)
 {
+    UiaElement* root = uia->getElement(app->hwnd);
     if( cmd->args.size() )
     {
-        IUIAutomationElement* element = uia->getElement(app->hwnd);
-        if( cmd->command=="uia_listChild" )
-        {
-            uia->list2(element);
-        }
-        else
-        {
-            uia->list(element, cmd->args[0]);
-        }
+        UiaElement* parent = uia->getElem(root, cmd->args[0]);
+        uia->list(parent, cmd->args[0]);
     }
     else
     {
-        IUIAutomationElement* element = uia->getElement(app->hwnd);
-        if( cmd->command=="uia_listChild" )
-        {
-            uia->list2(element);
-        }
-        else
-        {
-            uia->list(element, "");
-        }
+        uia->list(root, "");
+    }
+}
+
+void AjExecUia::execListChild(AjCommand *cmd)
+{
+    UiaElement* root = uia->getElement(app->hwnd);
+    if( cmd->args.size() )
+    {
+        UiaElement* parent = uia->getElem(root, cmd->args[0]);
+        uia->listChild(parent);
+    }
+    else
+    {
+        uia->listChild(root);
     }
 }
 
 void AjExecUia::execGetName(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = uia->getName(app->hwnd, path);
+    QString ret = uia_prop->getName(app->hwnd, path);
     execAssign(cmd, ret);
 }
 
 void AjExecUia::execState(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = uia->getState(app->hwnd, path);
+    QString ret = uia_prop->getState(app->hwnd, path);
     execAssign(cmd, ret);
 }
 
 void AjExecUia::execGetType(AjCommand *cmd)
 {
     QString path = cmd->args[0];
-    QString ret = uia->getType(app->hwnd, path);
+    QString ret = uia_prop->getType(app->hwnd, path);
     execAssign(cmd, ret);
 }
 
@@ -129,9 +135,7 @@ void AjExecUia::execGetChild(AjCommand *cmd)
 {
     QString path = cmd->args[0];
     QString name = cmd->args[1];
-    ///FIXME: Please implement this function
-    QString ret = "";
-//    QString ret = uia->getChild(app->hwnd, path, name);
+    QString ret = uia_prop->getChildPath(app->hwnd, path, name);
     execAssign(cmd, ret);
 }
 
@@ -150,4 +154,17 @@ void AjExecUia::execAssign(AjCommand *cmd, QString val)
         val = parser->vars.getVal(cmd->output) + val;
     }
     parser->vars.setVar(cmd->output, val);
+}
+
+void AjExecUia::executeToggle(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    uia_prop->toggle(app->hwnd, path);
+}
+
+void AjExecUia::executeGetToggle(AjCommand *cmd)
+{
+    QString path = cmd->args[0];
+    QString ret  = uia_prop->getToggle(app->hwnd, path);
+    execAssign(cmd, ret);
 }
