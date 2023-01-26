@@ -8,7 +8,9 @@ QString aj_getAccNameI4(IAccessible *acc, long childId)
     varChild.lVal = childId;
     acc->get_accName(varChild, &bstrName);
 
-    return QString::fromWCharArray(bstrName);
+    QString ret = QString::fromWCharArray(bstrName);
+    SysFreeString(bstrName);
+    return ret;
 }
 
 QString aj_accGetName(IAccessible *acc, long childId)
@@ -198,19 +200,6 @@ int aj_getChildId(QString name, IAccessible *acc)
     return -1;
 }
 
-BSTR aj_toBSTR(QString input)
-{
-    BSTR result= SysAllocStringLen(0, input.length());
-    input.toWCharArray(result);
-    return result;
-}
-
-QString aj_toQString(BSTR input)
-{
-    return QString::fromUtf16(reinterpret_cast<ushort*>(input));
-//    return QString::fromWCharArray(input); // same result
-}
-
 void aj_accList(IAccessible *pAcc, QString path)
 {
     QString pAcc_name = aj_accGetName(pAcc, CHILDID_SELF);
@@ -264,7 +253,7 @@ void aj_accList(IAccessible *pAcc, QString path)
     qDebug() <<"####### Exit getChildren: " + path;
 }
 
-void aj_accList2(IAccessible *pAcc)
+void aj_accListChild(IAccessible *pAcc)
 {
     QString pAcc_name = aj_accGetName(pAcc, CHILDID_SELF);
 

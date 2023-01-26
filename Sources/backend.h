@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <wtypes.h>
 
 #define AJ_CMD_LMB     "L" // Left Mouse Button
 #define AJ_CMD_RMB     "R"
@@ -16,5 +17,8 @@
 void logMessage(QString msg);
 QString getDiffTime(clock_t start);
 QString getLDiffTime();
+
+QString aj_toQString(BSTR input);
+BSTR aj_toBSTR(QString input);
 
 #endif // BACKEND_H

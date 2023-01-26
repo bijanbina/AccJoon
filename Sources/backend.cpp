@@ -50,3 +50,16 @@ QString getLDiffTime()
     bt_last_clock = end;
     return  ret;
 }
+
+BSTR aj_toBSTR(QString input)
+{
+    BSTR result= SysAllocStringLen(0, input.length());
+    input.toWCharArray(result);
+    return result;
+}
+
+QString aj_toQString(BSTR input)
+{
+    return QString::fromUtf16(reinterpret_cast<ushort*>(input));
+//    return QString::fromWCharArray(input); // same result
+}

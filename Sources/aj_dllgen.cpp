@@ -255,8 +255,8 @@ QStringList aj_getConfList()
     QString project_path = QDir::currentPath();
     // D:\Work\bijan\AccJoon\release
     project_path.replace("/", "\\");
-    project_path += "\\Conf";
-    // D:\Work\bijan\AccJoon\conf
+    project_path += "\\Scripts";
+    // D:\Work\bijan\AccJoon\Scripts
 
     QFileInfoList conf_list = aj_searchDir(project_path, ".acc$",
                  QDir::Files | QDir::NoSymLinks |

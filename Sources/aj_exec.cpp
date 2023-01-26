@@ -73,6 +73,10 @@ void AjExec::exec(AjCommand *cmd)
                 app.hwnd = NULL;
             }
         }
+        else if( cmd->command=="EOF" )
+        {
+            ;
+        }
         else
         {
             if( condition_flag!=AJ_TRUE_COND )
@@ -135,7 +139,7 @@ void AjExec::execNormal(AjCommand *cmd)
     }
     else
     {
-        qDebug() << "unknown command";
+        qDebug() << "Error 133: unknown command" << cmd->command;
     }
 }
 

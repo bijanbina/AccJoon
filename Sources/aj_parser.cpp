@@ -20,7 +20,7 @@ void AjParser::openFile(QString path)
     if( !conf_file->open(QIODevice::ReadOnly |
                         QIODevice::Text) )
     {
-        qDebug() << "Error: cannot open conf file" << conf_path;
+        qDebug() << "Error: cannot open script file" << conf_path;
         qDebug() << "Working dir is" << QDir::current().path();
         return;
     }
