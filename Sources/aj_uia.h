@@ -18,8 +18,10 @@
 #include "aj_application.h"
 #include "uia_pattern.h"
 
-void    aj_uiaList(HWND hwnd);
-IUIAutomationElement* aj_getUiaHWND(HWND hwnd);
+typedef IUIAutomationElement UiaElement;
+
+void        aj_uiaList(HWND hwnd);
+UiaElement* aj_getUiaHWND(HWND hwnd);
 
 class AjUia
 {
