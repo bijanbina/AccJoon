@@ -8,6 +8,7 @@
 AjParser::AjParser()
 {
     eof = 0;
+    start_t = clock();
 }
 
 void AjParser::openFile(QString path)
@@ -351,7 +352,8 @@ QString AjParser::readLine()
 
 void AjParser::printCmd(AjCommand *cmd)
 {
-    qDebug() << "Cmd:" << cmd->command
+    qDebug() << clock()-start_t
+             << cmd->command
              << "Output:" << cmd->output
              << "args:" << cmd->args;
 }

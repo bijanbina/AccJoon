@@ -53,6 +53,7 @@ private:
 
     QFile *conf_file;
     QString conf_path;
+    clock_t start_t;
 };
 
 #endif // AJCONFPARSER_H
