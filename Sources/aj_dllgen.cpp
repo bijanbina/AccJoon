@@ -86,6 +86,29 @@ void aj_addCopyDllCmds(QFile *bat_file,
         bat_file->write("\" ");
         bat_file->write(bin_path.toStdString().c_str());
     }
+    aj_addLuaDll(bat_file, project_path);
+    bat_file->write("\npause");
+}
+
+void aj_addLuaDll(QFile *bat_file, QString project_path)
+{
+    QString lua_path = project_path;
+    lua_path += "\\Setup\\lua54.dll";
+    QFileInfo lua_dll(lua_path);
+    QString bin_path = QDir::currentPath().replace("/", "\\");
+    if( lua_dll.exists() )
+    {
+        bat_file->write("\ncopy \"");
+        bat_file->write(lua_path.toStdString().c_str());
+        bat_file->write("\" ");
+        bat_file->write(bin_path.toStdString().c_str());
+    }
+    else
+    {
+        qDebug() << "Error: no lua path" << lua_path;
+        exit(0);
+    }
+
 }
 
 QString aj_getQtCompiler()
@@ -103,7 +126,7 @@ QString aj_getQtCompiler()
         return "";
     }
     // C:\Qt\Qt5.7.0\5.7.0
-    qt_compiler += "\\" + qt_dir;
+    qt_compiler += QDir::separator() + qt_dir;
     // mingw53_32
     QString compiler = aj_findCompiler("mingw", qt_compiler);
     if( compiler.isEmpty() )
@@ -111,7 +134,7 @@ QString aj_getQtCompiler()
         return "";
     }
     // C:\Qt\Qt5.7.0\5.7.0\mingw53_32\bin
-    qt_compiler += "\\" + compiler + "\\bin";
+    qt_compiler += QDir::separator() + compiler + QDir::separator() + "bin";
     return qt_compiler;
 }
 
@@ -123,13 +146,13 @@ QString aj_makeToolsPath()
         return "";
     }
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin\qtcreator.exe
-    int index = creator_path.lastIndexOf("\\");
+    int index = creator_path.lastIndexOf(QDir::separator());
     QString lib_path = creator_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin
-    index = lib_path.lastIndexOf("\\");
+    index = lib_path.lastIndexOf(QDir::separator());
     lib_path = lib_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools\QtCreator
-    index = lib_path.lastIndexOf("\\");
+    index = lib_path.lastIndexOf(QDir::separator());
     lib_path = lib_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools
     QString compiler = aj_findCompiler("mingw", lib_path);
@@ -137,7 +160,8 @@ QString aj_makeToolsPath()
     {
         return "";
     }
-    lib_path += "\\" + compiler + "\\bin\\";
+    lib_path += QDir::separator() + compiler +
+            QDir::separator() + "bin" + QDir::separator();
     return lib_path;
 }
 
@@ -150,16 +174,16 @@ QString aj_getQtPath()
     }
     // 3-level parent dir
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin\qtcreator.exe
-    int index = creator_path.lastIndexOf("\\");
+    int index = creator_path.lastIndexOf(QDir::separator());
     QString qt_path = creator_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools\QtCreator\bin
-    index = qt_path.lastIndexOf("\\");
+    index = qt_path.lastIndexOf(QDir::separator());
     qt_path = qt_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools\QtCreator
-    index = qt_path.lastIndexOf("\\");
+    index = qt_path.lastIndexOf(QDir::separator());
     qt_path = qt_path.mid(0, index);
     // D:\Qt\Qt5.13.1\Tools
-    index = qt_path.lastIndexOf("\\");
+    index = qt_path.lastIndexOf(QDir::separator());
     qt_path = qt_path.mid(0, index);
     // D:\Qt\Qt5.13.1
 
@@ -253,14 +277,14 @@ QString aj_findQtShortcut(QString dirname)
     {
         if( dir_list[i].fileName().contains(Qt_reg) )
         {
-            QDir qt_dir(dirname + "\\" + dir_list[i].fileName());
+            QDir qt_dir(dirname + QDir::separator() + dir_list[i].fileName());
             QRegExp creator_reg("^Qt Creator");
             QFileInfoList qt_dir_list = qt_dir.entryInfoList();
             for( int j=0 ; j<qt_dir_list.size() ; j++ )
             {
                 if( qt_dir_list[j].fileName().contains(creator_reg) )
                 {
-                    QString ret = dir_list[i].fileName() + "\\" +
+                    QString ret = dir_list[i].fileName() + QDir::separator() +
                                   qt_dir_list[j].completeBaseName();
                     return ret;
                 }
@@ -321,11 +345,29 @@ QFileInfoList aj_searchDir(QString path, QString pattern,
     }
     else
     {
-        qDebug() << "Error: Directory doesnt exist.";
+        qDebug() << "Error: Directory" << path
+                 << "doesnt exist.";
     }
     return ret;
 }
 
+int aj_qmlExist(QString path)
+{
+    QDir project_dir(path);
+    project_dir.setFilter(QDir::Dirs | QDir::NoSymLinks |
+                       QDir::NoDot | QDir::NoDotDot);
+    QFileInfoList dir_list = project_dir.entryInfoList();
+    int len = dir_list.length();
+
+    for( int i=0 ; i<len ; i++ )
+    {
+        if( dir_list[i].fileName().contains("Qml") )
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 //these functions duplicated to maintain single header/cpp for dll gen
 //main implementation exist in aj_application
@@ -432,41 +474,37 @@ HRESULT dl_resolveIt(LPCSTR lnk_path, char *target)
 
 QString dl_findAppPath(QString path, QString pattern)
 {
-    QDir directory(path);
-    directory.setFilter(QDir::Files | QDir::NoDot | QDir::NoDotDot);
     QRegExp pattern_reg("^" + pattern.toLower());
     QRegExp lnk_reg(".lnk$");
 
-    if( directory.exists() )
-    {
-        QFileInfoList file_list = directory.entryInfoList();
+    QDir path_dir(path);
+    path_dir.setFilter(QDir::Files | QDir::NoDot | QDir::NoDotDot);
+    QFileInfoList file_list = path_dir.entryInfoList();
 
-        for( int i=0 ; i<file_list.size() ; i++ )
+    for( int i=0 ; i<file_list.size() ; i++ )
+    {
+        if( file_list[i].fileName().toLower().contains(pattern_reg) &&
+            file_list[i].fileName().contains(lnk_reg))
         {
-            if( file_list[i].fileName().toLower().contains(pattern_reg) &&
-                file_list[i].fileName().contains(lnk_reg))
+            return file_list[i].absoluteFilePath().replace("/", "\\");
+        }
+    }
+    path_dir.setFilter(QDir::Dirs | QDir::NoSymLinks |
+                        QDir::NoDot | QDir::NoDotDot);
+
+    QFileInfoList dir_list = path_dir.entryInfoList();
+
+    for( int i=0 ; i<dir_list.size() ; i++ )
+    {
+        if( dir_list[i].fileName().toLower().contains(pattern_reg) )
+        {
+            QString next_path = dir_list[i].absoluteFilePath().replace("/", "\\");
+            QString ret = dl_findAppPath(next_path, pattern);
+            if( ret.length() )
             {
-                return file_list[i].absoluteFilePath().replace("/", "\\");
+                return ret;
             }
         }
-        directory.setFilter(QDir::Dirs | QDir::NoSymLinks |
-                            QDir::NoDot | QDir::NoDotDot);
-
-        QFileInfoList dir_list = directory.entryInfoList();
-
-        for( int i=0 ; i<dir_list.size() ; i++ )
-        {
-            if( dir_list[i].fileName().toLower().contains(pattern_reg) )
-            {
-                return dl_findAppPath(dir_list[i].absoluteFilePath()
-                                   .replace("/", "\\"),  pattern);
-            }
-        }
-        return "";
     }
-    else
-    {
-        qDebug() << "Error: Directory doesnt exist.";
-        return "";
-    }
+    return "";
 }
