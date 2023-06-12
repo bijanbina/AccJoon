@@ -3,16 +3,23 @@
 #include <shobjidl.h>
 #include <shlguid.h>
 #include <QFileInfo>
+#include <QCoreApplication>
 
 void aj_dllGen()
 {
-    QString project_path = QDir::currentPath();
+    CoInitialize(NULL);
+
+    QString curr_path = QDir::currentPath();
+    QString project_path = QCoreApplication::applicationDirPath();
+    QDir::setCurrent(project_path);
     project_path.replace("/", "\\");
+
     QDir directory(project_path);
     QStringList dll_files = directory.entryList(QStringList() << "*.dll", QDir::Files);
     if( dll_files.size()>0 )
     {
         // DLLs are already generated
+        QDir::setCurrent(curr_path);
         return;
     }
 
@@ -26,7 +33,7 @@ void aj_dllGen()
     }
     aj_fillBatFile(bat_file);
     bat_file->close();
-//    qDebug() << "ending" << project_path;
+    QDir::setCurrent(curr_path);
 }
 
 void aj_fillBatFile(QFile *bat_file)
@@ -41,11 +48,27 @@ void aj_fillBatFile(QFile *bat_file)
     bat_file->write("\nwindeployqt ");
     QString bin_path = QDir::currentPath();
     bin_path.replace("/", "\\");
+    QStringList bin_split = bin_path.split(QDir::separator(),
+                                           QString::SkipEmptyParts);
+    bin_split.removeLast();
+    QString project_path = bin_split.join(QDir::separator());
+    if( aj_qmlExist(project_path) )
+    {
+        bat_file->write("--qmldir ");
+        bat_file->write((project_path + "\\Qml ").toStdString().c_str());
+    }
+
 //    bat_file->write(project_path.toStdString().c_str());
 //    bat_file->write("\\Sources ");
     bat_file->write(bin_path.toStdString().c_str());
+    aj_addCopyDllCmds(bat_file, project_path);
+}
 
+void aj_addCopyDllCmds(QFile *bat_file,
+                       QString project_path)
+{
     QString tools_path = aj_makeToolsPath();
+    QString bin_path = QDir::currentPath().replace("/", "\\");
     if( tools_path.isEmpty() )
     {
         qDebug() << "Error: Cannot retreive "

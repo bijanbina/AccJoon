@@ -17,6 +17,8 @@ DISTFILES += \
 
 win32:INCLUDEPATH += ../Benjamin/PNN/lua
 
+#QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:"level='requireAdministrator'"
+
 win32:LIBS += -L../Benjamin/PNN/libs \
               -lKernel32 \
               -lUser32 \

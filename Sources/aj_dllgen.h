@@ -7,6 +7,9 @@
 
 void aj_dllGen();
 void aj_fillBatFile(QFile *bat_file);
+void aj_addCopyDllCmds(QFile *bat_file, QString project_path);
+void aj_addLuaDll(QFile *bat_file, QString project_path);
+int aj_qmlExist(QString path);
 QString aj_getQtCompiler();
 QString aj_getQtPath();
 QString aj_getQtShortCut();
