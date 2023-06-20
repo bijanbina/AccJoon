@@ -4,7 +4,7 @@
 #include <QCommandLineParser>
 #include <QGuiApplication>
 #include <QDir>
-#include "aj_win.h"
+#include "aj_var.h"
 #include "aj_client.h"
 #include "aj_dllgen.h"
 #include "aj_exec.h"

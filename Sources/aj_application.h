@@ -5,7 +5,7 @@
 #include <QDir>
 #include <QDebug>
 
-#include "aj_win.h"
+#include "aj_var.h"
 
 QString getLinkLongPath(QString shortcut_name);
 void launchApp(AjApplication *app, QString arg="");

@@ -1,4 +1,4 @@
-shortcut("Altium", "Altium Designer")
+app("Altium", "Altium Designer")
 {
 	path = "3.?.1.1.1.1.1.1.1.1.1.1.1.1.1.10.1.2.1.2.7.1.1"
 	via_path = uia_search(path, "Vias")
