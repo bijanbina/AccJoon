@@ -4,6 +4,13 @@
 
 AjExec::AjExec(QString script_path)
 {
+    tree_parser = new AjTreeParser(script_path);
+    tree_parser->parseApps();
+    tree_parser->printApps();
+    tree_parser->parseConditions();
+    tree_parser->printConditions();
+    return;
+
     condition_flag = AJ_NORMAL;
     acc = new AjExecAcc(&parser, &app);
     uia = new AjExecUia(&parser, &app);
@@ -27,7 +34,7 @@ void AjExec::exec(AjCommand *cmd)
     }
     else
     {
-        if( cmd->command=="shortcut" )
+        if( cmd->command==AJ_APP_CMD )
         {
             QString shortcut_name = cmd->args[0];
             QString win_title;;
@@ -101,27 +108,31 @@ void AjExec::execNormal(AjCommand *cmd)
 //        setFocus();
     }
 
-    if( cmd->command=="click" )
+    if( cmd->command==AJ_CLICK_CMD )
     {
         execClick(cmd);
     }
-    else if( cmd->command=="key" )
+    else if( cmd->command==AJ_KEY_CMD )
     {
         execKey(cmd);
     }
-    else if( cmd->command=="print" )
+    else if( cmd->command==AJ_PRINT_CMD )
     {
         qDebug() << cmd->args[0];
     }
-    else if( cmd->command=="open" )
+    else if( cmd->command==AJ_OPEN_CMD )
     {
         execOpen(cmd);
     }
-    else if( cmd->command=="lua" )
+    else if( cmd->command==AJ_APP_CMD )
+    {
+        execIsOpen(cmd);
+    }
+    else if( cmd->command==AJ_LUA_CMD )
     {
         execLua(cmd);
     }
-    else if( cmd->command=="sleep" )
+    else if( cmd->command==AJ_SLEEP_CMD )
     {
         execSleep(cmd);
     }
@@ -148,23 +159,12 @@ int AjExec::execOpen(AjCommand *cmd)
     QString args;
     if( cmd->args.size()>0 )
     {
-        QString pcheck = cmd->args[0];
-        if( pcheck.length() )
-        {
-            if( aj_isProcOpen(pcheck) )
-            {
-                return AJ_CHECK_FAILED;
-            }
-        }
+        args = cmd->args[0];
     }
     if( cmd->args.size()>1 )
     {
-        args = cmd->args[1];
-    }
-    if( cmd->args.size()>2 )
-    {
         bool conversion_ok;
-        int workspace = cmd->args[2].toInt(&conversion_ok);
+        int workspace = cmd->args[1].toInt(&conversion_ok);
         if( conversion_ok && workspace>0 )
         {
             vi.setDesktop(workspace-1);
@@ -177,6 +177,24 @@ int AjExec::execOpen(AjCommand *cmd)
     launchApp(&app, args);
 
     return AJ_CHECK_SUCCESS;
+}
+
+int AjExec::execIsOpen(AjCommand *cmd)
+{
+    if( cmd->args.size()>0 )
+    {
+        QString pcheck = cmd->args[0];
+        if( pcheck.length() )
+        {
+            if( aj_isProcOpen(pcheck) )
+            {
+                return AJ_CHECK_FAILED;
+            }
+            return AJ_CHECK_SUCCESS;
+        }
+        return AJ_CHECK_FAILED;
+    }
+    return AJ_CHECK_FAILED;
 }
 
 void AjExec::setFocus()

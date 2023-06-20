@@ -7,6 +7,7 @@
 #include "aj_exec_acc.h"
 #include "aj_uia.h"
 #include "aj_exec_uia.h"
+#include "aj_tree_parser.h"
 
 #define AJ_CHECK_FAILED  1
 #define AJ_CHECK_SUCCESS 2
@@ -28,6 +29,7 @@ private:
     void execNormal(AjCommand *cmd);
 
     int  execOpen (AjCommand *cmd);
+    int  execIsOpen(AjCommand *cmd);
     int  execClick(AjCommand *cmd);
     int  execKey  (AjCommand *cmd);
     void execLua(AjCommand *cmd);
@@ -39,6 +41,7 @@ private:
 
     QString  conf_path;
     AjParser parser; // value stored in parser
+    AjTreeParser *tree_parser;
     AjVirt   vi;
     AjApplication  app;
     AjExecAcc     *acc;
