@@ -5,7 +5,8 @@
 #include <QTextStream>
 #include <QDebug>
 #include "aj_application.h"
-#include "aj_win.h"
+#include "aj_var.h"
+#include "aj_base_parser.h"
 
 typedef struct AjCmdOptions
 {
@@ -42,12 +43,9 @@ private:
     void printCmd(AjCommand *cmd);
     bool isAssignment(QString line);
     bool isFunction(QString line);
-    QStringList getArguments(QString line);
-    QStringList getCondition(QString line, AjCommand *cmd);
     QString getAssignOutput(QString line);
     QString getVal(QString arg);
 
-    QString getCommand(QString line);
     int isString(QString arg);
     int isNumber(QString arg);
 

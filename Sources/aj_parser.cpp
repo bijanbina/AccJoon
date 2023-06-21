@@ -67,7 +67,7 @@ AjCommand AjParser::parseLine()
 
 void AjParser::parseCondition(QString line, AjCommand *cmd)
 {
-    cmd->command = getCommand(line);
+    cmd->command = aj_getCommand(line);
     int trim_len = cmd->command.length() + 1;
     line.remove(0, trim_len);
     if( line[line.length()-1]!=")" )
@@ -78,7 +78,7 @@ void AjParser::parseCondition(QString line, AjCommand *cmd)
     }
     line.chop(1);// remove ) from end of line
 
-    cmd->args = getCondition(line, cmd);
+    cmd->args = aj_getCondition(line, cmd);
 //    qDebug() << cmd->command << "->" << cmd->args;
     if( cmd->args.size()!=2 )
     {
@@ -117,7 +117,7 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
     line.remove(0, len);
     line = line.trimmed();
 
-    if( isFunction(line) )
+    if( aj_isFunction(line) )
     {
         parseFunction(line, cmd);
     }
@@ -130,7 +130,7 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
 
 void AjParser::parseFunction(QString line, AjCommand *cmd)
 {
-    cmd->command = getCommand(line);
+    cmd->command = aj_getCommand(line);
     int trim_len = cmd->command.length() + 1;
     line.remove(0, trim_len);
     if( line[line.length()-1]!=")" )
@@ -141,135 +141,11 @@ void AjParser::parseFunction(QString line, AjCommand *cmd)
     }
     line.chop(1);// remove ) from end of line
 
-    cmd->args = getArguments(line);
+    cmd->args = aj_getArguments(line);
     for( int i=0; i<cmd->args.length(); i++)
     {
         cmd->args[i] = getVal(cmd->args[i]);
     }
-}
-
-QString AjParser::getCommand(QString line)
-{
-    QString result;
-    for( int i=0; i<line.length(); i++ )
-    {
-        if( line[i]=="(" )
-        {
-            return result;
-        }
-        result += line[i];
-    }
-    qDebug() << "Error 122: no \"(\" found in"
-             << line_number << "line:" << line;
-    return "";
-}
-
-QStringList AjParser::getCondition(QString line, AjCommand *cmd)
-{
-    QStringList arglist;
-    int idq_flag = 0;//inside double qoute flag
-    QString buffer;
-    int len = line.length();
-
-    for( int i=0; i<len; i++)
-    {
-        buffer += line[i];
-        if( line[i]=="\"" )
-        {
-            if( idq_flag )
-            {
-                if( i>0 )
-                {
-                    if( line[i-1]!="\\" )
-                    {
-                        idq_flag = 0;
-                    }
-                }
-            }
-            else
-            {
-                idq_flag = 1;
-            }
-        }
-        if( idq_flag==0 )
-        {
-            if( i>0 )
-            {
-                if( (line[i-1]=="=" && line[i]=="=") ||
-                    (line[i-1]=="!" && line[i]=="=") )
-                {
-                    buffer.chop(2);
-                    buffer = buffer.trimmed();
-                    arglist.push_back(buffer);
-                    buffer = "";
-                    if( line[i-1]=="=" && line[i]=="=" )
-                    {
-                        cmd->command = "if_eq";
-                    }
-                    else
-                    {
-                        cmd->command = "if_ne";
-                    }
-                }
-                else if( i==len-1 )
-                {
-                    buffer = buffer.trimmed();
-                    arglist.push_back(buffer);
-                    buffer = "";
-                }
-            }
-        }
-    }
-
-    return arglist;
-}
-
-QStringList AjParser::getArguments(QString line)
-{
-    QStringList arglist;
-    int idq_flag = 0;//inside double qoute flag
-    QString buffer;
-    int len = line.length();
-
-    for( int i=0 ; i<len ; i++ )
-    {
-        buffer += line[i];
-        if( line[i]=="\"" )
-        {
-            if( idq_flag )
-            {
-                if( i>0 )
-                {
-                    if( line[i-1]!="\\" )
-                    {
-                        idq_flag = 0;
-                    }
-                }
-            }
-            else
-            {
-                idq_flag = 1;
-            }
-        }
-        if( idq_flag==0 )
-        {
-            if( line[i]=="," )
-            {
-                buffer.chop(1);
-                buffer = buffer.trimmed();
-                arglist.push_back(buffer);
-                buffer = "";
-            }
-            else if( i==len-1 )
-            {
-                buffer = buffer.trimmed();
-                arglist.push_back(buffer);
-                buffer = "";
-            }
-        }
-    }
-
-    return arglist;
 }
 
 QString AjParser::getAssignOutput(QString line)
@@ -368,23 +244,6 @@ bool AjParser::isAssignment(QString line)
             return false;
         }
         else if( line[i]=="=" )
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool AjParser::isFunction(QString line)
-{
-    int len = line.length();
-    for( int i=0; i<len; i++ )
-    {
-        if( line[i]=="\"" )
-        {
-            return false;
-        }
-        else if( line[i]=="(" )
         {
             return true;
         }
