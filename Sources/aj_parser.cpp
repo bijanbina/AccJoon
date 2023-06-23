@@ -11,97 +11,54 @@ AjParser::AjParser()
     start_t = clock();
 }
 
-void AjParser::openFile(QString path)
+AjCommand AjParser::parseLine(QString line)
 {
-    conf_path = path;
-    eof = false;
-    line_number = 0;
-    conf_file = new QFile(conf_path);
-//    qDebug() << "Working dir is" << QDir::current().path();
-    if( !conf_file->open(QIODevice::ReadOnly |
-                        QIODevice::Text) )
-    {
-        qDebug() << "Error: cannot open script file" << conf_path;
-        qDebug() << "Working dir is" << QDir::current().path();
-        return;
-    }
-}
-
-AjCommand AjParser::parseLine()
-{
-    // trimmed would remove withespace from start and end
-    QString line = readLine();
+    qDebug() << "parseLine" << line;
     AjCommand ret;
     ret.flag_append = 0;
 
-    if( line.length() )
+    if( line.isEmpty() )
     {
-        if( line=="}" )
-        {
-            ret.command = "EOB"; // end of block "}"
-        }
-        else if( line.startsWith("if") )
-        {
-            parseCondition(line, &ret);
-        }
-        else if( line.startsWith("else") )
-        {
-            ret.command = "else";
-        }
-        else if( isAssignment(line) )
-        {
-            parseAssignment(line, &ret);
-        }
-        else
-        {
-            parseFunction(line, &ret);
-        }
+        ret.command = "NOP";
+        return ret;
     }
-    else if( eof )
+    else if( isAssignment(line) )
     {
-        ret.command = "EOF";
+        parseAssignment(line, &ret);
     }
+    else
+    {
+        parseFunction(line, &ret);
+    }
+    qDebug() << "parseLine2" << line;
     printCmd(&ret);
     return ret;
 }
 
-void AjParser::parseCondition(QString line, AjCommand *cmd)
+int AjParser::parseCondition(AjCondOpt *cond)
 {
-    cmd->command = aj_getCommand(line);
-    int trim_len = cmd->command.length() + 1;
-    line.remove(0, trim_len);
-    if( line[line.length()-1]!=")" )
-    {
-        qDebug() << "Error 123: no \")\" found in"
-                 << line_number << "line:" << line;
-        return;
-    }
-    line.chop(1);// remove ) from end of line
-
-    cmd->args = aj_getCondition(line, cmd);
+    qDebug() << "parseCondition1" << cond->if_cond;
+    AjCommand cmd;
+    QStringList args = aj_getCondition(cond->if_cond, &cmd);
 //    qDebug() << cmd->command << "->" << cmd->args;
-    if( cmd->args.size()!=2 )
-    {
-        qDebug() << "Error 125: Unexpected conditional statement"
-                 << ", in:" << line;
-        exit(0);
-    }
 
-    for( int i=0 ; i<cmd->args.size() ; i++ )
+    qDebug() << "parseCondition1.5" << cond->if_cond;
+    for( int i=0 ; i<cmd.args.size() ; i++ )
     {
-        cmd->args[i] = getVal(cmd->args[i]);
+        cmd.args[i] = getVal(cmd.args[i]);
     }
-    if( (cmd->command=="if_eq" &&
-         cmd->args[0]==cmd->args[1]) ||
-        (cmd->command=="if_ne" &&
-         cmd->args[0]!=cmd->args[1]) )
+    if( (cmd.command=="if_eq" &&
+         args[0]==args[1]) ||
+        (cmd.command=="if_ne" &&
+         args[0]!=args[1]) )
     {
-        cmd->command = "if_t";
+        return 1;
     }
     else
     {
-        cmd->command = "if_f";
+        return 0;
     }
+    qDebug() << "parseCondition2";
 }
 
 void AjParser::parseAssignment(QString line, AjCommand *cmd)
@@ -131,15 +88,6 @@ void AjParser::parseAssignment(QString line, AjCommand *cmd)
 void AjParser::parseFunction(QString line, AjCommand *cmd)
 {
     cmd->command = aj_getCommand(line);
-    int trim_len = cmd->command.length() + 1;
-    line.remove(0, trim_len);
-    if( line[line.length()-1]!=")" )
-    {
-        qDebug() << "Error 123: no \")\" found in"
-                 << line_number << "line:" << line;
-        return;
-    }
-    line.chop(1);// remove ) from end of line
 
     cmd->args = aj_getArguments(line);
     for( int i=0; i<cmd->args.length(); i++)

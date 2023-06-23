@@ -27,8 +27,8 @@ class AjParser
 {
 public:
     AjParser();
-    void openFile(QString path);
-    AjCommand parseLine();
+    AjCommand parseLine(QString line);
+    int parseCondition(AjCondOpt *cond);
 
     AjVar vars;
     int eof; //End of file
@@ -37,7 +37,6 @@ public:
 
 private:
     QString readLine();
-    void parseCondition(QString line, AjCommand *cmd);
     void parseAssignment(QString line, AjCommand *cmd);
     void parseFunction(QString line, AjCommand *cmd);
     void printCmd(AjCommand *cmd);
