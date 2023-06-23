@@ -1,5 +1,4 @@
 #include "aj_tree_parser.h"
-#include "aj_base_parser.h"
 #include <QDir>
 
 AjTreeParser::AjTreeParser(QString path)
@@ -10,8 +9,9 @@ AjTreeParser::AjTreeParser(QString path)
     line_size = aj_getScLineSize();
 }
 
-void AjTreeParser::parseApps()
+QVector<AjAppOpt *> AjTreeParser::parseApps()
 {
+    QVector<AjAppOpt *> apps;
     while( line_cntr<line_size )
     {
         line_cntr++;
@@ -33,7 +33,7 @@ void AjTreeParser::parseApps()
                 }
                 else
                 {
-                    return;
+                    return apps;
                 }
             }
         }
@@ -43,10 +43,11 @@ void AjTreeParser::parseApps()
                      << "of file" << sc_path
                      << "content:" << line;
             apps.clear();
-            return;
+            return apps;
         }
     }
-    checkApps();
+    checkApps(apps);
+    return apps;
 }
 
 AjAppOpt* AjTreeParser::createApp(QString line)
@@ -83,7 +84,7 @@ AjAppOpt* AjTreeParser::createApp(QString line)
 }
 
 // remove buggy apps
-void AjTreeParser::checkApps()
+void AjTreeParser::checkApps(QVector<AjAppOpt *> apps)
 {
     int len = apps.length();
     for( int i=0 ; i<len ; i++ )
@@ -98,12 +99,11 @@ void AjTreeParser::checkApps()
     }
 }
 
-void AjTreeParser::printApps()
+void AjTreeParser::printApps(QVector<AjAppOpt *> apps)
 {
     int len = apps.length();
     for( int i=0 ; i<len ; i++ )
     {
-        QString args;
         qDebug() << "APP" << i << "-> "
                  << apps[i]->app_name << apps[i]->win_title
                  << "1st line" << apps[i]->start_line
@@ -111,7 +111,7 @@ void AjTreeParser::printApps()
     }
 }
 
-void AjTreeParser::parseConditions()
+void AjTreeParser::parseConditions(QVector<AjAppOpt *> apps)
 {
     line_cntr = 0;
     int len = apps.size();
@@ -137,21 +137,29 @@ void AjTreeParser::parseConditions(AjAppOpt *app)
             AjCondOpt *condition = createCondition(line);
             if( condition!=NULL )
             {
-               app->conditions.push_back(condition);
+                AjLine *line = new AjLine;
+                line->cond = condition;
+                app->lines.push_back(line);
             }
             else
             {
-               return;
+                return;
             }
+        }
+        else
+        {
+            AjLine *line_buf = new AjLine;
+            line_buf->cond = NULL;
+            line_buf->line = line;
+            app->lines.push_back(line_buf);
         }
     }
 }
 
 AjCondOpt* AjTreeParser::createCondition(QString line)
 {
-    AjCommand *dummy_cmd = new AjCommand;
-    QStringList arglist = aj_getCondition(line, dummy_cmd);
-    if( arglist.length()==0 )
+    QString gip = aj_getInPar(line);
+    if( gip.length()==0 )
     {
         qDebug() << "Error in line" << line_cntr
                  << "of file" << sc_path
@@ -159,11 +167,11 @@ AjCondOpt* AjTreeParser::createCondition(QString line)
         return NULL;
     }
 
-    AjCondOpt *new_condition = new AjCondOpt;
-    new_condition->args = arglist;
+    AjCondOpt *condition = new AjCondOpt;
+    condition->if_cond = gip;
     // next line after curly, supposed curly is next line of if(..)
     line_cntr += 2;
-    new_condition->first_line = line_cntr;
+    condition->if_start = line_cntr;
 
     int end_index = aj_findEnd(line_cntr);
     if( end_index<0 )
@@ -175,31 +183,90 @@ AjCondOpt* AjTreeParser::createCondition(QString line)
     // reading from file continues from line after closed curly
     line_cntr = end_index;
     // app code block ends at the line before closed curly
-    new_condition->end_line = end_index - 1;
-    return new_condition;
+    condition->if_end = end_index - 1;
+    createElseIf(condition);
+    return condition;
 }
 
-void AjTreeParser::printConditions()
+int AjTreeParser::createElseIf(AjCondOpt *condition)
 {
-    int len = apps.size();
-    for( int i=0 ; i<len ; i++ )
+    line_cntr++;
+    QString line = aj_getScLine(line_cntr);
+    if( line.startsWith("else if") )
     {
-        QVector<AjCondOpt *> conditions = apps[i]->conditions;
-        int cond_len = conditions.size();
-        for( int j=0 ; j<cond_len ; j++ )
+        line = aj_getInPar(line);
+        if( line.length()==0 )
         {
-            QString args;
-            int arg_size = conditions[j]->args.size();
-            for( int k=0 ; k<arg_size ; k++)
-            {
-                args += "arg " + QString::number(k) + ": " +
-                        conditions[j]->args[k] + " ";
-            }
-            qDebug() << apps[i]->app_name << "-" << j << ")"
-                     << args << "1st line:"
-                     << conditions[j]->first_line << "end line"
-                     << conditions[j]->end_line;
-
+            qDebug() << "Error in line" << line_cntr
+                     << "of file" << sc_path
+                     << "content:" << line;
+            return NULL;
         }
+
+        condition->elif_cond << line;
+        // next line after curly, supposed curly is next line of if(..)
+        line_cntr += 2;
+        condition->elif_start << line_cntr;
+
+        int end_index = aj_findEnd(line_cntr);
+        if( end_index<0 )
+        {
+            qDebug() << "Error close curly not found, started" << line_cntr-1
+                     << "of file" << sc_path;
+            return NULL;
+        }
+        // reading from file continues from line after closed curly
+        line_cntr = end_index;
+        // app code block ends at the line before closed curly
+        condition->elif_end << end_index - 1;
+        createElseIf(condition);
     }
+    else if( line.startsWith("else") )
+    {
+        // next line after curly, supposed curly is next line of if(..)
+        line_cntr += 2;
+        condition->else_start = line_cntr;
+
+        int end_index = aj_findEnd(line_cntr);
+        if( end_index<0 )
+        {
+            qDebug() << "Error close curly not found, started" << line_cntr-1
+                     << "of file" << sc_path;
+            return NULL;
+        }
+        // reading from file continues from line after closed curly
+        line_cntr = end_index;
+        // app code block ends at the line before closed curly
+        condition->else_end = end_index - 1;
+    }
+    else
+    {
+        line_cntr = condition->if_end + 1;
+    }
+    return 0;
 }
+
+//void AjTreeParser::printConditions(QVector<AjAppOpt *> apps)
+//{
+//    int len = apps.size();
+//    for( int i=0 ; i<len ; i++ )
+//    {
+//        QVector<AjCondOpt *> conditions = apps[i]->conditions;
+//        int cond_len = conditions.size();
+//        for( int j=0 ; j<cond_len ; j++ )
+//        {
+//            QString args;
+//            int arg_size = conditions[j]->cond.size();
+//            for( int k=0 ; k<arg_size ; k++)
+//            {
+//                args += "arg " + QString::number(k) + ": " +
+//                        conditions[j]->cond[k] + " ";
+//            }
+//            qDebug() << apps[i]->app_name << "-" << j << ")"
+//                     << args << "1st line:"
+//                     << conditions[j]->first_line << "end line"
+//                     << conditions[j]->end_line;
+
+//        }
+//    }
+//}

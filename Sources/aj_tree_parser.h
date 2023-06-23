@@ -3,43 +3,26 @@
 
 #include <QFile>
 #include <QDebug>
-
-// conditional options structure
-typedef struct AjCondOpt
-{
-    int first_line;
-    int end_line;
-    QStringList args;
-}AjCondOpt;
-
-// shortcut options structure
-typedef struct AjAppOpt
-{
-    int start_line;
-    int end_line;
-    QString app_name;
-    QString win_title;
-    QVector<AjCondOpt *> conditions;
-}AjAppOpt;
+#include "aj_base_parser.h"
 
 class AjTreeParser
 {
 public:
     AjTreeParser(QString path);
-    void parseApps();
-    void parseConditions();
-    void printApps();
-    void printConditions();
+    QVector<AjAppOpt *> parseApps();
+    void parseConditions(QVector<AjAppOpt *> apps);
+    void printApps(QVector<AjAppOpt *> apps);
+    void printConditions(QVector<AjAppOpt *> apps);
+    void parseConditions(AjAppOpt *shortcut);
 
 private:
 
     AjAppOpt* createApp(QString line);
     QStringList extractShortcutArgs(QString line);
-    void checkApps();
+    void checkApps(QVector<AjAppOpt *> apps);
     AjCondOpt* createCondition(QString line);
-    void parseConditions(AjAppOpt *shortcut);
+    int createElseIf(AjCondOpt *condition);
 
-    QVector<AjAppOpt *> apps;
     QString sc_path;
     int line_cntr;
     int line_size;
