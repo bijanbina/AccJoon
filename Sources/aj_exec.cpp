@@ -5,21 +5,54 @@
 AjExec::AjExec(QString script_path)
 {
     tree_parser = new AjTreeParser(script_path);
-    tree_parser->parseApps();
-    tree_parser->printApps();
-    tree_parser->parseConditions();
-    tree_parser->printConditions();
-    return;
+    apps = tree_parser->parseApps();
+    tree_parser->parseConditions(apps);
+//    tree_parser->printApps(apps);
+//    tree_parser->printConditions(apps);
 
-    condition_flag = AJ_NORMAL;
     acc = new AjExecAcc(&parser, &app);
     uia = new AjExecUia(&parser, &app);
 
-    parser.openFile(script_path);
-    while( parser.eof==0 )
+    execApps();
+}
+
+void AjExec::execApps()
+{
+    int len = apps.size();
+    for( int i=0 ; i<len ; i++ )
     {
-        AjCommand cmd = parser.parseLine();
-        exec(&cmd);
+        execApp(apps[i]);
+    }
+}
+
+void AjExec::execApp(AjAppOpt *app)
+{
+    int lines_size = app->lines.size();
+    for( int i=0 ; i<lines_size ; i++ )
+    {
+        if( app->lines[i]->cond==NULL )
+        {
+            QString line = app->lines[i]->line;
+            AjCommand cmd = parser.parseLine(line);
+            exec(&cmd);
+        }
+        else
+        {
+            AjCondOpt *cond = app->lines[i]->cond;
+            int cond_result = parser.parseCondition(cond);
+            if( cond_result )
+            {
+                AjAppOpt fake_app = *app;
+                fake_app.start_line = cond->if_start;
+                fake_app.end_line = cond->if_end;
+                fake_app.lines.clear();
+                tree_parser->parseConditions(&fake_app);
+                execApp(&fake_app);
+            }
+            else
+            {
+            }
+        }
     }
 }
 
@@ -124,7 +157,7 @@ void AjExec::execNormal(AjCommand *cmd)
     {
         execOpen(cmd);
     }
-    else if( cmd->command==AJ_APP_CMD )
+    else if( cmd->command==AJ_ISOPEN_CMD )
     {
         execIsOpen(cmd);
     }

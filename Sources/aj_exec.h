@@ -25,6 +25,8 @@ public:
     int condition_flag;
 
 private:
+    void execApps();
+    void execApp(AjAppOpt *app);
     void exec(AjCommand *cmd);
     void execNormal(AjCommand *cmd);
 
@@ -39,6 +41,7 @@ private:
     void setFocus();
     void printCondFlag();
 
+    QVector<AjAppOpt *> apps;
     QString  conf_path;
     AjParser parser; // value stored in parser
     AjTreeParser *tree_parser;

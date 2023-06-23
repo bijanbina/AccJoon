@@ -13,6 +13,35 @@
 #define AJ_PRINT_CMD    "print"
 #define AJ_LUA_CMD      "lua"
 
+// conditional options structure
+typedef struct AjCondOpt
+{
+    int if_start;
+    int if_end;
+    int else_start;
+    int else_end;
+    QVector<int> elif_start;
+    QVector<int> elif_end;
+    QString if_cond;
+    QStringList elif_cond;
+}AjCondOpt;
+
+typedef struct AjLine
+{
+    AjCondOpt *cond;
+    QString line;
+}AjLine;
+
+// app options structure
+typedef struct AjAppOpt
+{
+    int start_line;
+    int end_line;
+    QString app_name;
+    QString win_title;
+    QVector<AjLine *> lines;
+}AjAppOpt;
+
 QStringList aj_getArguments(QString line);
 QString aj_getArgument(QString line, int arg_index);
 QStringList aj_getCondition(QString line, AjCommand *cmd);

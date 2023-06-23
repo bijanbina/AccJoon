@@ -63,11 +63,6 @@ QStringList aj_getArguments(QString line)
 
 QStringList aj_getCondition(QString line, AjCommand *cmd)
 {
-    line = aj_getInPar(line);
-    if( line.length()==0 )
-    {
-        return QStringList();
-    }
     QStringList arglist;
     int idq_flag = 0; // inside double qoute flag
     QString buffer;
@@ -202,7 +197,7 @@ QString aj_getInPar(QString line)
     QStringList line_split = line.split("(");
     if( line_split.size()<2 )
     {
-        qDebug() << "Error in line:" << line;
+        qDebug() << "Error split exceed, in line:" << line;
         return "";
     }
     // remove )
