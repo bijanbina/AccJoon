@@ -10,26 +10,26 @@ QString aj_getArgument(QString line, int arg_index)
 
 QStringList aj_getArguments(QString line)
 {
-    line = aj_getInPar(line);
-    if( line.length()==0 )
+    QString gip = aj_getInPar(line);
+    if( gip.isEmpty() )
     {
         return QStringList();
     }
     QStringList arglist;
-    int idq_flag = 0;//inside double qoute flag
+    int idq_flag = 0; //inside double qoute flag
     QString buffer;
-    int len = line.length();
 
+    int len = gip.length();
     for( int i=0 ; i<len ; i++ )
     {
-        buffer += line[i];
-        if( line[i]=="\"" )
+        buffer += gip[i];
+        if( gip[i]=="\"" )
         {
             if( idq_flag )
             {
                 if( i>0 )
                 {
-                    if( line[i-1]!="\\" )
+                    if( gip[i-1]!="\\" )
                     {
                         idq_flag = 0;
                     }
@@ -42,7 +42,7 @@ QStringList aj_getArguments(QString line)
         }
         if( idq_flag==0 )
         {
-            if( line[i]=="," )
+            if( gip[i]=="," )
             {
                 buffer.chop(1);
                 buffer = buffer.trimmed();

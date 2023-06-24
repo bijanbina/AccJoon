@@ -58,73 +58,25 @@ void AjExec::execApp(AjAppOpt *app)
 
 void AjExec::exec(AjCommand *cmd)
 {
-    if( condition_flag==AJ_RUN_NEXT_BLOCK )
+    if( cmd->command==AJ_APP_CMD )
     {
-        if( cmd->command=="EOB" )
+        QString shortcut_name = cmd->args[0];
+        QString win_title;;
+        if( cmd->args.size()>1 )
         {
-            condition_flag = AJ_NORMAL;
+            win_title = cmd->args[1];
+        }
+        app = getApplication(shortcut_name, win_title);
+        if( app.exe_name=="" )
+        {
+            qDebug() << "Error: exe file not found"
+                 << app.exe_path;
+            exit(0);
         }
     }
     else
     {
-        if( cmd->command==AJ_APP_CMD )
-        {
-            QString shortcut_name = cmd->args[0];
-            QString win_title;;
-            if( cmd->args.size()>1 )
-            {
-                win_title = cmd->args[1];
-            }
-            app = getApplication(shortcut_name, win_title);
-            if( app.exe_name=="" )
-            {
-                qDebug() << "Error: exe file not found"
-                     << app.exe_path;
-                exit(0);
-            }
-        }
-        else if( cmd->command=="if_t" )
-        {
-            condition_flag = AJ_TRUE_COND;
-        }
-        else if( cmd->command=="if_f" )
-        {
-            condition_flag = AJ_RUN_NEXT_BLOCK;
-        }
-        else if( cmd->command=="else" )
-        {
-            if( condition_flag==AJ_PENDING_ELSE )
-            {
-                condition_flag = AJ_RUN_NEXT_BLOCK;
-            }
-            else // AJ_NORMAL
-            {
-                condition_flag = AJ_TRUE_COND;
-            }
-        }
-        else if( cmd->command=="EOB" )
-        {
-            if( condition_flag==AJ_TRUE_COND )
-            {
-                condition_flag = AJ_PENDING_ELSE;
-            }
-            else
-            {
-                app.hwnd = NULL;
-            }
-        }
-        else if( cmd->command=="EOF" )
-        {
-            ;
-        }
-        else
-        {
-            if( condition_flag!=AJ_TRUE_COND )
-            {
-                condition_flag = AJ_NORMAL;
-            }
-            execNormal(cmd);
-        }
+        execNormal(cmd);
     }
 //    printCondFlag();
 }
@@ -212,22 +164,20 @@ int AjExec::execOpen(AjCommand *cmd)
     return AJ_CHECK_SUCCESS;
 }
 
-int AjExec::execIsOpen(AjCommand *cmd)
+void AjExec::execIsOpen(AjCommand *cmd)
 {
-    if( cmd->args.size()>0 )
+    QString var  = "0";
+    if( cmd->args.size()==0 )
     {
-        QString pcheck = cmd->args[0];
-        if( pcheck.length() )
-        {
-            if( aj_isProcOpen(pcheck) )
-            {
-                return AJ_CHECK_FAILED;
-            }
-            return AJ_CHECK_SUCCESS;
-        }
-        return AJ_CHECK_FAILED;
+        qDebug() << "IsOpen not correct argument size";
+        exit(0);
     }
-    return AJ_CHECK_FAILED;
+    QString pcheck = cmd->args[0];
+    if( aj_isProcOpen(pcheck) )
+    {
+        var = "1";
+    }
+    execAssign(cmd, var);
 }
 
 void AjExec::setFocus()
@@ -349,5 +299,6 @@ void AjExec::execAssign(AjCommand *cmd, QString val)
     {
         val = parser.vars.getVal(cmd->output) + val;
     }
+    qDebug() << "execAssign" << val;
     parser.vars.setVar(cmd->output, val);
 }
