@@ -31,9 +31,9 @@ private:
     void execNormal(AjCommand *cmd);
 
     int  execOpen (AjCommand *cmd);
-    int  execIsOpen(AjCommand *cmd);
     int  execClick(AjCommand *cmd);
     int  execKey  (AjCommand *cmd);
+    void execIsOpen(AjCommand *cmd);
     void execLua(AjCommand *cmd);
     void execSleep(AjCommand *cmd);
     void execAssign(AjCommand *cmd, QString val);

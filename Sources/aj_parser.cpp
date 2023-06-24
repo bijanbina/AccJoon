@@ -13,16 +13,10 @@ AjParser::AjParser()
 
 AjCommand AjParser::parseLine(QString line)
 {
-    qDebug() << "parseLine" << line;
     AjCommand ret;
     ret.flag_append = 0;
 
-    if( line.isEmpty() )
-    {
-        ret.command = "NOP";
-        return ret;
-    }
-    else if( isAssignment(line) )
+    if( isAssignment(line) )
     {
         parseAssignment(line, &ret);
     }
@@ -30,7 +24,6 @@ AjCommand AjParser::parseLine(QString line)
     {
         parseFunction(line, &ret);
     }
-    qDebug() << "parseLine2" << line;
     printCmd(&ret);
     return ret;
 }
@@ -40,12 +33,12 @@ int AjParser::parseCondition(AjCondOpt *cond)
     qDebug() << "parseCondition1" << cond->if_cond;
     AjCommand cmd;
     QStringList args = aj_getCondition(cond->if_cond, &cmd);
-//    qDebug() << cmd->command << "->" << cmd->args;
+    qDebug() << "->" << args;
 
     qDebug() << "parseCondition1.5" << cond->if_cond;
-    for( int i=0 ; i<cmd.args.size() ; i++ )
+    for( int i=0 ; i<args.size() ; i++ )
     {
-        cmd.args[i] = getVal(cmd.args[i]);
+        args[i] = getVal(args[i]);
     }
     if( (cmd.command=="if_eq" &&
          args[0]==args[1]) ||
@@ -90,6 +83,7 @@ void AjParser::parseFunction(QString line, AjCommand *cmd)
     cmd->command = aj_getCommand(line);
 
     cmd->args = aj_getArguments(line);
+
     for( int i=0; i<cmd->args.length(); i++)
     {
         cmd->args[i] = getVal(cmd->args[i]);

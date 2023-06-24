@@ -143,8 +143,8 @@ void AjExecUia::execSearch(AjCommand *cmd)
 {
     QString path = cmd->args[0];
     QString name = cmd->args[1];
-    QString ret  = uia->find(app->hwnd, path, name);
-    execAssign(cmd, ret);
+    QString var  = uia->find(app->hwnd, path, name);
+    execAssign(cmd, var);
 }
 
 void AjExecUia::execAssign(AjCommand *cmd, QString val)
