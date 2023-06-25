@@ -20,6 +20,10 @@ AjCommand AjParser::parseLine(QString line)
     {
         parseAssignment(line, &ret);
     }
+    else if( aj_isKeyword(line) )
+    {
+        aj_parseKeyword(line, &ret);
+    }
     else
     {
         parseFunction(line, &ret);

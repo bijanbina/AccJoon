@@ -10,8 +10,8 @@ AjExec::AjExec(QString script_path)
 //    tree_parser->printApps(apps);
 //    tree_parser->printConditions(apps);
 
-    acc = new AjExecAcc(&parser, &app);
-    uia = new AjExecUia(&parser, &app);
+    acc = new AjExecAcc(&parser, &window);
+    uia = new AjExecUia(&parser, &window);
 
     execApps();
 }
@@ -21,11 +21,12 @@ void AjExec::execApps()
     int len = apps.size();
     for( int i=0 ; i<len ; i++ )
     {
+        updateApp(apps[i]);
         execApp(apps[i]);
     }
 }
 
-void AjExec::execApp(AjAppOpt *app)
+void AjExec::execApp(AjApp *app)
 {
     int lines_size = app->lines.size();
     for( int i=0 ; i<lines_size ; i++ )
@@ -34,6 +35,10 @@ void AjExec::execApp(AjAppOpt *app)
         {
             QString line = app->lines[i]->line;
             AjCommand cmd = parser.parseLine(line);
+            if( cmd.command==AJ_RET_CMD )
+            {
+                return;
+            }
             exec(&cmd);
         }
         else
@@ -42,7 +47,7 @@ void AjExec::execApp(AjAppOpt *app)
             int cond_result = parser.parseCondition(cond);
             if( cond_result )
             {
-                AjAppOpt fake_app = *app;
+                AjApp fake_app = *app;
                 fake_app.start_line = cond->if_start;
                 fake_app.end_line = cond->if_end;
                 fake_app.lines.clear();
@@ -56,34 +61,25 @@ void AjExec::execApp(AjAppOpt *app)
     }
 }
 
+void AjExec::updateApp(AjApp *app)
+{
+    window = getApplication(app->app_name, app->win_title);
+    if( window.exe_name=="" )
+    {
+        qDebug() << "Error: exe file not found"
+             << window.exe_path;
+        exit(0);
+    }
+}
+
 void AjExec::exec(AjCommand *cmd)
 {
-    if( cmd->command==AJ_APP_CMD )
-    {
-        QString shortcut_name = cmd->args[0];
-        QString win_title;;
-        if( cmd->args.size()>1 )
-        {
-            win_title = cmd->args[1];
-        }
-        app = getApplication(shortcut_name, win_title);
-        if( app.exe_name=="" )
-        {
-            qDebug() << "Error: exe file not found"
-                 << app.exe_path;
-            exit(0);
-        }
-    }
-    else
-    {
-        execNormal(cmd);
-    }
-//    printCondFlag();
+    execNormal(cmd);
 }
 
 void AjExec::execNormal(AjCommand *cmd)
 {
-    if( app.hwnd==NULL )
+    if( window.hwnd==NULL )
     {
         qDebug() << "Warning: HWND is not set"
                  << "line:" << parser.line_number;
@@ -121,6 +117,10 @@ void AjExec::execNormal(AjCommand *cmd)
     {
         execSleep(cmd);
     }
+    else if( cmd->command==AJ_W8OPEN_CMD )
+    {
+        execWaitOpen(cmd);
+    }
     else if( cmd->command=="assign" )
     {
         execAssign(cmd, cmd->args[0]);
@@ -136,6 +136,24 @@ void AjExec::execNormal(AjCommand *cmd)
     else
     {
         qDebug() << "Error 133: unknown command" << cmd->command;
+    }
+}
+
+void AjExec::execWaitOpen(AjCommand *cmd)
+{
+    if( cmd->args.size()==0 )
+    {
+        qDebug() << "WaitOpen not correct argument size";
+        exit(0);
+    }
+    QString waited_process = cmd->args[0];
+    while( 1 )
+    {
+        QThread::msleep(10);
+        if( aj_isProcOpen(waited_process) )
+        {
+            break;
+        }
     }
 }
 
@@ -159,7 +177,7 @@ int AjExec::execOpen(AjCommand *cmd)
             qDebug() << "Error: workspace value is wrong";
         }
     }
-    launchApp(&app, args);
+    launchApp(&window, args);
 
     return AJ_CHECK_SUCCESS;
 }
@@ -182,7 +200,7 @@ void AjExec::execIsOpen(AjCommand *cmd)
 
 void AjExec::setFocus()
 {
-    if( app.hwnd==NULL )
+    if( window.hwnd==NULL )
     {
 //        app->hwnd = GetForegroundWindow();
 //        qDebug() << "Switching to active window";
@@ -192,12 +210,12 @@ void AjExec::setFocus()
             return;
 //        }
     }
-    SetForegroundWindow(app.hwnd);
+    SetForegroundWindow(window.hwnd);
     QThread::msleep(10);
 
     char buffer[256];
-    GetWindowTextA(app.hwnd, buffer, 256);
-    app.win_title = buffer;
+    GetWindowTextA(window.hwnd, buffer, 256);
+    window.win_title = buffer;
 }
 
 int AjExec::execClick(AjCommand *cmd)
@@ -227,12 +245,12 @@ int AjExec::execClick(AjCommand *cmd)
     }
 
     POINT obj_center;
-    obj_center = aj_accGetLocation(acc_cmd, app.hwnd, path);
+    obj_center = aj_accGetLocation(acc_cmd, window.hwnd, path);
 
     if( obj_center.x==0 && obj_center.y==0 )
     {
         qDebug() << "Error: cannot get location in window ("
-                 << app.win_title << ")";
+                 << window.win_title << ")";
         return -1;
     }
     qDebug() << "obj_center" << obj_center.x

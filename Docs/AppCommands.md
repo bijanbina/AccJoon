@@ -1,10 +1,12 @@
 ## Table of Content 
-- [shortcut](#shortcut)
+- [app](#app)
 - [open](#open)
+- [isOpen](#isOpen)
+- [waitOpen](#waitOpen)
 
-## shortcut
+## app
 ```
-shortcut("name", "title")
+app("name", "title")
 {
 	...
 }
@@ -15,7 +17,7 @@ Focus on an application by providing
 
 `case-insensitive`
 
-name is part of application shortcut's name. 
+name is part of application app's name. 
 
 Examples: `Qt`, `Altium`, `Telegram`
 
@@ -27,16 +29,10 @@ To match better, you can specify a string that the matched window title should h
 
 ## open
 ```
-void open("check", "arg", workspace)
+void open("arg", workspace)
 ```
 open an application
-	
-### \<check\>
-	
-`optional`
-	
-process name that will be checked to prevent opening a duplicated app
-	
+		
 ### \<arg\>
 
 `optional`
@@ -47,3 +43,23 @@ Open application with arguments of `arg`
 `optional`
 	
 Open application in the specified `workspace` number, start from 1
+
+## isOpen
+```
+int isOpen("process_name")
+```
+Returns 1 if process_name is existed otherwise returns 0.
+		
+### \<process_name\>
+	
+Examples: `X2.exe`, `gitkraken.exe`
+
+## waitOpen
+```
+void waitOpen("process_name")
+```
+Wait for opening process_name
+		
+### \<process_name\>
+	
+Examples: `X2.exe`, `gitkraken.exe`

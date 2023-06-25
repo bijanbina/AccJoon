@@ -20,15 +20,16 @@
 class AjExec
 {
 public:
-    AjExec(QString script_path);
+    explicit AjExec(QString script_path);
 
     int condition_flag;
 
 private:
     void execApps();
-    void execApp(AjAppOpt *app);
+    void execApp(AjApp *app);
     void exec(AjCommand *cmd);
     void execNormal(AjCommand *cmd);
+    void updateApp(AjApp *app);
 
     int  execOpen (AjCommand *cmd);
     int  execClick(AjCommand *cmd);
@@ -37,16 +38,17 @@ private:
     void execLua(AjCommand *cmd);
     void execSleep(AjCommand *cmd);
     void execAssign(AjCommand *cmd, QString val);
+    void execWaitOpen(AjCommand *cmd);
 
     void setFocus();
     void printCondFlag();
 
-    QVector<AjAppOpt *> apps;
+    QVector<AjApp *> apps;
     QString  conf_path;
     AjParser parser; // value stored in parser
     AjTreeParser *tree_parser;
     AjVirt   vi;
-    AjApplication  app;
+    AjApplication  window;
     AjExecAcc     *acc;
     AjExecUia     *uia;
 };

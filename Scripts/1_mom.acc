@@ -5,27 +5,33 @@ app("Qt")
 	{
 		return
 	}
+	key("Ctrl+1")
 	sleep(2000)
 	click("4.1.3.3.1.7", "L", "Mom")
 	sleep(2000)
 	key("F5")
-	sleep(4000)
+	waitOpen("mom.exe")
 	key("Ctrl+1")
 	sleep(500)
 	click("4.1.3.3.1.7", "L", "Chess")
 	sleep(1000)
 	key("F5")
-	sleep(4000)
+	waitOpen("chess.exe")
 	key("Ctrl+1")
 	sleep(300)
 	click("4.1.3.3.1.7", "L", "Rebound")
 	sleep(1000)
 	key("F5")
-	sleep(2000)
+	waitOpen("rebound.exe")
 }
 app("Qt")
 {
-	open("batool.exe", "", 6)
+	bt_open = isOpen("batool.exe")
+	if( bt_open==1 )
+	{
+		return
+	}
+	open("", 6)
 	sleep(2000)
 	click("4.1.3.3.1.7", "L", "BaTool")
 	sleep(2000)

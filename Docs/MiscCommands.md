@@ -4,6 +4,7 @@
 - [lua](#lua)
 - [print](#print)
 - [click](#click)
+- [return](#return)
 
 ## key
 ```
@@ -56,16 +57,23 @@ Possible actions are
 
 `optional`
 	
-specify a child in a list
+Specify a child in a list
 	
 ### <offset_x, offset_y>
 	
 `optional`
 
-add offset to the click position
+Add offset to the click position
 	
 ### <offset_id>
 	
 `optional`
 
-add offset to final child Id
+Add offset to final child Id
+
+## return
+```
+return
+```
+
+Return from the app.
