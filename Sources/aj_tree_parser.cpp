@@ -9,9 +9,9 @@ AjTreeParser::AjTreeParser(QString path)
     line_size = aj_getScLineSize();
 }
 
-QVector<AjAppOpt *> AjTreeParser::parseApps()
+QVector<AjApp *> AjTreeParser::parseApps()
 {
-    QVector<AjAppOpt *> apps;
+    QVector<AjApp *> apps;
     while( line_cntr<line_size )
     {
         line_cntr++;
@@ -26,7 +26,7 @@ QVector<AjAppOpt *> AjTreeParser::parseApps()
             QString command = aj_getCommand(line);
             if( command==AJ_APP_CMD )
             {
-                AjAppOpt *app = createApp(line);
+                AjApp *app = createApp(line);
                 if( app!=NULL )
                 {
                     apps.push_back(app);
@@ -50,7 +50,7 @@ QVector<AjAppOpt *> AjTreeParser::parseApps()
     return apps;
 }
 
-AjAppOpt* AjTreeParser::createApp(QString line)
+AjApp* AjTreeParser::createApp(QString line)
 {
     QStringList app_args = aj_getArguments(line);
     if( app_args.size()==0 )
@@ -60,8 +60,8 @@ AjAppOpt* AjTreeParser::createApp(QString line)
         return NULL;
     }
 
-    AjAppOpt *app = new AjAppOpt;
-    app->app_name = app_args[0];
+    AjApp *app = new AjApp;
+    app->app_name = app_args[0].remove("\"");
     if( app_args.size()>1 )
     {
         app->win_title = app_args[1];
@@ -84,7 +84,7 @@ AjAppOpt* AjTreeParser::createApp(QString line)
 }
 
 // remove buggy apps
-void AjTreeParser::checkApps(QVector<AjAppOpt *> apps)
+void AjTreeParser::checkApps(QVector<AjApp *> apps)
 {
     int len = apps.length();
     for( int i=0 ; i<len ; i++ )
@@ -99,7 +99,7 @@ void AjTreeParser::checkApps(QVector<AjAppOpt *> apps)
     }
 }
 
-void AjTreeParser::printApps(QVector<AjAppOpt *> apps)
+void AjTreeParser::printApps(QVector<AjApp *> apps)
 {
     int len = apps.length();
     for( int i=0 ; i<len ; i++ )
@@ -111,7 +111,7 @@ void AjTreeParser::printApps(QVector<AjAppOpt *> apps)
     }
 }
 
-void AjTreeParser::parseConditions(QVector<AjAppOpt *> apps)
+void AjTreeParser::parseConditions(QVector<AjApp *> apps)
 {
     line_cntr = 0;
     int len = apps.size();
@@ -121,7 +121,7 @@ void AjTreeParser::parseConditions(QVector<AjAppOpt *> apps)
     }
 }
 
-void AjTreeParser::parseConditions(AjAppOpt *app)
+void AjTreeParser::parseConditions(AjApp *app)
 {
     line_cntr = app->start_line - 1;
     while( line_cntr<line_size )

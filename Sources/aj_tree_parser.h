@@ -9,17 +9,17 @@ class AjTreeParser
 {
 public:
     AjTreeParser(QString path);
-    QVector<AjAppOpt *> parseApps();
-    void parseConditions(QVector<AjAppOpt *> apps);
-    void printApps(QVector<AjAppOpt *> apps);
-    void printConditions(QVector<AjAppOpt *> apps);
-    void parseConditions(AjAppOpt *shortcut);
+    QVector<AjApp *> parseApps();
+    void parseConditions(QVector<AjApp *> apps);
+    void printApps(QVector<AjApp *> apps);
+    void printConditions(QVector<AjApp *> apps);
+    void parseConditions(AjApp *shortcut);
 
 private:
 
-    AjAppOpt* createApp(QString line);
+    AjApp* createApp(QString line);
     QStringList extractShortcutArgs(QString line);
-    void checkApps(QVector<AjAppOpt *> apps);
+    void checkApps(QVector<AjApp *> apps);
     AjCondOpt* createCondition(QString line);
     int createElseIf(AjCondOpt *condition);
 

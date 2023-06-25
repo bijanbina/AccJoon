@@ -136,28 +136,49 @@ QString aj_getCommand(QString line)
     return "";
 }
 
-bool aj_isFunction(QString line)
+int aj_isFunction(QString line)
 {
     int len = line.length();
     for( int i=0; i<len; i++ )
     {
         if( line[i]=="\"" )
         {
-            return false;
+            return 0;
         }
         else if( line[i]=="(" )
         {
-            return true;
+            return 1;
         }
     }
-    return false;
+    return 0;
 }
 
-bool aj_isConditional(QString line)
+int aj_isKeyword(QString line)
+{
+    if( line==AJ_RET_CMD )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void aj_parseKeyword( QString line, AjCommand *cmd)
+{
+    if( line==AJ_RET_CMD )
+    {
+        cmd->command = line;
+        cmd->flag_append = 0;
+    }
+}
+
+int aj_isConditional(QString line)
 {
     if( aj_isFunction(line)==0 )
     {
-        return false;
+        return 0;
     }
     QString cmd = aj_getCommand(line);
 
@@ -165,9 +186,9 @@ bool aj_isConditional(QString line)
         cmd=="else" || cmd=="while" ||
         cmd=="for" )
     {
-        return true;
+        return 1;
     }
-    return false;
+    return 0;
 }
 
 void aj_openScript(QString sc_path)
