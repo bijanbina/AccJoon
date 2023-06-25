@@ -35,7 +35,13 @@ class AjVar
 public:
     void setVar(QString name, QString value);
     QString getVal(QString name);
+    void setArg(int id, QString val);
+    void printVars();
+    QString getArg(int id);
+
+
 private:
+    QVector<QString> args;
     QStringList vars_name;
     QStringList vars_value;
 };

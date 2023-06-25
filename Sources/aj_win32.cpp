@@ -38,18 +38,22 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
 {
     DWORD enum_pid;
-    AjApplication *req_win = (AjApplication *)lParam;
-    GetWindowThreadProcessId(hwnd,&enum_pid);
+    AjApplication *req_app = (AjApplication *)lParam;
+    GetWindowThreadProcessId(hwnd, &enum_pid);
     if( pid_g==enum_pid )
     {
-        qDebug() << "found one!" << pid_g;
         char buffer[128];
         GetWindowTextA(hwnd, buffer, 128);
-        req_win = new AjApplication;
-        req_win->hwnd = hwnd;
-        req_win->pid = pid_g;
-        req_win->pname = aj_getPPath(pid_g);
-        req_win->win_title = buffer;
+        if( req_app==NULL )
+        {
+            qDebug() << "Error 199: application is null";
+            exit(0);
+        }
+        req_app->hwnd = hwnd;
+        req_app->pid = pid_g;
+        req_app->pname = aj_getPPath(pid_g);
+        req_app->win_title = buffer;
+        qDebug() << "EnumWindowsPid" << hwnd << buffer << pid_g;
         return FALSE;
     }
     return TRUE;
@@ -130,7 +134,7 @@ void aj_findWindowByPid(DWORD pid, AjApplication *app)
     int cntr=0;
     pid_g = pid;
     app->hwnd = NULL;
-    while( app->hwnd )
+    while( app->hwnd==0 )
     {
         cntr++;
         EnumWindows(EnumWindowsPid, (LPARAM) app);

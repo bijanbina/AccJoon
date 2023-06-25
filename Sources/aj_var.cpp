@@ -30,3 +30,36 @@ QString AjVar::getVal(QString name)
     qDebug() << "Warning: Coudn't find var" << name;
     return "";
 }
+
+void AjVar::setArg(int id, QString val)
+{
+    int len = args.length();
+    if( id>=len )
+    {
+        args.resize(id+1);
+    }
+    args[id] = val;
+}
+
+QString AjVar::getArg(int id)
+{
+    int len = args.length();
+    if( id<len )
+    {
+        return args[id];
+    }
+    else
+    {
+        qDebug() << "Error: you didnt enter argument" << id;
+        return "";
+    }
+}
+
+void AjVar::printVars()
+{
+    int len = vars_name.length();
+    for( int i=0 ; i<len ; i++ )
+    {
+        qDebug() << vars_name[i] << vars_value[i];
+    }
+}

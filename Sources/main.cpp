@@ -34,11 +34,15 @@ int main(int argc, char *argv[])
     setCurrentDir();
     aj_dllGen();
 
-    AjCmdOptions *opt = parseClOptions(&app);
 
-    if( opt->conf_path.length() )
+    if( argc>1 )
     {
-        AjExec exec(opt->conf_path);
+        QStringList arguments;
+        for( int i=2 ; i<argc ; i++ )
+        {
+            arguments << argv[i];
+        }
+        AjExec exec(argv[1], arguments);
     }
     else
     {
@@ -76,77 +80,4 @@ int main(int argc, char *argv[])
     }*/
 
     return 0;
-}
-
-AjCmdOptions* parseClOptions(QCoreApplication *app)
-{
-    AjCmdOptions *ret_opt = new AjCmdOptions;
-    QCommandLineParser parser;
-
-    // -c Scripts
-    QStringList option_conf_list;
-    option_conf_list << "c" << "Scripts";
-    QCommandLineOption conf_option(option_conf_list,
-                       "Set Config File", "Scripts path");
-    parser.addOption(conf_option);
-
-    // -a acc-path - default 4.1.3.2.1.2.2.1.1
-    QStringList option_accpath_list;
-    option_accpath_list << "a" << "acc-path";
-    QCommandLineOption accpath_option(option_accpath_list,
-                       "Set Acc Path", "Acc Path", "4.1.3.2.1.2.2.1.1");
-    parser.addOption(accpath_option);
-
-    // -m mouse command - default D
-    QStringList option_cmd_list;
-    option_cmd_list << "m" << "cmd";
-    QCommandLineOption cmd_option(option_cmd_list,
-                       "Set Mouse Cmd", "Cmd", "D");
-    parser.addOption(cmd_option);
-
-    // -n acc_name - default Headers
-    QStringList option_accname_list;
-    option_accname_list << "n" << "acc_name";
-    QCommandLineOption accname_option(option_accname_list,
-                       "Set Acc Name", "Acc Name", "Headers");
-    parser.addOption(accname_option);
-
-    // -ox offset_x - default -120
-    QStringList option_offsetx_list;
-    option_offsetx_list << "ox" << "offset_x";
-    QCommandLineOption offsetx_option(option_offsetx_list,
-                       "Set Offset X", "Offset X", "-120");
-    parser.addOption(offsetx_option);
-
-    // -oy offset_y - default 0
-    QStringList option_offsety_list;
-    option_offsety_list << "oy" << "offset_y";
-    QCommandLineOption offsety_option(option_offsety_list,
-                       "Set Offset Y", "Offset Y", "0");
-    parser.addOption(offsety_option);
-
-    // -oi offset_id - default 1
-    QStringList option_offsetid_list;
-    option_offsetid_list << "oi" << "offset_id";
-    QCommandLineOption offsetid_option(option_offsetid_list,
-                       "Set Offset ID", "Offset ID", "1");
-    parser.addOption(offsetid_option);
-
-    // -r remote
-    QCommandLineOption remote_option("r", "Execute command on a remote server");
-    parser.addOption(remote_option);
-
-    // Process the actual command line arguments given by the user
-    parser.process(*app);
-
-    ret_opt->conf_path = parser.value(conf_option);
-    ret_opt->is_remote = parser.isSet(remote_option);
-    ret_opt->acc_path = parser.value(accpath_option);
-    ret_opt->action = parser.value(cmd_option);
-    ret_opt->acc_name = parser.value(accname_option);
-    ret_opt->offset_x = parser.value(offsetx_option).toInt();
-    ret_opt->offset_y = parser.value(offsety_option).toInt();
-    ret_opt->offset_id = parser.value(offsetid_option).toInt();
-
-    return ret_opt;
 }
