@@ -39,6 +39,7 @@ private:
     QString readLine();
     void parseAssignment(QString line, AjCommand *cmd);
     void parseFunction(QString line, AjCommand *cmd);
+    QString parseString(QString arg);
     void printCmd(AjCommand *cmd);
     bool isAssignment(QString line);
     bool isFunction(QString line);

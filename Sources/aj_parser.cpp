@@ -4,6 +4,7 @@
 #include "aj_win_process.h"
 #include "aj_keyboard.h"
 #include <QDir>
+#include <QRegularExpression>
 
 AjParser::AjParser()
 {
@@ -199,18 +200,38 @@ bool AjParser::isAssignment(QString line)
 
 QString AjParser::getVal(QString arg)
 {
-    if( isString(arg)==0 )
+    if( isString(arg) )
     {
+        arg.remove(0, 1);
+        arg.chop(1);
+        return parseString(arg);
+    }
+    else
+    {
+        //remove double qoute from start and end
         if( isNumber(arg)==0 )
         {
             arg = vars.getVal(arg);
         }
     }
-    else if( arg.length() )
-    {
-        //remove double qoute from start and end
-        arg.remove(0, 1);
-        arg.chop(1);
-    }
     return arg;
+}
+
+QString AjParser::parseString(QString arg)
+{
+    QRegularExpression regex("\\$(\\d+)");
+    QRegularExpressionMatch match = regex.match(arg);
+    if( match.hasMatch() )
+    {
+        QString str_match = match.captured(1);
+        int number = str_match.toInt();
+        QString replace = "$" + str_match;
+
+        arg.replace(replace, vars.getArg(number));
+        return parseString(arg);
+    }
+    else
+    {
+        return arg;
+    }
 }

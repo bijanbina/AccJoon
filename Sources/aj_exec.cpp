@@ -2,16 +2,16 @@
 #include "aj_win_process.h"
 #include "aj_application.h"
 
-AjExec::AjExec(QString script_path)
+AjExec::AjExec(QString script_path, QStringList arguments)
 {
+    addArgs(arguments);
     tree_parser = new AjTreeParser(script_path);
     apps = tree_parser->parseApps();
     tree_parser->parseConditions(apps);
 //    tree_parser->printApps(apps);
 //    tree_parser->printConditions(apps);
-
-    acc = new AjExecAcc(&parser, &window);
-    uia = new AjExecUia(&parser, &window);
+    acc = new AjExecAcc(&parser, &application);
+    uia = new AjExecUia(&parser, &application);
 
     execApps();
 }
@@ -63,11 +63,11 @@ void AjExec::execApp(AjApp *app)
 
 void AjExec::updateApp(AjApp *app)
 {
-    window = getApplication(app->app_name, app->win_title);
-    if( window.exe_name=="" )
+    application = getApplication(app->app_name, app->win_title);
+    if( application.exe_name=="" )
     {
         qDebug() << "Error: exe file not found"
-             << window.exe_path;
+             << application.exe_path;
         exit(0);
     }
 }
@@ -79,7 +79,7 @@ void AjExec::exec(AjCommand *cmd)
 
 void AjExec::execNormal(AjCommand *cmd)
 {
-    if( window.hwnd==NULL )
+    if( application.hwnd==NULL )
     {
         qDebug() << "Warning: HWND is not set"
                  << "line:" << parser.line_number;
@@ -177,8 +177,11 @@ int AjExec::execOpen(AjCommand *cmd)
             qDebug() << "Error: workspace value is wrong";
         }
     }
-    launchApp(&window, args);
-
+    launchApp(&application, args);
+    /// FIXME: implement a function to wait for a HWND to show up
+    ///        and update application.hwnd and then uncomment line 89
+    ///        and test
+    aj_findWindowByPid(application.pid, &application);
     return AJ_CHECK_SUCCESS;
 }
 
@@ -200,7 +203,7 @@ void AjExec::execIsOpen(AjCommand *cmd)
 
 void AjExec::setFocus()
 {
-    if( window.hwnd==NULL )
+    if( application.hwnd==NULL )
     {
 //        app->hwnd = GetForegroundWindow();
 //        qDebug() << "Switching to active window";
@@ -210,12 +213,12 @@ void AjExec::setFocus()
             return;
 //        }
     }
-    SetForegroundWindow(window.hwnd);
+    SetForegroundWindow(application.hwnd);
     QThread::msleep(10);
 
     char buffer[256];
-    GetWindowTextA(window.hwnd, buffer, 256);
-    window.win_title = buffer;
+    GetWindowTextA(application.hwnd, buffer, 256);
+    application.win_title = buffer;
 }
 
 int AjExec::execClick(AjCommand *cmd)
@@ -245,12 +248,12 @@ int AjExec::execClick(AjCommand *cmd)
     }
 
     POINT obj_center;
-    obj_center = aj_accGetLocation(acc_cmd, window.hwnd, path);
+    obj_center = aj_accGetLocation(acc_cmd, application.hwnd, path);
 
     if( obj_center.x==0 && obj_center.y==0 )
     {
         qDebug() << "Error: cannot get location in window ("
-                 << window.win_title << ")";
+                 << application.win_title << ")";
         return -1;
     }
     qDebug() << "obj_center" << obj_center.x
@@ -319,4 +322,13 @@ void AjExec::execAssign(AjCommand *cmd, QString val)
     }
     qDebug() << "execAssign" << val;
     parser.vars.setVar(cmd->output, val);
+}
+
+void AjExec::addArgs(QStringList args)
+{
+    int len = args.size();
+    for( int i=0 ; i<len ; i++ )
+    {
+        parser.vars.setArg(i, args[i]);
+    }
 }

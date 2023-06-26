@@ -99,18 +99,6 @@ void AjTreeParser::checkApps(QVector<AjApp *> apps)
     }
 }
 
-void AjTreeParser::printApps(QVector<AjApp *> apps)
-{
-    int len = apps.length();
-    for( int i=0 ; i<len ; i++ )
-    {
-        qDebug() << "APP" << i << "-> "
-                 << apps[i]->app_name << apps[i]->win_title
-                 << "1st line" << apps[i]->start_line
-                 << "last line" << apps[i]->end_line;
-    }
-}
-
 void AjTreeParser::parseConditions(QVector<AjApp *> apps)
 {
     line_cntr = 0;
@@ -124,7 +112,7 @@ void AjTreeParser::parseConditions(QVector<AjApp *> apps)
 void AjTreeParser::parseConditions(AjApp *app)
 {
     line_cntr = app->start_line - 1;
-    while( line_cntr<line_size )
+    while( line_cntr<app->end_line )
     {
         line_cntr++;
         QString line = aj_getScLine(line_cntr);
@@ -244,6 +232,24 @@ int AjTreeParser::createElseIf(AjCondOpt *condition)
         line_cntr = condition->if_end + 1;
     }
     return 0;
+}
+
+void AjTreeParser::printApps(QVector<AjApp *> apps)
+{
+    int len = apps.length();
+    for( int i=0 ; i<len ; i++ )
+    {
+        qDebug() << "APP" << i << "-> "
+                 << apps[i]->app_name << apps[i]->win_title
+                 << "1st line" << apps[i]->start_line
+                 << "last line" << apps[i]->end_line;
+        int lines_size = apps[i]->lines.size();
+        for( int j=0 ; j<lines_size ; j++ )
+        {
+            qDebug() << "line[" + QString::number(j) + "]"
+                     << apps[i]->lines[j]->line;
+        }
+    }
 }
 
 //void AjTreeParser::printConditions(QVector<AjAppOpt *> apps)

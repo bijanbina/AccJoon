@@ -20,7 +20,8 @@
 class AjExec
 {
 public:
-    explicit AjExec(QString script_path);
+    explicit AjExec(QString script_path,
+                    QStringList arguments=QStringList());
 
     int condition_flag;
 
@@ -42,13 +43,14 @@ private:
 
     void setFocus();
     void printCondFlag();
+    void addArgs(QStringList args);
 
     QVector<AjApp *> apps;
     QString  conf_path;
     AjParser parser; // value stored in parser
     AjTreeParser *tree_parser;
     AjVirt   vi;
-    AjApplication  window;
+    AjApplication  application;
     AjExecAcc     *acc;
     AjExecUia     *uia;
 };
