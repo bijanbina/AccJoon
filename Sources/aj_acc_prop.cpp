@@ -97,7 +97,6 @@ POINT aj_accGetLocation(AjAccCmd cmd, HWND hwnd, QString path)
     }
 
     acc = aj_getAcc(path_split, win_pAcc);
-    qDebug() << "---------------------------------";
     if( acc==NULL )
     {
         qDebug() << "Error: cannot get acc in HWND (" << hwnd << ")";

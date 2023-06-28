@@ -27,9 +27,8 @@ public:
 
 private:
     void execApps();
-    void execApp(AjApp *app);
+    int  execApp(AjApp *app);
     void exec(AjCommand *cmd);
-    void execNormal(AjCommand *cmd);
     void updateApp(AjApp *app);
 
     int  execOpen (AjCommand *cmd);
@@ -41,7 +40,6 @@ private:
     void execAssign(AjCommand *cmd, QString val);
     void execWaitOpen(AjCommand *cmd);
 
-    void setFocus();
     void printCondFlag();
     void addArgs(QStringList args);
 

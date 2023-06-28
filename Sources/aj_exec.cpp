@@ -21,12 +21,14 @@ void AjExec::execApps()
     int len = apps.size();
     for( int i=0 ; i<len ; i++ )
     {
+        qDebug() << "---------------" << apps[i]->app_name
+                 << "---------------";
         updateApp(apps[i]);
         execApp(apps[i]);
     }
 }
 
-void AjExec::execApp(AjApp *app)
+int AjExec::execApp(AjApp *app)
 {
     int lines_size = app->lines.size();
     for( int i=0 ; i<lines_size ; i++ )
@@ -37,7 +39,8 @@ void AjExec::execApp(AjApp *app)
             AjCommand cmd = parser.parseLine(line);
             if( cmd.command==AJ_RET_CMD )
             {
-                return;
+                qDebug() << "execApp:return";
+                return 1;
             }
             exec(&cmd);
         }
@@ -52,13 +55,15 @@ void AjExec::execApp(AjApp *app)
                 fake_app.end_line = cond->if_end;
                 fake_app.lines.clear();
                 tree_parser->parseConditions(&fake_app);
-                execApp(&fake_app);
-            }
-            else
-            {
+                int ret = execApp(&fake_app);
+                if( ret )
+                {
+                    return 1;
+                }
             }
         }
     }
+    return 0;
 }
 
 void AjExec::updateApp(AjApp *app)
@@ -74,11 +79,6 @@ void AjExec::updateApp(AjApp *app)
 
 void AjExec::exec(AjCommand *cmd)
 {
-    execNormal(cmd);
-}
-
-void AjExec::execNormal(AjCommand *cmd)
-{
     if( application.hwnd==NULL )
     {
         qDebug() << "Warning: HWND is not set"
@@ -86,7 +86,7 @@ void AjExec::execNormal(AjCommand *cmd)
     }
     else
     {
-//        setFocus();
+        aj_setFocus(&application);
     }
 
     if( cmd->command==AJ_CLICK_CMD )
@@ -201,26 +201,6 @@ void AjExec::execIsOpen(AjCommand *cmd)
     execAssign(cmd, var);
 }
 
-void AjExec::setFocus()
-{
-    if( application.hwnd==NULL )
-    {
-//        app->hwnd = GetForegroundWindow();
-//        qDebug() << "Switching to active window";
-//        if( app.hwnd==NULL )
-//        {
-            qDebug() << "Error: cannot get foreground window handler";
-            return;
-//        }
-    }
-    SetForegroundWindow(application.hwnd);
-    QThread::msleep(10);
-
-    char buffer[256];
-    GetWindowTextA(application.hwnd, buffer, 256);
-    application.win_title = buffer;
-}
-
 int AjExec::execClick(AjCommand *cmd)
 {
     AjAccCmd acc_cmd;
@@ -256,8 +236,8 @@ int AjExec::execClick(AjCommand *cmd)
                  << application.win_title << ")";
         return -1;
     }
-    qDebug() << "obj_center" << obj_center.x
-             << obj_center.y << ")";
+//    qDebug() << "obj_center" << obj_center.x
+//             << obj_center.y;
 
     aj_mouseClick(obj_center, acc_cmd);
 
@@ -320,7 +300,8 @@ void AjExec::execAssign(AjCommand *cmd, QString val)
     {
         val = parser.vars.getVal(cmd->output) + val;
     }
-    qDebug() << "execAssign" << val;
+    qDebug() << "assign" << cmd->output
+             << "=" << val;
     parser.vars.setVar(cmd->output, val);
 }
 
