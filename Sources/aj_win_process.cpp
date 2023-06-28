@@ -18,7 +18,8 @@ int aj_isProcOpen(QString name)
             QString pname = aj_getPName(pid_list[i]);
             if( pname.toLower()==name.toLower() )
             {
-                qDebug() << pname << pid_list[i];
+                qDebug() << "aj_isProcOpen"
+                         << pname << pid_list[i];
                 return 1;
             }
         }

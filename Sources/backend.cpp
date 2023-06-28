@@ -10,7 +10,7 @@ void logMessage(QString msg)
 
     txt += QString("{Debug} \t\t %1").arg(msg);
 
-    QFile outFile("LogFile.log");
+    QFile outFile("accjoon.log");
     outFile.open(QIODevice::WriteOnly | QIODevice::Append);
 
     if( outFile.isOpen() )

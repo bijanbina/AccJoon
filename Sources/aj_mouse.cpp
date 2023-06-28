@@ -14,8 +14,6 @@ void aj_mouseClick(POINT obj_center, AjAccCmd cmd)
 //    aj_setMouse(obj_center.x + offset_x, obj_center.y + offset_y);
 
     QThread::msleep(AJ_MOUSE_DELAY);
-    qDebug() << "doClick offset_x" << cmd.offset_x << "offset_y"
-             << cmd.offset_y;
 
     if( cmd.action==AJ_CMD_LMB )
     {

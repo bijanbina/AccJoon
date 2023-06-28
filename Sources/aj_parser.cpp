@@ -35,16 +35,14 @@ AjCommand AjParser::parseLine(QString line)
 
 int AjParser::parseCondition(AjCondOpt *cond)
 {
-    qDebug() << "parseCondition1" << cond->if_cond;
     AjCommand cmd;
     QStringList args = aj_getCondition(cond->if_cond, &cmd);
-    qDebug() << "->" << args;
 
-    qDebug() << "parseCondition1.5" << cond->if_cond;
     for( int i=0 ; i<args.size() ; i++ )
     {
         args[i] = getVal(args[i]);
     }
+
     if( (cmd.command=="if_eq" &&
          args[0]==args[1]) ||
         (cmd.command=="if_ne" &&
@@ -52,11 +50,8 @@ int AjParser::parseCondition(AjCondOpt *cond)
     {
         return 1;
     }
-    else
-    {
-        return 0;
-    }
-    qDebug() << "parseCondition2";
+
+    return 0;
 }
 
 void AjParser::parseAssignment(QString line, AjCommand *cmd)

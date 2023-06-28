@@ -53,7 +53,7 @@ BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
         req_app->pid = pid_g;
         req_app->pname = aj_getPPath(pid_g);
         req_app->win_title = buffer;
-        qDebug() << "EnumWindowsPid" << hwnd << buffer << pid_g;
+//        qDebug() << "EnumWindowsPid" << hwnd << buffer << pid_g;
         return FALSE;
     }
     return TRUE;
@@ -197,4 +197,35 @@ HWND aj_getFocusedHWND(AjApplication *app)
     {
         return NULL;
     }
+}
+
+void aj_setFocus(AjApplication *app)
+{
+    // update window title
+    char buffer[256];
+    GetWindowTextA(app->hwnd, buffer, 256);
+    app->win_title = buffer;
+
+    DWORD cur_th; // current thread id
+    DWORD fg_th;  // foreground thread id
+    cur_th = GetCurrentThreadId();
+    fg_th  = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
+    AttachThreadInput(cur_th, fg_th, TRUE);
+
+    AllowSetForegroundWindow(ASFW_ANY);
+    LockSetForegroundWindow(LSFW_UNLOCK);
+    BringWindowToTop(app->hwnd);
+    SetForegroundWindow(app->hwnd);
+    SetActiveWindow(app->hwnd);
+
+    // If window is minimzed
+    if( IsIconic(app->hwnd) )
+    {
+        ShowWindow(app->hwnd, SW_RESTORE);
+    }
+
+    AttachThreadInput(cur_th, fg_th, FALSE);
+
+    // wait for the focus to change before executing next command
+    QThread::msleep(10);
 }
