@@ -7,7 +7,7 @@
 #include "aj_var.h"
 #include "aj_client.h"
 #include "aj_dllgen.h"
-#include "aj_exec.h"
+#include "aj_chapar.h"
 
 #define DEBUG_SLEEP 5000
 //set PATH=%PATH%;C:\Qt\Qt5.12.10\5.12.10\mingw73_32\bin
@@ -42,15 +42,20 @@ int main(int argc, char *argv[])
         {
             arguments << argv[i];
         }
-        AjExec exec(argv[1], arguments);
+        AjChapar chapar(argv[1], arguments);
+        if( chapar.hasNamedPipe() )
+        {
+            return app.exec();
+        }
     }
     else
     {
         QStringList conf_list = aj_getConfList();
 //        qDebug() << conf_list;
-        for( int i=0; i<conf_list.size(); i++)
+        AjChapar chapar(conf_list);
+        if( chapar.hasNamedPipe() )
         {
-            AjExec exec(conf_list[i]);
+            return app.exec();
         }
     }
     /*else if( opt->is_remote )

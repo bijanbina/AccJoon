@@ -2,21 +2,15 @@
 #include "aj_win_process.h"
 #include "aj_application.h"
 
-AjExec::AjExec(QString script_path, QStringList arguments)
+AjExec::AjExec(AjTreeParser *tp, QStringList arguments)
 {
+    tree_parser = tp;
     addArgs(arguments);
-    tree_parser = new AjTreeParser(script_path);
-    apps = tree_parser->parseApps();
-    tree_parser->parseConditions(apps);
-//    tree_parser->printApps(apps);
-//    tree_parser->printConditions(apps);
     acc = new AjExecAcc(&parser, &application);
     uia = new AjExecUia(&parser, &application);
-
-    execApps();
 }
 
-void AjExec::execApps()
+void AjExec::execApps(QVector<AjApp *> apps)
 {
     int len = apps.size();
     for( int i=0 ; i<len ; i++ )
@@ -81,8 +75,8 @@ void AjExec::exec(AjCommand *cmd)
 {
     if( application.hwnd==NULL )
     {
-        qDebug() << "Warning: HWND is not set"
-                 << "line:" << parser.line_number;
+        qDebug() << "Warning: HWND is not set, line:"
+                 << parser.line_number;
     }
     else
     {
