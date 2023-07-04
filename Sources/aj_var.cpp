@@ -43,8 +43,9 @@ void AjVar::setArg(int id, QString val)
 
 QString AjVar::getArg(int id)
 {
+    id--; // args start from 1 -> $1 $2 ...
     int len = args.length();
-    if( id<len )
+    if( id<len && id>=0 )
     {
         return args[id];
     }

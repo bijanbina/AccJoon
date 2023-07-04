@@ -10,13 +10,15 @@ class AjTreeParser
 public:
     AjTreeParser(QString path);
     QVector<AjApp *> parseApps();
+    QVector<AjApp *> parseNpipes();
     void parseConditions(QVector<AjApp *> apps);
     void printApps(QVector<AjApp *> apps);
     void printConditions(QVector<AjApp *> apps);
     void parseConditions(AjApp *shortcut);
 
 private:
-
+    void skipToNext();
+    QVector<AjApp *> parseObject(QString obj_name);
     AjApp* createApp(QString line);
     QStringList extractShortcutArgs(QString line);
     void checkApps(QVector<AjApp *> apps);

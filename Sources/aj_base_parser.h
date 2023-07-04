@@ -5,6 +5,7 @@
 #include "aj_var.h"
 
 #define AJ_APP_CMD      "app"
+#define AJ_NP_CMD       "np"
 #define AJ_ISOPEN_CMD   "isOpen"
 #define AJ_OPEN_CMD     "open"
 #define AJ_SLEEP_CMD    "sleep"

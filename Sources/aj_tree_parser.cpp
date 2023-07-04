@@ -5,13 +5,23 @@ AjTreeParser::AjTreeParser(QString path)
 {
     sc_path = path;
     aj_openScript(sc_path);
-    line_cntr = 0;
     line_size = aj_getScLineSize();
 }
 
 QVector<AjApp *> AjTreeParser::parseApps()
 {
-    QVector<AjApp *> apps;
+    return parseObject(AJ_APP_CMD);
+}
+
+QVector<AjApp *> AjTreeParser::parseNpipes()
+{
+    return parseObject(AJ_NP_CMD);
+}
+
+QVector<AjApp *> AjTreeParser::parseObject(QString obj_name)
+{
+    line_cntr = 0;
+    QVector<AjApp *> objs;
     while( line_cntr<line_size )
     {
         line_cntr++;
@@ -24,17 +34,21 @@ QVector<AjApp *> AjTreeParser::parseApps()
         else if( aj_isFunction(line) )
         {
             QString command = aj_getCommand(line);
-            if( command==AJ_APP_CMD )
+            if( command==obj_name )
             {
-                AjApp *app = createApp(line);
-                if( app!=NULL )
+                AjApp *obj = createApp(line);
+                if( obj!=NULL )
                 {
-                    apps.push_back(app);
+                    objs.push_back(obj);
                 }
                 else
                 {
-                    return apps;
+                    return objs;
                 }
+            }
+            else
+            {
+                skipToNext();
             }
         }
         else
@@ -42,12 +56,12 @@ QVector<AjApp *> AjTreeParser::parseApps()
             qDebug() << "Error in line" << line_cntr
                      << "of file" << sc_path
                      << "content:" << line;
-            apps.clear();
-            return apps;
+            objs.clear();
+            return objs;
         }
     }
-    checkApps(apps);
-    return apps;
+    checkApps(objs);
+    return objs;
 }
 
 AjApp* AjTreeParser::createApp(QString line)
@@ -64,7 +78,7 @@ AjApp* AjTreeParser::createApp(QString line)
     app->app_name = app_args[0].remove("\"");
     if( app_args.size()>1 )
     {
-        app->win_title = app_args[1];
+        app->win_title = app_args[1].remove("\"");
     }
 
     // next line after curly, supposed curly is next line of app(..)
@@ -81,6 +95,22 @@ AjApp* AjTreeParser::createApp(QString line)
     // app code block ends at the line before closed curly
     app->end_line = end_index - 1;
     return app;
+}
+
+void AjTreeParser::skipToNext()
+{
+    line_cntr++;
+    QString line = aj_getScLine(line_cntr);
+    if( line.trimmed()=="{" )
+    {
+        int end_index = aj_findEnd(line_cntr+1);
+        line_cntr = end_index;
+    }
+    else
+    {
+        qDebug() << "Error 188: Cannot parse script in line"
+                 << line_cntr-1;
+    }
 }
 
 // remove buggy apps
