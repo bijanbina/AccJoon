@@ -45,6 +45,8 @@ SOURCES += \
         Sources/aj_acc_prop.cpp \
         Sources/aj_application.cpp \
         Sources/aj_base_parser.cpp \
+        Sources/aj_channel.cpp \
+        Sources/aj_chapar.cpp \
         Sources/aj_client.cpp \
         Sources/aj_dllgen.cpp \
         Sources/aj_exec.cpp \
@@ -69,6 +71,8 @@ HEADERS += \
     Sources/aj_acc_prop.h \
     Sources/aj_application.h \
     Sources/aj_base_parser.h \
+    Sources/aj_channel.h \
+    Sources/aj_chapar.h \
     Sources/aj_client.h \
     Sources/aj_dllgen.h \
     Sources/aj_exec.h \
