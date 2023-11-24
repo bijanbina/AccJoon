@@ -30,16 +30,6 @@ win32:LIBS += -L../Benjamin/PNN/libs \
               -lPsapi \
               -llua54
 
-win32-gcc*
-{
-    win32:LIBS += -llua54
-}
-
-win32-msvc*
-{
-    win32:LIBS += -L"lua54.dll"
-}
-
 SOURCES += \
         Sources/aj_acc.cpp \
         Sources/aj_acc_prop.cpp \
@@ -64,7 +54,8 @@ SOURCES += \
         Sources/aj_win32.cpp \
         Sources/aj_win_process.cpp \
         Sources/backend.cpp \
-        Sources/main.cpp
+        Sources/main.cpp \
+        Sources/mm_win32_guid.cpp
 
 HEADERS += \
     Sources/aj_acc.h \
@@ -90,6 +81,7 @@ HEADERS += \
     Sources/aj_win32.h \
     Sources/aj_win_process.h \
     Sources/backend.h \
+    Sources/mm_win32_guid.h \
     Sources/uia_client.h \
     Sources/uia_core.h \
     Sources/uia_element.h \
