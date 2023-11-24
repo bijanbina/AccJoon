@@ -38,7 +38,7 @@ int AjExec::execApp(AjApp *app)
             }
             exec(&cmd);
         }
-        else
+        else // conditions
         {
             AjCondOpt *cond = app->lines[i]->cond;
             int cond_result = parser.parseCondition(cond);

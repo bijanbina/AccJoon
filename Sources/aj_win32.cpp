@@ -44,6 +44,10 @@ BOOL CALLBACK EnumWindowsPid(HWND hwnd, LPARAM lParam)
     {
         char buffer[128];
         GetWindowTextA(hwnd, buffer, 128);
+        if( IsWindowVisible(hwnd)==0 || strlen(buffer)==0 )
+        {
+            return TRUE;
+        }
         if( req_app==NULL )
         {
             qDebug() << "Error 199: application is null";
