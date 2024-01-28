@@ -46,6 +46,7 @@ SOURCES += \
         Sources/aj_lua.cpp \
         Sources/aj_mouse.cpp \
         Sources/aj_parser.cpp \
+        Sources/aj_scheduler.cpp \
         Sources/aj_tree_parser.cpp \
         Sources/aj_uia.cpp \
         Sources/aj_uia_prop.cpp \
@@ -73,6 +74,7 @@ HEADERS += \
     Sources/aj_lua.h \
     Sources/aj_mouse.h \
     Sources/aj_parser.h \
+    Sources/aj_scheduler.h \
     Sources/aj_tree_parser.h \
     Sources/aj_uia.h \
     Sources/aj_uia_prop.h \

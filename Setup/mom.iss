@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Mom"
-#define MyAppVersion "0.3"
+#define MyAppVersion "0.4"
 #define MyAppPublisher "Bijoo"
 #define MyAppURL "https://www.binaee.com/"
 #define MyAppExeName "AccJoon.exe"
@@ -21,6 +21,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
+ArchitecturesInstallIn64BitMode=x64
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=.
@@ -44,7 +45,7 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; \
 AfterInstall: SetElevationBit('{group}\{#MyAppName}.lnk')
 
 [Run]
-Filename: "SCHTASKS"; Parameters: "/Create /TN ""Mom Auto Start Task setup"" /F /SC ONLOGON /TR ""{app}\{#MyAppExeName}"" /RL HIGHEST";
+Filename: "{app}\{#MyAppExeName}"; Parameters: "-ct";
 
 [Code]
 procedure SetElevationBit(Filename: string);

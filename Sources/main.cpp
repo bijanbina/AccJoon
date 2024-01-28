@@ -8,6 +8,7 @@
 #include "aj_client.h"
 #include "aj_dllgen.h"
 #include "aj_chapar.h"
+#include "aj_scheduler.h"
 
 #define DEBUG_SLEEP 5000
 //set PATH=%PATH%;C:\Qt\Qt5.12.10\5.12.10\mingw73_32\bin
@@ -34,10 +35,14 @@ int main(int argc, char *argv[])
     setCurrentDir();
     aj_dllGen();
 
-
     if( argc>1 )
     {
         QStringList arguments;
+        if( QString(argv[1])=="-ct" )
+        {
+            aj_createTsk("Mom Auto Start");
+            return 0;
+        }
         for( int i=2 ; i<argc ; i++ )
         {
             arguments << argv[i];
