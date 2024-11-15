@@ -1,9 +1,10 @@
-#include "aj_virt.h"
+#include "mm_virt.h"
 #include <initguid.h>
 #include <windows.h>
 #include <QDebug>
 #include <QThread>
 #include "mm_win32_guid.h"
+#include "aj_keyboard.h"
 
 AjVirt::AjVirt(QObject *parent): QObject(parent)
 {
@@ -155,14 +156,7 @@ int AjVirt::isCurrentActive()
 
 void AjVirt::setFocus()
 {
-    QThread::msleep(100);
 
-    if( isCurrentActive()==0 )
-    {
-        pressKey(VK_LMENU); //ALT
-        sendKey(VK_TAB);
-        releaseKey(VK_LMENU);
-    }
 }
 
 int AjVirt::getCurrDesktop()
@@ -214,34 +208,4 @@ GUID AjVirt::getCurrDesktopGuid()
         currDesktop->Release();
     }
     return curr_desktop_GUID;
-}
-
-
-void AjVirt::sendKey(int key_val)
-{
-    pressKey(key_val);
-    releaseKey(key_val);
-}
-
-void AjVirt::pressKey(int key_val)
-{
-    INPUT input;
-    ZeroMemory(&input, sizeof(input));
-
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = key_val;
-
-    SendInput(1, &input, sizeof(INPUT));
-}
-
-void AjVirt::releaseKey(int key_val)
-{
-    INPUT input;
-    ZeroMemory(&input, sizeof(input));
-
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = key_val;
-    input.ki.dwFlags = KEYEVENTF_KEYUP;
-
-    SendInput(1, &input, sizeof(INPUT));
 }

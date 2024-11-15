@@ -7,6 +7,7 @@
 #include <psapi.h>
 #include <QString>
 
-int aj_isProcOpen(QString name);
+int  aj_isProcOpen(QString name);
+void aj_waitOpen(QString p_name);
 
 #endif // AJ_WIN_PROCESS_H

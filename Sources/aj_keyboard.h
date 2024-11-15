@@ -68,18 +68,18 @@ class AjKeyboard
 {
 public:
     AjKeyboard();
-    ~AjKeyboard();
 
-    void sendKey(int key_val);
-    void pressKey(int key_val);
-    void releaseKey(int key_val);
-    void execKey(AjKey *key);
+    static void init();
+    static void sendKey(int key_val);
+    static void pressKey(int key_val);
+    static void releaseKey(int key_val);
+    static void execKey(AjKey *key);
 
 private:
-    bool isExtended(int key_val);
+    static bool isExtended(int key_val);
 
-    QVector<int> extended_keys;
-    int uinput_f;
+    static QVector<int> extended_keys;
+    static int uinput_f;
 };
 
 AjKey aj_getKey(QString key);

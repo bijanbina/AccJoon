@@ -2,7 +2,14 @@
 #include <QDebug>
 #include <QThread>
 
+QVector<int> AjKeyboard::extended_keys;
+
 AjKeyboard::AjKeyboard()
+{
+    ;
+}
+
+void AjKeyboard::init()
 {
     extended_keys << VK_INSERT;
     extended_keys << VK_DELETE;
@@ -14,11 +21,6 @@ AjKeyboard::AjKeyboard()
     extended_keys << VK_UP;
     extended_keys << VK_DOWN;
     extended_keys << VK_RIGHT;
-}
-
-AjKeyboard::~AjKeyboard()
-{
-
 }
 
 void AjKeyboard::sendKey(int key_val)

@@ -1,7 +1,7 @@
 #include "aj_win_process.h"
 #include "aj_win32.h"
 
-int aj_isProcOpen(QString name)
+int  aj_isProcOpen(QString name)
 {
     DWORD pid_list[1024], byte_len;
 
@@ -26,4 +26,16 @@ int aj_isProcOpen(QString name)
     }
 
     return 0;
+}
+
+void aj_waitOpen(QString p_name)
+{
+    while( 1 )
+    {
+        QThread::msleep(10);
+        if( aj_isProcOpen(p_name) )
+        {
+            break;
+        }
+    }
 }

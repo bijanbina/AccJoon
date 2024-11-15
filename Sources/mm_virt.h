@@ -211,10 +211,6 @@ public:
     int last_desktop;
     int current_desktop;
 
-    void sendKey(int key_val);
-    void pressKey(int key_val);
-    void releaseKey(int key_val);
-
 public slots:
     void setDesktop(int id);
 
