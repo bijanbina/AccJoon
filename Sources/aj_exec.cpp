@@ -8,6 +8,7 @@ AjExec::AjExec(AjTreeParser *tp, QStringList arguments)
     addArgs(arguments);
     acc = new AjExecAcc(&parser, &application);
     uia = new AjExecUia(&parser, &application);
+    AjKeyboard::init();
 }
 
 void AjExec::execApps(QVector<AjApp *> apps)
@@ -113,7 +114,13 @@ void AjExec::exec(AjCommand *cmd)
     }
     else if( cmd->command==AJ_W8OPEN_CMD )
     {
-        execWaitOpen(cmd);
+        if( cmd->args.size()==0 )
+        {
+            qDebug() << "WaitOpen not correct argument size";
+            exit(0);
+        }
+        QString p_name = cmd->args[0];
+        aj_waitOpen(p_name);
     }
     else if( cmd->command=="assign" )
     {
@@ -130,24 +137,6 @@ void AjExec::exec(AjCommand *cmd)
     else
     {
         qDebug() << "Error 133: unknown command" << cmd->command;
-    }
-}
-
-void AjExec::execWaitOpen(AjCommand *cmd)
-{
-    if( cmd->args.size()==0 )
-    {
-        qDebug() << "WaitOpen not correct argument size";
-        exit(0);
-    }
-    QString waited_process = cmd->args[0];
-    while( 1 )
-    {
-        QThread::msleep(10);
-        if( aj_isProcOpen(waited_process) )
-        {
-            break;
-        }
     }
 }
 
@@ -240,9 +229,8 @@ int AjExec::execClick(AjCommand *cmd)
 
 int AjExec::execKey(AjCommand *cmd)
 {
-    AjKeyboard keyboard;
     AjKey key = aj_getKey(cmd->args[0]);
-    keyboard.execKey(&key);
+    AjKeyboard::execKey(&key);
 
     return 0;
 }

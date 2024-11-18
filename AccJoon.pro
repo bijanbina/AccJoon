@@ -51,11 +51,11 @@ SOURCES += \
         Sources/aj_uia.cpp \
         Sources/aj_uia_prop.cpp \
         Sources/aj_var.cpp \
-        Sources/aj_virt.cpp \
         Sources/aj_win32.cpp \
         Sources/aj_win_process.cpp \
         Sources/backend.cpp \
         Sources/main.cpp \
+        Sources/mm_virt.cpp \
         Sources/mm_win32_guid.cpp
 
 HEADERS += \
@@ -79,10 +79,10 @@ HEADERS += \
     Sources/aj_uia.h \
     Sources/aj_uia_prop.h \
     Sources/aj_var.h \
-    Sources/aj_virt.h \
     Sources/aj_win32.h \
     Sources/aj_win_process.h \
     Sources/backend.h \
+    Sources/mm_virt.h \
     Sources/mm_win32_guid.h \
     Sources/uia_client.h \
     Sources/uia_core.h \

@@ -3,7 +3,7 @@
 
 #include "aj_keyboard.h"
 #include "aj_parser.h"
-#include "aj_virt.h"
+#include "mm_virt.h"
 #include "aj_exec_acc.h"
 #include "aj_uia.h"
 #include "aj_exec_uia.h"
@@ -39,7 +39,6 @@ private:
     void execLua(AjCommand *cmd);
     void execSleep(AjCommand *cmd);
     void execAssign(AjCommand *cmd, QString val);
-    void execWaitOpen(AjCommand *cmd);
 
     void printCondFlag();
     void addArgs(QStringList args);

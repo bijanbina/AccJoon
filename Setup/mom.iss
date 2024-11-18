@@ -32,6 +32,7 @@ WizardStyle=modern
 
 DisableWelcomePage=yes
 DisableReadyPage=yes
+DisableFinishedPage=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
