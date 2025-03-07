@@ -22,7 +22,7 @@ typedef struct AjApplication
     QString pname;
     int workspace;
     HWND hwnd;
-}AjApplication;;
+}AjApplication;
 
 long aj_getPid(HWND hWnd);
 QString aj_getPName(long pid);

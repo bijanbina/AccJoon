@@ -162,8 +162,8 @@ int AjExec::execOpen(AjCommand *cmd)
     }
     launchApp(&application, args);
     /// FIXME: implement a function to wait for a HWND to show up
-    ///        and update application.hwnd and then uncomment line 89
-    ///        and test
+    ///        and update application.hwnd and then uncomment line
+    ///        89 and test
     aj_findWindowByPid(application.pid, &application);
     return AJ_CHECK_SUCCESS;
 }

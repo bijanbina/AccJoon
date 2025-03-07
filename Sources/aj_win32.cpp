@@ -186,6 +186,7 @@ QString aj_getWinTitle(HWND hwnd)
     QString ret = buffer;
     return ret;
 }
+
 //return focused HWND if it match exe_name
 HWND aj_getFocusedHWND(AjApplication *app)
 {
